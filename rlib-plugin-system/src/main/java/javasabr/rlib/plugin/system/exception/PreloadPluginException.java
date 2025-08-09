@@ -1,4 +1,4 @@
-package javasabr.rlib.common.plugin.exception;
+package javasabr.rlib.plugin.system.exception;
 
 import java.nio.file.Path;
 import org.jspecify.annotations.NullMarked;

@@ -1,14 +1,10 @@
-package javasabr.rlib.common.plugin.impl;
+package javasabr.rlib.plugin.system.impl;
 
-import javasabr.rlib.common.plugin.ConfigurablePluginSystem;
-import org.jspecify.annotations.NullMarked;
+import javasabr.rlib.plugin.system.ConfigurablePluginSystem;
 
 /**
- * The factory of different plugin systems.
- *
  * @author JavaSaBr
  */
-@NullMarked
 public class PluginSystemFactory {
 
   public static ConfigurablePluginSystem newBasePluginSystem() {

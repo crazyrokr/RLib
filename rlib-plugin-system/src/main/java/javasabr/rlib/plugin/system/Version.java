@@ -1,17 +1,13 @@
-package javasabr.rlib.common.plugin;
+package javasabr.rlib.plugin.system;
 
 import static java.lang.Math.min;
 
 import java.util.stream.Stream;
 import javasabr.rlib.common.util.ArrayUtils;
-import org.jspecify.annotations.NullMarked;
 
 /**
- * The class to present a version.
- *
  * @author JavaSaBr
  */
-@NullMarked
 public class Version implements Comparable<Version> {
 
   /**

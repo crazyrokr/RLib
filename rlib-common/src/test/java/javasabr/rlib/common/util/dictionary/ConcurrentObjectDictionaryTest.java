@@ -97,7 +97,7 @@ public class ConcurrentObjectDictionaryTest extends BaseTest {
       dic.put("3", 3);
     });
 
-    Integer val1 = dictionary.getInReadLock(
+    Integer val1 = dictionary.getFromReadLock(
         "1", (dic, arg) -> {
           assertType(dic, ConcurrentObjectDictionary.class);
           assertType(arg, String.class);

@@ -2,14 +2,6 @@ package javasabr.rlib.common.function;
 
 import org.jspecify.annotations.NullUnmarked;
 
-/**
- * The function.
- *
- * @param <F> the type parameter
- * @param <S> the type parameter
- * @param <T> the type parameter
- * @author JavaSaBr
- */
 @NullUnmarked
 @FunctionalInterface
 public interface TriplePredicate<F, S, T> {
