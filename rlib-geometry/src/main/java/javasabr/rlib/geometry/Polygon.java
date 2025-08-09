@@ -1,36 +1,29 @@
-package javasabr.rlib.common.geom;
+package javasabr.rlib.geometry;
 
 import static javasabr.rlib.common.util.array.ArrayFactory.toArray;
 
 import java.util.Arrays;
-import org.jspecify.annotations.NullMarked;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Geometry 3D polygon.
- *
  * @author zcxv
  */
-@NullMarked
+@Getter
+@Accessors(fluent = true)
+@FieldDefaults(level = AccessLevel.PROTECTED)
 public class Polygon {
 
   private final static float EPSILON_ON_PLANE = 0.1f;
   private final static float EPSILON_CWW = 0.01f;
 
-  /**
-   * The polygon vertices.
-   */
-  private final Vector3f[] vertices;
+  final Vector3f[] vertices;
+  final Plane plane;
 
-  /**
-   * The polygon plane.
-   */
-  private final Plane plane;
-
-  /**
-   * Custom flags.
-   */
-  private int flags;
+  int flags;
 
   /**
    * Construct polygon from the vertices.
@@ -59,7 +52,7 @@ public class Polygon {
 
     this.vertices = vertices;
 
-    var normal = buffer.nextVector();
+    var normal = buffer.next();
 
     for (int i = 2; i < vertices.length; i++) {
       var ab = buffer
@@ -71,7 +64,7 @@ public class Polygon {
       normal.addLocal(ab.crossLocal(ac));
     }
 
-    this.plane = new Plane(getPlanePoint(), normal.normalizeLocal());
+    this.plane = new Plane(planePoint(), normal.normalizeLocal());
   }
 
   /**
@@ -91,14 +84,6 @@ public class Polygon {
     this(toArray(first, second, third), buffer);
   }
 
-  /**
-   * Construct polygon from the 3 vertices.
-   *
-   * @param first the first vertex.
-   * @param second the second vertex.
-   * @param third the third vertex.
-   * @see Polygon#Polygon(Vector3f[])
-   */
   public Polygon(Vector3f first, Vector3f second, Vector3f third) {
     this(toArray(first, second, third), Vector3fBuffer.NO_REUSE);
   }
@@ -108,103 +93,38 @@ public class Polygon {
    *
    * @return the plane point.
    */
-  public Vector3f getPlanePoint() {
+  public Vector3f planePoint() {
     return vertices[0];
   }
 
-  /**
-   * Return polygon vertices.
-   *
-   * @return vertices
-   */
-  public Vector3f[] getVertices() {
-    return vertices;
-  }
-
-  /**
-   * Return polygon plane.
-   *
-   * @return plane
-   */
-  public Plane getPlane() {
-    return plane;
-  }
-
-  /**
-   * Return polygon custom flags.<br> By default it is zero.
-   *
-   * @return flags
-   */
-  public int getFlags() {
-    return flags;
-  }
-
-  /**
-   * Set polygon custom flags.
-   *
-   * @param flags flags
-   */
-  public void setFlags(int flags) {
+  public void flags(int flags) {
     this.flags = flags;
   }
 
-  /**
-   * Toggle flag bit.
-   *
-   * @param flag flag
-   * @return flag status
-   */
   public boolean toggleFlag(int flag) {
     flags ^= flag;
     return isFlagSet(flag);
   }
 
-  /**
-   * Return flag status.
-   *
-   * @param flag
-   * @return true if flag is set
-   */
   public boolean isFlagSet(int flag) {
     return (flags & flag) != 0;
   }
 
-  /**
-   * Set flag bit.
-   *
-   * @param flag
-   */
   public void setFlag(int flag) {
     flags |= flag;
   }
 
-  /**
-   * Unset flag bit.
-   *
-   * @param flag flag
-   */
   public void unsetFlag(int flag) {
     flags &= ~flag;
   }
 
-  /**
-   * Return mid-point of this polygon.
-   *
-   * @return mid-point
-   */
-  public Vector3f getMidPoint() {
-    return getMidPoint(Vector3fBuffer.NO_REUSE);
+  public Vector3f calculateMidPoint() {
+    return calculateMidPoint(Vector3fBuffer.NO_REUSE);
   }
 
-  /**
-   * Return mid-point of this polygon.
-   *
-   * @param buffer vector's buffer
-   * @return mid-point
-   */
-  public Vector3f getMidPoint(Vector3fBuffer buffer) {
+  public Vector3f calculateMidPoint(Vector3fBuffer buffer) {
 
-    var point = buffer.nextVector();
+    var point = buffer.next();
 
     for (var vertice : vertices) {
       point.addLocal(vertice);
@@ -213,25 +133,14 @@ public class Polygon {
     return point.divideLocal(vertices.length);
   }
 
-  /**
-   * Check polygon vertices to coplanar.
-   *
-   * @return true if polygon vertices is coplanar
-   */
-  public boolean isCoplanar() {
-    return isCoplanar(Vector3fBuffer.NO_REUSE);
+  public boolean calculateIsCoplanar() {
+    return calculateIsCoplanar(Vector3fBuffer.NO_REUSE);
   }
 
-  /**
-   * Check polygon vertices to coplanar.
-   *
-   * @param buffer vector's buffer
-   * @return true if polygon vertices is coplanar
-   */
-  public boolean isCoplanar(Vector3fBuffer buffer) {
+  public boolean calculateIsCoplanar(Vector3fBuffer buffer) {
 
     for (var vertice : vertices) {
-      if (!isOnPlane(vertice, buffer)) {
+      if (!isOnPlane(vertice)) {
         return false;
       }
     }
@@ -239,24 +148,7 @@ public class Polygon {
     return true;
   }
 
-  /**
-   * Determines if point on polygon plane.
-   *
-   * @param point point
-   * @return true if point on plane
-   */
   public boolean isOnPlane(Vector3f point) {
-    return isOnPlane(point, Vector3fBuffer.NO_REUSE);
-  }
-
-  /**
-   * Determines if point on polygon plane.
-   *
-   * @param point point
-   * @param buffer vector's buffer
-   * @return true if point on plane
-   */
-  public boolean isOnPlane(Vector3f point, Vector3fBuffer buffer) {
     var distance = plane.distance(point);
     return distance > -EPSILON_ON_PLANE && distance < EPSILON_ON_PLANE;
   }
@@ -377,13 +269,10 @@ public class Polygon {
     ab.crossLocal(ac);
 
     return plane
-        .getNormal()
+        .normal()
         .dot(ab) > EPSILON_CWW;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public String toString() {
     return "Polygon{vertices=" + Arrays.toString(vertices) + ", plane=" + plane + ", flags=" + flags + "}";

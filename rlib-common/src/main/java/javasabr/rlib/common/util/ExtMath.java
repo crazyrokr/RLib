@@ -1,6 +1,5 @@
 package javasabr.rlib.common.util;
 
-import javasabr.rlib.common.geom.Vector3f;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -346,21 +345,6 @@ public final class ExtMath {
     return (1.f - time) * min + time * max;
   }
 
-  /**
-   * Return true if these vectors are equals.
-   *
-   * @param first the first vector.
-   * @param second the second vector.
-   * @param epsilon the epsilon.
-   * @return true if these vectors are equals.
-   */
-  public boolean isEquals(@Nullable Vector3f first, @Nullable Vector3f second, float epsilon) {
-    if (first == null || second == null) {
-      return false;
-    } else {
-      return first.equals(second, epsilon);
-    }
-  }
 
   private ExtMath() {
     throw new RuntimeException();

@@ -1,4 +1,4 @@
-package javasabr.rlib.common.geom;
+package javasabr.rlib.geometry;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

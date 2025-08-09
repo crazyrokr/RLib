@@ -3,8 +3,6 @@ package javasabr.rlib.common.util;
 import static java.lang.Float.parseFloat;
 import static javasabr.rlib.common.util.ObjectUtils.notNull;
 
-import javasabr.rlib.common.geom.Quaternion4f;
-import javasabr.rlib.common.geom.Vector3f;
 import javasabr.rlib.common.util.dictionary.DictionaryFactory;
 import javasabr.rlib.common.util.dictionary.ObjectDictionary;
 import org.jspecify.annotations.NullMarked;
@@ -977,59 +975,6 @@ public class VarTable {
   }
 
   /**
-   * Get a rotation by the key.
-   *
-   * @param key the key.
-   * @return the rotation.
-   */
-  public Quaternion4f getRotation(final String key) {
-
-    var object = values.get(key);
-
-    if (object == null) {
-      throw new IllegalArgumentException("Not found " + key);
-    } else if (object instanceof Quaternion4f) {
-      return (Quaternion4f) object;
-    } else if (object instanceof String) {
-      return parseRotation((String) object);
-    }
-
-    throw new IllegalArgumentException("Not found " + key);
-  }
-
-  private Quaternion4f parseRotation(String object) {
-
-    var values = object.split(",");
-
-    var rotation = new Quaternion4f();
-    rotation.setXYZW(parseFloat(values[0]), parseFloat(values[1]), parseFloat(values[2]), parseFloat(values[3]));
-
-    return rotation;
-  }
-
-  /**
-   * Get a rotation by the key.
-   *
-   * @param key the key.
-   * @param def the default value.
-   * @return the rotation.
-   */
-  public Quaternion4f getRotation(final String key, final Quaternion4f def) {
-
-    final Object object = values.get(key);
-
-    if (object == null) {
-      throw new IllegalArgumentException("Not found " + key);
-    } else if (object instanceof Quaternion4f) {
-      return (Quaternion4f) object;
-    } else if (object instanceof String) {
-      return parseRotation((String) object);
-    }
-
-    return def;
-  }
-
-  /**
    * Get a short value by the key.
    *
    * @param key the key.
@@ -1251,54 +1196,6 @@ public class VarTable {
    */
   public ObjectDictionary<String, Object> getValues() {
     return values;
-  }
-
-  /**
-   * Get a vector by the key.
-   *
-   * @param key the key.
-   * @return the vector.
-   */
-  public Vector3f getVector(String key) {
-
-    Object object = values.get(key);
-
-    if (object == null) {
-      throw new IllegalArgumentException("Not found " + key);
-    } else if (object instanceof Vector3f) {
-      return (Vector3f) object;
-    } else if (object instanceof String) {
-      return parseVector((String) object);
-    }
-
-    throw new IllegalArgumentException("Not found " + key);
-  }
-
-  private Vector3f parseVector(String object) {
-    String[] values = object.split(",");
-    return new Vector3f(parseFloat(values[0]), parseFloat(values[1]), parseFloat(values[2]));
-  }
-
-  /**
-   * Get a vector by the key.
-   *
-   * @param key the key.
-   * @param def the default vector.
-   * @return the vector.
-   */
-  public Vector3f getVector(final String key, final Vector3f def) {
-
-    final Object object = values.get(key);
-
-    if (object == null) {
-      return def;
-    } else if (object instanceof Vector3f) {
-      return (Vector3f) object;
-    } else if (object instanceof String) {
-      return parseVector((String) object);
-    }
-
-    return def;
   }
 
   /**

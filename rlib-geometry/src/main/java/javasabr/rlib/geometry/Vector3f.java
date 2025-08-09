@@ -1,18 +1,25 @@
-package javasabr.rlib.common.geom;
+package javasabr.rlib.geometry;
 
 import static java.lang.Float.floatToIntBits;
 import static java.lang.Float.isFinite;
 
 import javasabr.rlib.common.util.ExtMath;
-import org.jspecify.annotations.NullMarked;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The implementation of vector with 3 float values.
- *
  * @author JavaSaBr
  */
-@NullMarked
+@Setter
+@Getter
+@AllArgsConstructor
+@Accessors(fluent = true)
+@FieldDefaults(level = AccessLevel.PROTECTED)
 public final class Vector3f implements Cloneable {
 
   public final static Vector3f ZERO = new Vector3f(0, 0, 0);
@@ -40,20 +47,13 @@ public final class Vector3f implements Cloneable {
 
   /**
    * Return true if the vector is not null and valid.
-   *
-   * @param vector the vector.
-   * @return true if the vector is not null and valid.
    */
   public static boolean isValid(@Nullable Vector3f vector) {
-    return vector != null && isFinite(vector.getX()) && isFinite(vector.getY()) && isFinite(vector.getZ());
+    return vector != null && isFinite(vector.x()) && isFinite(vector.y()) && isFinite(vector.z());
   }
 
   /**
-   * Get a subtraction result between the two vectors.
-   *
-   * @param first the first vector.
-   * @param second the second vector.
-   * @return the subtraction result.
+   * Create a subtraction result between the two vectors.
    */
   public static Vector3f substract(Vector3f first, Vector3f second) {
     return first
@@ -61,20 +61,7 @@ public final class Vector3f implements Cloneable {
         .subtractLocal(second);
   }
 
-  /**
-   * The X component.
-   */
-  protected float x;
-
-  /**
-   * The Y component.
-   */
-  protected float y;
-
-  /**
-   * The Z component.
-   */
-  protected float z;
+  float x, y, z;
 
   public Vector3f() {
     super();
@@ -86,28 +73,14 @@ public final class Vector3f implements Cloneable {
     this.z = value;
   }
 
-  public Vector3f(float x, float y, float z) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-  }
-
   public Vector3f(float[] components) {
     this(components[0], components[1], components[2]);
   }
 
   public Vector3f(Vector3f another) {
-    this(another.getX(), another.getY(), another.getZ());
+    this(another.x(), another.y(), another.z());
   }
 
-  /**
-   * Add the values to this vector.
-   *
-   * @param addX x axis value.
-   * @param addY y axis value.
-   * @param addZ z axis value.
-   * @return this vector.
-   */
   public Vector3f addLocal(float addX, float addY, float addZ) {
     x += addX;
     y += addY;
@@ -115,25 +88,10 @@ public final class Vector3f implements Cloneable {
     return this;
   }
 
-  /**
-   * Add the vector to this vector.
-   *
-   * @param vector the vector.
-   * @return this vector.
-   */
   public Vector3f addLocal(Vector3f vector) {
     return addLocal(vector.x, vector.y, vector.z);
   }
 
-  /**
-   * Calculate a cross vector between this vector and the coordinates.
-   *
-   * @param otherX the other x
-   * @param otherY the other y
-   * @param otherZ the other z
-   * @param result the result vector.
-   * @return the result vector.
-   */
   public Vector3f cross(float otherX, float otherY, float otherZ, Vector3f result) {
 
     var resX = y * otherZ - z * otherY;
@@ -145,35 +103,14 @@ public final class Vector3f implements Cloneable {
     return result;
   }
 
-  /**
-   * Calculate a cross vector between this vector and the vector.
-   *
-   * @param vector the vector.
-   * @return the result vector.
-   */
   public Vector3f cross(Vector3f vector) {
     return cross(vector, new Vector3f());
   }
 
-  /**
-   * Calculate a cross vector between this vector and the vector.
-   *
-   * @param vector the vector.
-   * @param result the result vector to store result.
-   * @return the result vector.
-   */
   public Vector3f cross(Vector3f vector, Vector3f result) {
     return cross(vector.x, vector.y, vector.z, result);
   }
 
-  /**
-   * Calculate a cross vector between this vector and the coordinates and store the result to this vector.
-   *
-   * @param otherX the other x.
-   * @param otherY the other y.
-   * @param otherZ the other z.
-   * @return this changed vector.
-   */
   public Vector3f crossLocal(float otherX, float otherY, float otherZ) {
 
     var tempx = y * otherZ - z * otherY;
@@ -186,34 +123,14 @@ public final class Vector3f implements Cloneable {
     return this;
   }
 
-  /**
-   * Calculate a cross vector between this vector and the coordinates and store the result to this vector.
-   *
-   * @param vector the vector.
-   * @return this changed vector.
-   */
   public Vector3f crossLocal(Vector3f vector) {
     return crossLocal(vector.x, vector.y, vector.z);
   }
 
-  /**
-   * Calculate distance to the vector.
-   *
-   * @param vector the vector.
-   * @return the distance.
-   */
   public float distance(Vector3f vector) {
     return ExtMath.sqrt(distanceSquared(vector));
   }
 
-  /**
-   * Calculate squared distance to the coordinates.
-   *
-   * @param targetX the target x.
-   * @param targetY the target y.
-   * @param targetZ the target z.
-   * @return the squared distance.
-   */
   public float distanceSquared(float targetX, float targetY, float targetZ) {
 
     var dx = x - targetX;
@@ -223,84 +140,12 @@ public final class Vector3f implements Cloneable {
     return dx * dx + dy * dy + dz * dz;
   }
 
-  /**
-   * Calculate squared distance to the vector.
-   *
-   * @param vector the vector.
-   * @return the squared distance.
-   */
   public float distanceSquared(Vector3f vector) {
     return distanceSquared(vector.x, vector.y, vector.z);
   }
 
-  /**
-   * Calculate dot to the vector.
-   *
-   * @param vector the vector.
-   * @return the dot product.
-   */
   public float dot(Vector3f vector) {
     return x * vector.x + y * vector.y + z * vector.z;
-  }
-
-  /**
-   * Get the X component.
-   *
-   * @return the X component.
-   */
-  public float getX() {
-    return x;
-  }
-
-  /**
-   * Set the X component.
-   *
-   * @param x the X component.
-   * @return this vector.
-   */
-  public Vector3f setX(float x) {
-    this.x = x;
-    return this;
-  }
-
-  /**
-   * Get the Y component.
-   *
-   * @return the Y component.
-   */
-  public float getY() {
-    return y;
-  }
-
-  /**
-   * Set the Y component,
-   *
-   * @param y the Y component.
-   * @return this vector.
-   */
-  public Vector3f setY(float y) {
-    this.y = y;
-    return this;
-  }
-
-  /**
-   * Get the Z component.
-   *
-   * @return the Z component.
-   */
-  public float getZ() {
-    return z;
-  }
-
-  /**
-   * Set the Z component,
-   *
-   * @param z the Z component.
-   * @return this vector.
-   */
-  public Vector3f setZ(float z) {
-    this.z = z;
-    return this;
   }
 
   @Override
@@ -315,31 +160,15 @@ public final class Vector3f implements Cloneable {
 
   /**
    * Return true if all components are zero.
-   *
-   * @return true if all components are zero.
    */
   public boolean isZero() {
     return this == ZERO || ExtMath.isZero(x) && ExtMath.isZero(y) && ExtMath.isZero(z);
   }
 
-  /**
-   * Multiply this vector by the scalar.
-   *
-   * @param scalar the scalar.
-   * @return this vector.
-   */
   public Vector3f multLocal(float scalar) {
     return multLocal(scalar, scalar, scalar);
   }
 
-  /**
-   * Multiply this vector by the scalar values.
-   *
-   * @param x the x scalar.
-   * @param y the y scalar.
-   * @param z the z scalar.
-   * @return this vector.
-   */
   public Vector3f multLocal(float x, float y, float z) {
     this.x *= x;
     this.y *= y;
@@ -347,30 +176,14 @@ public final class Vector3f implements Cloneable {
     return this;
   }
 
-  /**
-   * Multiply this vector by the vector.
-   *
-   * @param vector the vector.
-   * @return this vector.
-   */
   public Vector3f multLocal(Vector3f vector) {
-    return multLocal(vector.getX(), vector.getY(), vector.getZ());
+    return multLocal(vector.x(), vector.y(), vector.z());
   }
 
-  /**
-   * Create a new vector as negative version of this vector.
-   *
-   * @return the new negative vector.
-   */
   public Vector3f negate() {
-    return new Vector3f(-getX(), -getY(), -getZ());
+    return new Vector3f(-x(), -y(), -z());
   }
 
-  /**
-   * Invert this vector to get a negative vector.
-   *
-   * @return this vector.
-   */
   public Vector3f negateLocal() {
     x = -x;
     y = -y;
@@ -378,11 +191,6 @@ public final class Vector3f implements Cloneable {
     return this;
   }
 
-  /**
-   * Create a normalized vector from this vector.
-   *
-   * @return the new normalized vector.
-   */
   public Vector3f normalize() {
 
     var length = x * x + y * y + z * z;
@@ -395,11 +203,6 @@ public final class Vector3f implements Cloneable {
     return new Vector3f(x, y, z);
   }
 
-  /**
-   * Normalize this vector.
-   *
-   * @return this vector.
-   */
   public Vector3f normalizeLocal() {
 
     var length = x * x + y * y + z * z;
@@ -414,24 +217,10 @@ public final class Vector3f implements Cloneable {
     return this;
   }
 
-  /**
-   * Set components from the vector to this vector.
-   *
-   * @param vector the vector.
-   * @return this vector.
-   */
   public Vector3f set(Vector3f vector) {
     return set(vector.x, vector.y, vector.z);
   }
 
-  /**
-   * Set the components to this vector.
-   *
-   * @param x x component.
-   * @param y y component.
-   * @param z z component.
-   * @return this vector.
-   */
   public Vector3f set(float x, float y, float z) {
     this.x = x;
     this.y = y;
@@ -439,13 +228,6 @@ public final class Vector3f implements Cloneable {
     return this;
   }
 
-  /**
-   * Subtract the vector from this vector and store the result to the result vector.
-   *
-   * @param vector the vector.
-   * @param result the result.
-   * @return the result vector.
-   */
   public Vector3f subtract(Vector3f vector, Vector3f result) {
     result.x = x - vector.x;
     result.y = y - vector.y;
@@ -453,14 +235,6 @@ public final class Vector3f implements Cloneable {
     return result;
   }
 
-  /**
-   * Subtract the components from this vector.
-   *
-   * @param subX the sub x.
-   * @param subY the sub y.
-   * @param subZ the sub z.
-   * @return this changed vector.
-   */
   public Vector3f subtractLocal(float subX, float subY, float subZ) {
     x -= subX;
     y -= subY;
@@ -468,42 +242,18 @@ public final class Vector3f implements Cloneable {
     return this;
   }
 
-  /**
-   * Subtract the vector from this vector.
-   *
-   * @param vector the vector.
-   * @return this changed vector.
-   */
   public Vector3f subtractLocal(Vector3f vector) {
     return subtractLocal(vector.x, vector.y, vector.z);
   }
 
-  /**
-   * Return vector's length (magnitude).
-   *
-   * @return the vector's length.
-   */
   public float length() {
     return ExtMath.sqrt(x * x + y * y + z * z);
   }
 
-  /**
-   * Return vector's squared length (magnitude).
-   *
-   * @return the vector's squared length.
-   */
   public float sqrLength() {
     return x * x + y * y + z * z;
   }
 
-  /**
-   * Divide this vector by the components.
-   *
-   * @param x the divider x.
-   * @param y the divider y.
-   * @param z the divider z.
-   * @return this changed vector.
-   */
   public Vector3f divideLocal(float x, float y, float z) {
     this.x /= x;
     this.y /= y;
@@ -511,35 +261,19 @@ public final class Vector3f implements Cloneable {
     return this;
   }
 
-  /**
-   * Divide this vector by the vector.
-   *
-   * @param vector the divider vector.
-   * @return this changed vector.
-   */
   public Vector3f divideLocal(Vector3f vector) {
     return divideLocal(vector.x, vector.y, vector.z);
   }
 
-  /**
-   * Divide this vector by the scalar.
-   *
-   * @param scalar the divider scalar.
-   * @return this changed vector.
-   */
   public Vector3f divideLocal(float scalar) {
     return divideLocal(scalar, scalar, scalar);
   }
 
   /**
    * Move this vector to a new point by specified direction.
-   *
-   * @param direction move direction.
-   * @param distance move distance.
-   * @return this changed vector.
    */
   public Vector3f moveToDirection(Vector3f direction, float distance) {
-    return addLocal(direction.getX() * distance, direction.getY() * distance, direction.getZ() * distance);
+    return addLocal(direction.x() * distance, direction.y() * distance, direction.z() * distance);
   }
 
   /**
@@ -554,8 +288,10 @@ public final class Vector3f implements Cloneable {
 
     Vector3f direction = new Vector3f(destination).subtractLocal(this);
 
-    double length = Math.sqrt(direction.getX() * direction.getX() + direction.getY() * direction.getY()
-        + direction.getZ() * direction.getZ());
+    double length = Math.sqrt(
+            direction.x() * direction.x() +
+            direction.y() * direction.y() +
+            direction.z() * direction.z());
 
     if (length <= distance || length < ExtMath.EPSILON) {
       set(destination);
@@ -571,19 +307,14 @@ public final class Vector3f implements Cloneable {
 
   /**
    * Linear time-based interpolation stored to this vector.
-   *
-   * @param min the minimal vector.
-   * @param max the maximal vector.
-   * @param t the time.
-   * @return this vector.
    */
-  public Vector3f lerp(Vector3f min, Vector3f max, float t) {
+  public Vector3f lerp(Vector3f min, Vector3f max, float time) {
 
-    t = ExtMath.clamp(t);
+    time = ExtMath.clamp(time);
 
-    this.x = min.x + (max.x - min.x) * t;
-    this.y = min.y + (max.y - min.y) * t;
-    this.z = min.z + (max.z - min.z) * t;
+    this.x = min.x + (max.x - min.x) * time;
+    this.y = min.y + (max.y - min.y) * time;
+    this.z = min.z + (max.z - min.z) * time;
 
     return this;
   }
@@ -629,8 +360,10 @@ public final class Vector3f implements Cloneable {
    * @return true if these vectors are equal with the epsilon.
    */
   public boolean equals(Vector3f vector, float epsilon) {
-    return Math.abs(x - vector.getX()) < epsilon && Math.abs(y - vector.getY()) < epsilon
-        && Math.abs(z - vector.getZ()) < epsilon;
+    return
+        Math.abs(x - vector.x()) < epsilon &&
+        Math.abs(y - vector.y()) < epsilon &&
+        Math.abs(z - vector.z()) < epsilon;
   }
 
   @Override

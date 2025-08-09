@@ -1,27 +1,31 @@
-package javasabr.rlib.common.geom;
+package javasabr.rlib.geometry;
 
-import static javasabr.rlib.common.geom.Vector3f.substract;
+import static javasabr.rlib.geometry.Vector3f.substract;
 
 import javasabr.rlib.common.util.ExtMath;
-import org.jspecify.annotations.NullMarked;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldDefaults;
 
 /**
  * Geometry 3D plane.<br> Follow to the formula: <pre>Ax + By + Cz + D = 0</pre>
  *
  * @author zcxv
  */
-@NullMarked
+@Getter
+@Accessors(fluent = true)
+@FieldDefaults(level = AccessLevel.PROTECTED)
 public class Plane {
 
   /**
    * The plane normal
    */
-  private final Vector3f normal;
-
+  final Vector3f normal;
   /**
    * The D component, inverted by sign.
    */
-  private float d;
+  float dot;
 
   public Plane(Vector3f first, Vector3f second, Vector3f third) {
 
@@ -31,205 +35,92 @@ public class Plane {
     normal = ba
         .cross(ca)
         .normalizeLocal();
-
-    this.d = first.dot(normal);
+    dot = first.dot(normal);
   }
 
   public Plane(Vector3f planePoint, Vector3f normal) {
     this.normal = normal.clone();
-    this.d = planePoint.dot(normal);
+    this.dot = planePoint.dot(normal);
   }
 
-  /**
-   * Return a plane normal.
-   *
-   * @return normal.
-   */
-  public Vector3f getNormal() {
-    return normal;
-  }
-
-  /**
-   * Return a D component inverted by sign.
-   *
-   * @return the D component.
-   */
-  public float getD() {
-    return d;
-  }
-
-  /**
-   * Multiply plane by scalar.
-   *
-   * @param scalar scalar.
-   * @return this plane.
-   */
   public Plane multLocal(float scalar) {
     normal.multLocal(scalar);
-    d *= scalar;
+    dot *= scalar;
     return this;
   }
 
-  /**
-   * Divide plane by scalar.
-   *
-   * @param scalar scalar.
-   * @return this plane .
-   */
   public Plane divideLocal(float scalar) {
     normal.divideLocal(scalar);
-    d /= scalar;
+    dot /= scalar;
     return this;
   }
 
-  /**
-   * Add values to plane.
-   *
-   * @param x the X axis value.
-   * @param y the Y axis value.
-   * @param z the Z axis value.
-   * @param d the D component.
-   * @return this plane .
-   */
-  public Plane addLocal(float x, float y, float z, float d) {
+  public Plane addLocal(float x, float y, float z, float dot) {
     normal.addLocal(x, y, z);
-    this.d += d;
+    this.dot += dot;
     return this;
   }
 
-  /**
-   * Subtract values to plane.
-   *
-   * @param x the X axis value.
-   * @param y the Y axis value.
-   * @param z the Z axis value.
-   * @param d the D component.
-   * @return this plane.
-   */
-  public Plane subtractLocal(float x, float y, float z, float d) {
+  public Plane subtractLocal(float x, float y, float z, float dot) {
     normal.subtractLocal(x, y, z);
-    this.d -= d;
+    this.dot -= dot;
     return this;
   }
 
-  /**
-   * Multiply plane by other plane.
-   *
-   * @param plane the other plane.
-   * @return this plane .
-   */
   public Plane multLocal(Plane plane) {
     normal.multLocal(plane.normal);
-    d *= plane.d;
+    dot *= plane.dot;
     return this;
   }
 
-  /**
-   * Divide plane by other plane.
-   *
-   * @param plane the other plane.
-   * @return this plane .
-   */
   public Plane divideLocal(Plane plane) {
     normal.divideLocal(plane.normal);
-    d /= plane.d;
+    dot /= plane.dot;
     return this;
   }
 
-  /**
-   * Add plane by other plane.
-   *
-   * @param plane the other plane.
-   * @return this plane
-   */
   public Plane addLocal(Plane plane) {
     normal.addLocal(plane.normal);
-    d += plane.d;
+    dot += plane.dot;
     return this;
   }
 
-  /**
-   * Subtract plane by other plane.
-   *
-   * @param plane the other plane
-   * @return this plane
-   */
   public Plane subtractLocal(Plane plane) {
     normal.subtractLocal(plane.normal);
-    d -= plane.d;
+    dot -= plane.dot;
     return this;
   }
 
-  /**
-   * Multiply plane by vector.<br> Its operation is equals to multiply plane normal vector with vector.
-   *
-   * @param vector the vector.
-   * @return this plane.
-   */
   public Plane multLocal(Vector3f vector) {
     normal.multLocal(vector);
     return this;
   }
 
-  /**
-   * Divide plane by vector.<br> Its operation is equals to divide plane normal vector with vector.
-   *
-   * @param vector the vector.
-   * @return this plane .
-   */
   public Plane divideLocal(Vector3f vector) {
     normal.divideLocal(vector);
     return this;
   }
 
-  /**
-   * Add plane by vector.<br> Its operation is equals to: plane normal plus vector.
-   *
-   * @param vector the vector.
-   * @return this plane.
-   */
   public Plane addLocal(Vector3f vector) {
     normal.addLocal(vector);
     return this;
   }
 
-  /**
-   * Subtract plane by vector.<br> Its operation is equals to: plane normal minus vector.
-   *
-   * @param vector the vector.
-   * @return this plane.
-   */
   public Plane subtractLocal(Vector3f vector) {
     normal.subtractLocal(vector);
     return this;
   }
 
-  /**
-   * Dot product plane with vector.
-   *
-   * @param point vector
-   * @return dot product
-   */
   public float dot(Vector3f point) {
-    return normal.dot(point) - d;
+    return normal.dot(point) - dot;
   }
 
-  /**
-   * Dot product plane with plane.
-   *
-   * @param plane plane
-   * @return dot product
-   */
   public float dot(Plane plane) {
-    return normal.dot(plane.normal) - d * plane.d;
+    return normal.dot(plane.normal) - dot * plane.dot;
   }
 
   /**
    * Distance between the point and the plane.
-   *
-   * @param point the point.
-   * @param planePoint the plane point.
-   * @return the distance.
    */
   public float distance(Vector3f point, Vector3f planePoint) {
     return distance(point, planePoint, Vector3fBuffer.NO_REUSE);
@@ -237,11 +128,6 @@ public class Plane {
 
   /**
    * Distance between the point and the plane.
-   *
-   * @param point the point.
-   * @param planePoint the plane point.
-   * @param buffer the vector's buffer.
-   * @return the distance.
    */
   public float distance(Vector3f point, Vector3f planePoint, Vector3fBuffer buffer) {
     return buffer
@@ -252,47 +138,34 @@ public class Plane {
 
   /**
    * Distance between point and plane.
-   *
-   * @param point point
-   * @return distance
    */
   public float distance(Vector3f point) {
-    return -d + point.dot(normal);
+    return -dot + point.dot(normal);
   }
 
   /**
    * Angle between planes.
-   *
-   * @param plane plane
-   * @return angle in radians
    */
   public float angle(Plane plane) {
-    return ExtMath.cos(normal.dot(plane.normal) / ExtMath.sqrt(normal.sqrLength() * plane.normal.sqrLength()));
+    return ExtMath.cos(normal.dot(plane.normal) /
+        ExtMath.sqrt(normal.sqrLength() * plane.normal.sqrLength()));
   }
 
   /**
    * Return true if the planes are parallel.
-   *
-   * @param plane the plane.
-   * @param epsilon the epsilon.
-   * @return true if the planes are parallel.
    */
   public boolean isParallel(Plane plane, float epsilon) {
 
     // check plane normals to collinearity
-    var fA = plane.normal.getX() / normal.getX();
-    var fB = plane.normal.getY() / normal.getY();
-    var fC = plane.normal.getZ() / normal.getZ();
+    var fA = plane.normal.x() / normal.x();
+    var fB = plane.normal.y() / normal.y();
+    var fC = plane.normal.z() / normal.z();
 
     return Math.abs(fA - fB) < epsilon && Math.abs(fA - fC) < epsilon;
   }
 
   /**
    * Return true if the planes are perpendicular.
-   *
-   * @param plane the plane.
-   * @param epsilon the epsilon.
-   * @return true if the planes are perpendicular.
    */
   public boolean isPerpendicular(Plane plane, float epsilon) {
     return Math.abs(normal.dot(plane.normal)) < epsilon;
@@ -325,11 +198,13 @@ public class Plane {
     direction.subtractLocal(startPoint);
 
     var denominator = direction.dot(normal);
-    var distance = (d - startPoint.dot(normal)) / denominator;
+    var distance = (dot - startPoint.dot(normal)) / denominator;
 
     direction.multLocal(distance);
 
-    return new Vector3f(startPoint).addLocal(direction);
+    return buffer
+        .next(startPoint)
+        .addLocal(direction);
   }
 
   /**
@@ -371,7 +246,9 @@ public class Plane {
 
     direction.multLocal(distance);
 
-    return new Vector3f(startPoint).addLocal(direction);
+    return buffer
+        .next(startPoint)
+        .addLocal(direction);
   }
 
   /**
@@ -395,16 +272,18 @@ public class Plane {
    */
   public Vector3f rayIntersection(Ray3f ray, Vector3fBuffer buffer) {
 
-    var direction = ray.getDirection();
-    var start = ray.getStart();
+    var direction = ray.direction();
+    var start = ray.start();
 
     var denominator = direction.dot(normal);
-    var distance = (d - start.dot(normal)) / denominator;
+    var distance = (dot - start.dot(normal)) / denominator;
 
     var add = buffer.next(direction);
     add.multLocal(distance);
 
-    return new Vector3f(start).addLocal(add);
+    return buffer
+        .next(start)
+        .addLocal(add);
   }
 
   /**
@@ -436,13 +315,15 @@ public class Plane {
     var ab = buffer.next(secondPoint);
     ab.subtractLocal(startPoint);
 
-    var t = (d - normal.dot(startPoint)) / normal.dot(ab);
+    var t = (dot - normal.dot(startPoint)) / normal.dot(ab);
 
     if (t < 0 || t > 1.f) {
       return Vector3f.POSITIVE_INFINITY;
     }
 
-    return new Vector3f(startPoint).addLocal(ab.multLocal(t));
+    return buffer
+        .next(startPoint)
+        .addLocal(ab.multLocal(t));
   }
 
   /**
@@ -468,7 +349,7 @@ public class Plane {
    */
   public Vector3f planeIntersection(Plane plane, float epsilon, Vector3fBuffer buffer) {
 
-    var direction = normal.cross(plane.normal, buffer.nextVector());
+    var direction = normal.cross(plane.normal, buffer.next());
     var denominator = direction.dot(direction);
 
     if (denominator < epsilon) {
@@ -476,32 +357,27 @@ public class Plane {
       return Vector3f.POSITIVE_INFINITY;
     }
 
-    return new Vector3f(plane.normal)
-        .multLocal(d)
+    return buffer
+        .next(plane.normal)
+        .multLocal(dot)
         .subtractLocal(buffer
             .next(normal)
-            .multLocal(plane.d))
+            .multLocal(plane.dot))
         .crossLocal(direction)
         .divideLocal(denominator);
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public int hashCode() {
     int prime = 31;
     int result = 1;
     result = prime * result + normal.hashCode();
-    result = prime * result + Float.floatToIntBits(d);
+    result = prime * result + Float.floatToIntBits(dot);
     return result;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public String toString() {
-    return "Plane{normal=" + normal + ", d=" + d + "}";
+    return "Plane{normal=" + normal + ", d=" + dot + "}";
   }
 }

@@ -1,19 +1,14 @@
-package javasabr.rlib.common.geom;
-
-import org.jspecify.annotations.NullMarked;
+package javasabr.rlib.geometry;
 
 /**
- * The interface to implement a buffer of vectors.
- *
  * @author JavaSaBr
  */
-@NullMarked
 public interface Vector3fBuffer {
 
   Vector3fBuffer NO_REUSE = new Vector3fBuffer() {
 
     @Override
-    public Vector3f nextVector() {
+    public Vector3f next() {
       return new Vector3f();
     }
 
@@ -30,30 +25,20 @@ public interface Vector3fBuffer {
 
   /**
    * Take a next free vector.
-   *
-   * @return the next vector.
    */
-  Vector3f nextVector();
+  Vector3f next();
 
   /**
    * Take a next free vector with copied values from the source vector.
-   *
-   * @param source the source vector.
-   * @return the next free vector with copied values.
    */
   default Vector3f next(Vector3f source) {
-    return nextVector().set(source);
+    return next().set(source);
   }
 
   /**
    * Take a next free vector with copied values.
-   *
-   * @param x the X component.
-   * @param y the Y component.
-   * @param z the Z component.
-   * @return the next free vector with copied values.
    */
   default Vector3f next(float x, float y, float z) {
-    return nextVector().set(x, y, z);
+    return next().set(x, y, z);
   }
 }
