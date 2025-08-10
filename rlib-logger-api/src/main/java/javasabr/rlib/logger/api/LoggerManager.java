@@ -62,26 +62,50 @@ public class LoggerManager {
   }
 
   public static void addListener(LoggerListener listener) {
-    LOGGER_FACTORY.addListener(listener);
+    if (LOGGER_FACTORY instanceof LoggerService ls) {
+      ls.addListener(listener);
+    }
   }
 
   public static void removeListener(LoggerListener listener) {
-    LOGGER_FACTORY.removeListener(listener);
+    if (LOGGER_FACTORY instanceof LoggerService ls) {
+      ls.removeListener(listener);
+    }
   }
 
   public static void addWriter(Writer writer) {
-    LOGGER_FACTORY.addWriter(writer);
+    if (LOGGER_FACTORY instanceof LoggerService ls) {
+      ls.addWriter(writer);
+    }
   }
 
   public static void removeWriter(Writer writer) {
-    LOGGER_FACTORY.removeWriter(writer);
+    if (LOGGER_FACTORY instanceof LoggerService ls) {
+      ls.removeWriter(writer);
+    }
+  }
+
+  public static void configureDefault(LoggerLevel level, boolean def) {
+    if (LOGGER_FACTORY instanceof LoggerService ls) {
+      ls.configureDefault(level, def);
+    }
+  }
+
+  public static void removeDefault(LoggerLevel level) {
+    if (LOGGER_FACTORY instanceof LoggerService ls) {
+      ls.removeDefault(level);
+    }
   }
 
   public static void enable(Class<?> cs, LoggerLevel level) {
-    getLogger(cs).overrideEnabled(level, true);
+    if (LOGGER_FACTORY instanceof LoggerService ls) {
+      ls.enable(cs, level);
+    }
   }
 
   public static void disable(Class<?> cs, LoggerLevel level) {
-    getLogger(cs).overrideEnabled(level, false);
+    if (LOGGER_FACTORY instanceof LoggerService ls) {
+      ls.disable(cs, level);
+    }
   }
 }

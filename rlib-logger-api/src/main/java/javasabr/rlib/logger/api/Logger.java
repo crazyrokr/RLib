@@ -24,10 +24,17 @@ public interface Logger {
   }
 
   @FunctionalInterface
-  interface IntN1Factory {
+  interface IntFactory {
 
     @NonNull
     String make(int arg1);
+  }
+
+  @FunctionalInterface
+  interface IntN1Factory<F> {
+
+    @NonNull
+    String make(int arg1, F arg2);
   }
 
   @FunctionalInterface
@@ -74,12 +81,16 @@ public interface Logger {
     print(LoggerLevel.DEBUG, message);
   }
 
-  default void debug(int arg1, @NonNull IntN1Factory factory) {
+  default void debug(int arg1, @NonNull IntFactory factory) {
     print(LoggerLevel.DEBUG, arg1, factory);
   }
 
   default <T> void debug(T arg1, @NonNull N1Factory<T> factory) {
     print(LoggerLevel.DEBUG, arg1, factory);
+  }
+
+  default <F> void debug(int arg1, F arg2, @NonNull IntN1Factory<F> factory) {
+    print(LoggerLevel.DEBUG, arg1, arg2, factory);
   }
 
   default <F, S> void debug(F arg1, S arg2, @NonNull N2Factory<F, S> factory) {
@@ -132,16 +143,12 @@ public interface Logger {
   /**
    * Override the enabling status of the logger level.
    */
-  default boolean overrideEnabled(@NonNull LoggerLevel level, boolean enabled) {
-    return false;
-  }
+  default void overrideEnabled(@NonNull LoggerLevel level, boolean enabled) {}
 
   /**
    * Remove overriding of enabling status if the logger level.
    */
-  default boolean resetToDefault(@NonNull LoggerLevel level) {
-    return false;
-  }
+  default void resetToDefault(@NonNull LoggerLevel level) {}
 
   default void warning(@NonNull String message) {
     print(LoggerLevel.WARNING, message);
@@ -178,9 +185,19 @@ public interface Logger {
     }
   }
 
-  default void print(@NonNull LoggerLevel level, int arg1, @NonNull IntN1Factory factory) {
+  default void print(@NonNull LoggerLevel level, int arg1, @NonNull IntFactory factory) {
     if (enabled(level)) {
       print(level, factory.make(arg1));
+    }
+  }
+
+  default <F> void print(
+      @NonNull LoggerLevel level,
+      int arg1,
+      F arg2,
+      @NonNull IntN1Factory<F> factory) {
+    if (enabled(level)) {
+      print(level, factory.make(arg1, arg2));
     }
   }
 

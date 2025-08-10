@@ -14,15 +14,15 @@ import org.jspecify.annotations.Nullable;
 public interface ArrayComparator<T> extends Comparator<T> {
 
   @Override
-  default int compare(@Nullable T first, @Nullable T second) {
+  default int compare(@Nullable T left, @Nullable T right) {
 
-    if (first == null) {
+    if (left == null) {
       return 1;
-    } else if (second == null) {
+    } else if (right == null) {
       return -1;
     }
 
-    return compareImpl(first, second);
+    return compareImpl(left, right);
   }
 
   /**

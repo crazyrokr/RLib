@@ -1,6 +1,5 @@
 package javasabr.rlib.common.util;
 
-import static java.lang.Float.parseFloat;
 import static javasabr.rlib.common.util.ObjectUtils.notNull;
 
 import javasabr.rlib.common.util.dictionary.DictionaryFactory;

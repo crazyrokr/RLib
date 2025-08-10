@@ -2,7 +2,7 @@ package javasabr.rlib.plugin.system;
 
 import java.net.URLClassLoader;
 import java.nio.file.Path;
-import javasabr.rlib.common.classpath.ClassPathScanner;
+import javasabr.rlib.classpath.ClassPathScanner;
 import javasabr.rlib.plugin.system.annotation.PluginDescription;
 import lombok.AccessLevel;
 import lombok.Getter;
