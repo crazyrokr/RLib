@@ -1,4 +1,4 @@
-package javasabr.rlib.common.classpath;
+package javasabr.rlib.classpath;
 
 import java.util.Collection;
 import javasabr.rlib.common.util.array.Array;

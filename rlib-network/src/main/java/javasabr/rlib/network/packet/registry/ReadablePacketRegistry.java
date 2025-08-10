@@ -1,7 +1,7 @@
 package javasabr.rlib.network.packet.registry;
 
-import javasabr.rlib.common.classpath.ClassPathScanner;
-import javasabr.rlib.common.classpath.ClassPathScannerFactory;
+import javasabr.rlib.classpath.ClassPathScanner;
+import javasabr.rlib.classpath.ClassPathScannerFactory;
 import javasabr.rlib.common.util.array.Array;
 import javasabr.rlib.common.util.array.ArrayCollectors;
 import javasabr.rlib.network.annotation.PacketDescription;

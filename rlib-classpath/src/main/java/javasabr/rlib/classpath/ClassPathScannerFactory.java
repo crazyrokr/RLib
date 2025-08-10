@@ -1,7 +1,7 @@
-package javasabr.rlib.common.classpath;
+package javasabr.rlib.classpath;
 
-import javasabr.rlib.common.classpath.impl.ClassPathScannerImpl;
-import javasabr.rlib.common.classpath.impl.ManifestClassPathScannerImpl;
+import javasabr.rlib.classpath.impl.ClassPathScannerImpl;
+import javasabr.rlib.classpath.impl.ManifestClassPathScannerImpl;
 
 /**
  * @author JavaSaBr

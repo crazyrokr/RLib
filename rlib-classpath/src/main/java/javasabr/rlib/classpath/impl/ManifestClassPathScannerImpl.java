@@ -1,4 +1,4 @@
-package javasabr.rlib.common.classpath.impl;
+package javasabr.rlib.classpath.impl;
 
 import java.io.InputStream;
 import java.net.URL;

@@ -1,10 +1,10 @@
-package javasabr.rlib.common.classpath;
+package javasabr.rlib.classpath;
 
 import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.function.Predicate;
-import javasabr.rlib.common.classpath.impl.ClassPathScannerImpl;
+import javasabr.rlib.classpath.impl.ClassPathScannerImpl;
 import javasabr.rlib.common.util.array.Array;
 import org.jspecify.annotations.Nullable;
 

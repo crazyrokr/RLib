@@ -1,4 +1,4 @@
-package javasabr.rlib.common.classpath.impl;
+package javasabr.rlib.classpath.impl;
 
 import static java.lang.reflect.Modifier.isAbstract;
 import static javasabr.rlib.common.util.ClassUtils.unsafeNNCast;
@@ -14,7 +14,7 @@ import java.nio.file.Path;
 import java.util.function.Predicate;
 import java.util.jar.JarInputStream;
 import java.util.zip.ZipException;
-import javasabr.rlib.common.classpath.ClassPathScanner;
+import javasabr.rlib.classpath.ClassPathScanner;
 import javasabr.rlib.common.io.impl.ReuseBytesInputStream;
 import javasabr.rlib.common.io.impl.ReuseBytesOutputStream;
 import javasabr.rlib.common.util.ArrayUtils;

@@ -23,7 +23,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import javasabr.rlib.common.classpath.ClassPathScannerFactory;
+import javasabr.rlib.classpath.ClassPathScannerFactory;
 import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.common.util.FileUtils;
 import javasabr.rlib.common.util.Utils;
