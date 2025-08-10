@@ -1,4 +1,4 @@
-package javasabr.rlib.common.util;
+package javasabr.rlib.io.util;
 
 import static java.lang.ThreadLocal.withInitial;
 
@@ -11,31 +11,24 @@ import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
-import javasabr.rlib.common.function.SafeSupplier;
-import org.jspecify.annotations.NullMarked;
+import java.util.function.Supplier;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The class with utility methods.
- *
  * @author JavaSaBr
  */
-@NullMarked
-public final class IOUtils {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class IoUtils {
 
   private static final ThreadLocal<char[]> LOCAL_CHAR_BUFFER = withInitial(() -> new char[1024]);
 
-  /**
-   * Close a closeable object.
-   *
-   * @param closeable the closeable object.
-   */
   public static void close(@Nullable Closeable closeable) {
-
     if (closeable == null) {
       return;
     }
-
     try {
       closeable.close();
     } catch (IOException e) {
@@ -45,10 +38,6 @@ public final class IOUtils {
 
   /**
    * Convert the input stream to a string using UTF-8 encoding.
-   *
-   * @param in the input stream.
-   * @return the result string.
-   * @throws UncheckedIOException if input stream thrown an io exception.
    */
   public static String toString(InputStream in) {
 
@@ -65,17 +54,12 @@ public final class IOUtils {
 
   /**
    * Convert the input stream to a string using UTF-8 encoding.
-   *
-   * @param inFactory the input stream.
-   * @return the result string.
-   * @throws UncheckedIOException if input stream thrown an io exception.
-   * @throws RuntimeException if happened something wrong with the supplier.
    */
-  public static String toString(SafeSupplier<InputStream> inFactory) {
+  public static String toString(Supplier<@NonNull InputStream> factory) {
 
     var result = new StringBuilder();
 
-    try (var reader = new InputStreamReader(inFactory.get(), StandardCharsets.UTF_8)) {
+    try (var reader = new InputStreamReader(factory.get(), StandardCharsets.UTF_8)) {
       toString(result, reader);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
@@ -94,13 +78,7 @@ public final class IOUtils {
   }
 
   /**
-   * Copy data from a source stream to a destination stream.
-   *
-   * @param in the source stream.
-   * @param out the destination stream.
-   * @param buffer the buffer.
-   * @param needClose true if need to close streams.
-   * @throws IOException the io exception
+   * Copy data from the source stream to the destination stream.
    */
   public static void copy(InputStream in, OutputStream out, byte[] buffer, boolean needClose)
       throws IOException {
@@ -116,13 +94,9 @@ public final class IOUtils {
   }
 
   /**
-   * Read the reader to the result string.
-   *
-   * @param reader the reader.
-   * @return the result string.
-   * @throws UncheckedIOException if reader thrown an io exception.
+   * Read full string using thread local buffer
    */
-  public static String toStringUsingTLB(Reader reader) {
+  public static String toStringUsingTlb(Reader reader) {
     return toString(reader, LOCAL_CHAR_BUFFER.get());
   }
 
@@ -140,9 +114,5 @@ public final class IOUtils {
     }
 
     return builder.toString();
-  }
-
-  private IOUtils() {
-    throw new RuntimeException();
   }
 }

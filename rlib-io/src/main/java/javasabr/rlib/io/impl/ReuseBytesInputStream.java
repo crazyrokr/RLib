@@ -1,32 +1,20 @@
-package javasabr.rlib.common.io.impl;
+package javasabr.rlib.io.impl;
 
 import java.io.InputStream;
-import javasabr.rlib.common.io.ReusableStream;
 import javasabr.rlib.common.util.ArrayUtils;
-import org.jspecify.annotations.NullMarked;
+import javasabr.rlib.io.ReusableStream;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 /**
- * The implementation of reusable input stream.
- *
  * @author JavaSaBr
  */
-@NullMarked
+@FieldDefaults(level = AccessLevel.PROTECTED)
 public final class ReuseBytesInputStream extends InputStream implements ReusableStream {
 
-  /**
-   * The data buffer.
-   */
-  protected byte[] buffer;
-
-  /**
-   * The position.
-   */
-  protected int pos;
-
-  /**
-   * The count bytes.
-   */
-  protected int count;
+  byte[] buffer;
+  int position;
+  int count;
 
   public ReuseBytesInputStream() {
     this.buffer = ArrayUtils.EMPTY_BYTE_ARRAY;
@@ -34,26 +22,26 @@ public final class ReuseBytesInputStream extends InputStream implements Reusable
 
   public ReuseBytesInputStream(byte buffer[]) {
     this.buffer = buffer;
-    this.pos = 0;
+    this.position = 0;
     this.count = buffer.length;
   }
 
   public ReuseBytesInputStream(byte[] buffer, int offset, int length) {
     this.buffer = buffer;
-    this.pos = offset;
+    this.position = offset;
     this.count = Math.min(offset + length, buffer.length);
   }
 
   @Override
   public void initFor(byte[] buffer, int offset, int length) {
     this.buffer = buffer;
-    this.pos = offset;
+    this.position = offset;
     this.count = length;
   }
 
   @Override
   public synchronized int read() {
-    return (pos < count) ? (buffer[pos++] & 0xff) : -1;
+    return (position < count) ? (buffer[position++] & 0xff) : -1;
   }
 
   @Override
@@ -63,11 +51,11 @@ public final class ReuseBytesInputStream extends InputStream implements Reusable
       throw new IndexOutOfBoundsException();
     }
 
-    if (pos >= count) {
+    if (position >= count) {
       return -1;
     }
 
-    int available = count - pos;
+    int available = count - position;
 
     if (length > available) {
       length = available;
@@ -77,15 +65,15 @@ public final class ReuseBytesInputStream extends InputStream implements Reusable
       return 0;
     }
 
-    System.arraycopy(this.buffer, pos, buffer, offset, length);
-    pos += length;
+    System.arraycopy(this.buffer, position, buffer, offset, length);
+    position += length;
 
     return length;
   }
 
   @Override
   public synchronized int available() {
-    return count - pos;
+    return count - position;
   }
 
   @Override
@@ -93,6 +81,6 @@ public final class ReuseBytesInputStream extends InputStream implements Reusable
 
   @Override
   public synchronized void reset() {
-    this.pos = 0;
+    this.position = 0;
   }
 }

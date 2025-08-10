@@ -1,7 +1,6 @@
 package javasabr.rlib.compiler.impl;
 
 import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.ArrayFactory;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;

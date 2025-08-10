@@ -1,15 +1,12 @@
-package javasabr.rlib.common.util;
+package javasabr.rlib.io.util;
 
 import static javasabr.rlib.common.util.ObjectUtils.notNull;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URL;
-import java.nio.CharBuffer;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -26,24 +23,20 @@ import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileTime;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.zip.ZipInputStream;
+import javasabr.rlib.common.util.ArrayUtils;
+import javasabr.rlib.common.util.StringUtils;
+import javasabr.rlib.common.util.Utils;
 import javasabr.rlib.common.util.array.Array;
 import javasabr.rlib.common.util.array.ArrayComparator;
 import javasabr.rlib.common.util.array.ArrayFactory;
-import javasabr.rlib.common.util.array.UnsafeArray;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The utility class.
- *
  * @author JavaSaBr
  */
 public class FileUtils {
@@ -99,13 +92,7 @@ public class FileUtils {
 
   private static final Path[] EMPTY_PATHS = new Path[0];
 
-  /**
-   * Check a string on valid file name.
-   *
-   * @param filename the file name.
-   * @return true if the file name is valid.
-   */
-  public static boolean isValidName(@Nullable String filename) {
+  public static boolean isValidFileName(@Nullable String filename) {
 
     if (StringUtils.isEmpty(filename)) {
       return false;
@@ -117,10 +104,7 @@ public class FileUtils {
   }
 
   /**
-   * Normalize the file name to a valid file name.
-   *
-   * @param filename the string with file name.
-   * @return normalized file name.
+   * Normalize the file name to an invalid file name.
    */
   public static String normalizeName(@Nullable String filename) {
 
@@ -133,264 +117,21 @@ public class FileUtils {
         .replaceAll("_");
   }
 
-  public static void addFilesTo(
-      Array<Path> container,
+
+
+  public static Array<Path> getFiles(Path directory, String @Nullable ... extensions) {
+    return getFiles(directory, false, extensions);
+  }
+
+  public static Array<Path> getFiles(
       Path directory,
       boolean includeDirectoriesToResult,
       String @Nullable ... extensions) {
-
-    if (Files.isDirectory(directory) && includeDirectoriesToResult) {
-      container.add(directory);
-    }
-
-    if (!Files.exists(directory)) {
-      LoggerManager
-          .getDefaultLogger()
-          .warning(directory, "Directory:[%s] not found"::formatted);
-      return;
-    }
-
-    try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
-      for (Path file : stream) {
-        if (Files.isDirectory(file)) {
-          addFilesTo(container, file, includeDirectoriesToResult, extensions);
-          continue;
-        }
-
-        if (extensions == null || extensions.length < 1 || hasExtensions(file.getFileName(), extensions)) {
-          container.add(file);
-        }
-      }
-
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  public static String fileName(Path file) {
-    return file.getFileName().toString();
-  }
-
-  public static boolean hasExtension(Path file, String extension) {
-    return fileName(file).endsWith(extension);
-  }
-
-  public static boolean hasExtensions(Path fileName, String @Nullable [] extensions) {
-    return hasExtensions(fileName.toString(), extensions);
-  }
-
-  public static boolean hasExtensions(String fileName, String @Nullable [] extensions) {
-    return ArrayUtils.anyMatchR(extensions, fileName, String::endsWith);
-  }
-
-  /**
-   * Check the extensions of the file.
-   *
-   * @param extensions the checked extensions.
-   * @param path the file.
-   * @return true if the file has a checked extension.
-   */
-  public static boolean hasExtensions(@Nullable Array<String> extensions, Path path) {
-    return hasExtensions(extensions, path.toString());
-  }
-
-  /**
-   * Check the extensions of the path.
-   *
-   * @param extensions the checked extensions.
-   * @param path the path.
-   * @return true if the path has a checked extension.
-   */
-  public static boolean hasExtensions(@Nullable Array<String> extensions, String path) {
-    return extensions != null && extensions.anyMatchR(path, String::endsWith);
-  }
-
-  /**
-   * Check the extensions of the file.
-   *
-   * @param extensions the checked extensions.
-   * @param path the file.
-   * @return true if the file has a checked extension.
-   */
-  public static boolean hasExtensions(@Nullable Collection<String> extensions, Path path) {
-    return hasExtensions(extensions, path.toString());
-  }
-
-  /**
-   * Check the extensions of the path.
-   *
-   * @param extensions the checked extensions.
-   * @param path the path.
-   * @return true if the path has a checked extension.
-   */
-  public static boolean hasExtensions(@Nullable Collection<String> extensions, String path) {
-    return extensions != null && extensions
-        .stream()
-        .anyMatch(path::endsWith);
-  }
-
-  /**
-   * Delete the file.
-   *
-   * @param path the file to delete.
-   */
-  public static void delete(Path path) {
-    try {
-      deleteImpl(path);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  /**
-   * Delete the file or the folder.
-   *
-   * @param path the file or folder.
-   */
-  private static void deleteImpl(Path path) throws IOException {
-    if (!Files.isDirectory(path)) {
-      Files.delete(path);
-    } else {
-      Files.walkFileTree(path, DELETE_FOLDER_VISITOR);
-    }
-  }
-
-  /**
-   * Get an extension of the path.
-   *
-   * @param path the path.
-   * @return the extension or the path if the path doesn't have an extension.
-   */
-  public static String getExtension(@Nullable String path) {
-    return getExtension(path, false);
-  }
-
-  /**
-   * Check the path about existing an extension.
-   *
-   * @param path the path.
-   * @return true if the path contains any extension.
-   */
-  public static boolean hasExtension(@Nullable String path) {
-
-    if (StringUtils.isEmpty(path)) {
-      return false;
-    }
-
-    var index = path.lastIndexOf('.');
-
-    if (index == -1) {
-      return false;
-    }
-
-    var separatorIndex = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
-
-    return separatorIndex < index;
-  }
-
-  /**
-   * Get an extension of the path.
-   *
-   * @param path the path.
-   * @param toLowerCase true if need that extension was only in lower case.
-   * @return the extension or empty string.
-   */
-  public static String getExtension(@Nullable String path, boolean toLowerCase) {
-
-    if (StringUtils.isEmpty(path)) {
-      return StringUtils.EMPTY;
-    }
-
-    var index = path.lastIndexOf('.');
-
-    if (index == -1) {
-      return StringUtils.EMPTY;
-    }
-
-    var separatorIndex = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
-
-    if (separatorIndex > index) {
-      return StringUtils.EMPTY;
-    }
-
-    var result = path.substring(index + 1);
-
-    if (toLowerCase) {
-      return result.toLowerCase();
-    }
-
-    return result;
-  }
-
-  /**
-   * Get an extension of the file.
-   *
-   * @param file the file.
-   * @return the extension or empty string.
-   */
-  public static String getExtension(Path file) {
-
-    if (Files.isDirectory(file)) {
-      return StringUtils.EMPTY;
-    }
-
-    return getExtension(Objects.toString(file.getFileName()));
-  }
-
-  /**
-   * Get an extension of the file.
-   *
-   * @param file the file.
-   * @param toLowerCase true if need that extension was only in lower case.
-   * @return the extension or empty string.
-   */
-  public static String getExtension(Path file, boolean toLowerCase) {
-
-    if (Files.isDirectory(file)) {
-      return StringUtils.EMPTY;
-    }
-
-    return getExtension(Objects.toString(file.getFileName()), toLowerCase);
-  }
-
-  /**
-   * Recursive get all files of the folder.
-   *
-   * @param dir the folder.
-   * @param extensions the extension filter.
-   * @return the list of all files.
-   */
-  public static Array<Path> getFiles(Path dir, String @Nullable ... extensions) {
-    return getFiles(dir, false, extensions);
-  }
-
-  /**
-   * Recursive get all files of the folder.
-   *
-   * @param dir the folder.
-   * @param withFolders need include folders.
-   * @param extensions the extension filter.
-   * @return the list of all files.
-   */
-  public static Array<Path> getFiles(Path dir, boolean withFolders, String @Nullable ... extensions) {
-
     Array<Path> result = ArrayFactory.newArray(Path.class);
-
-    addFilesTo(result, dir, withFolders, extensions);
-
-    UnsafeArray<Path> unsafeArray = result.asUnsafe();
-    unsafeArray.trimToSize();
-
+    collectFilesTo(result, directory, includeDirectoriesToResult, extensions);
     return result;
   }
 
-  /**
-   * Get all files in the package.
-   *
-   * @param pckg the package.
-   * @param extensions the extensions filter.
-   * @return the array of files.
-   */
   public static Path[] getFiles(Package pckg, String @Nullable ... extensions) {
 
     ClassLoader classLoader = Thread
@@ -435,137 +176,200 @@ public class FileUtils {
     return files.toArray(Path.class);
   }
 
-  /**
-   * Get a file name without extension.
-   *
-   * @param filename the file name.
-   * @return the file name without extension.
-   */
-  public static String getNameWithoutExtension(String filename) {
+  public static void collectFilesTo(
+      Array<Path> container,
+      Path directory,
+      boolean includeDirectoriesToResult,
+      String @Nullable ... extensions) {
 
-    if (StringUtils.isEmpty(filename)) {
-      return filename;
+    if (Files.isDirectory(directory) && includeDirectoriesToResult) {
+      container.add(directory);
     }
 
-    int index = filename.lastIndexOf('.');
-
-    if (index == -1) {
-      return filename;
+    if (!Files.exists(directory)) {
+      LoggerManager
+          .getDefaultLogger()
+          .warning(directory, "Directory:[%s] not found"::formatted);
+      return;
     }
 
-    return filename.substring(0, index);
-  }
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
+      for (Path file : stream) {
+        if (Files.isDirectory(file)) {
+          collectFilesTo(container, file, includeDirectoriesToResult, extensions);
+          continue;
+        }
 
-  /**
-   * Get a file name without extension.
-   *
-   * @param file the file.
-   * @return the file name without extension.
-   */
-  public static String getNameWithoutExtension(Path file) {
-
-    String filename = file
-        .getFileName()
-        .toString();
-
-    if (StringUtils.isEmpty(filename)) {
-      return filename;
-    }
-
-    int index = filename.lastIndexOf('.');
-
-    if (index == -1) {
-      return filename;
-    }
-
-    return filename.substring(0, index);
-  }
-
-  /**
-   * Read the file as a string from classpath.
-   *
-   * @param path the path to file.
-   * @return the string content of the file.
-   */
-  public static String readFromClasspath(String path) {
-    return read(FileUtils.class.getResourceAsStream(path));
-  }
-
-  /**
-   * Read the file as a string from classpath.
-   *
-   * @param cs the class to get a classloader.
-   * @param path the path to file.
-   * @return the string content of the file.
-   */
-  public static String readFromClasspath(Class<?> cs, String path) {
-    return read(cs.getResourceAsStream(path));
-  }
-
-  /**
-   * Read the file as a string.
-   *
-   * @param path the path to file.
-   * @return the string content of the file.
-   */
-  public static String read(String path) {
-    try {
-      return read(Files.newInputStream(Paths.get(path)));
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  /**
-   * Read the input stream as a string.
-   *
-   * @param in the input stream.
-   * @return the string content of the input stream.
-   */
-  public static String read(InputStream in) {
-
-    var content = new StringBuilder();
-
-    try (var reader = new BufferedReader(new InputStreamReader(in))) {
-
-      var buffer = CharBuffer.allocate(512);
-
-      while (reader.ready()) {
-
-        buffer.clear();
-        reader.read(buffer);
-        buffer.flip();
-
-        content.append(buffer.array(), 0, buffer.limit());
+        if (extensions == null || extensions.length < 1 || hasExtensions(file.getFileName(), extensions)) {
+          container.add(file);
+        }
       }
 
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
-
-    return content.toString();
   }
 
-  /**
-   * Read the file as a string.
-   *
-   * @param file the file.
-   * @return the string content of the file.
-   */
-  public static String read(Path file) {
+  @Nullable
+  public static String fileName(Path file) {
+    Path fileName = file.getFileName();
+    return fileName == null ? null : fileName.toString();
+  }
+
+  public static boolean hasExtension(Path file, String extension) {
+    String fileName = fileName(file);
+    return fileName != null && fileName.endsWith(extension);
+  }
+
+  public static boolean hasExtensions(Path file, String @Nullable [] extensions) {
+    return hasExtensions(file.toString(), extensions);
+  }
+
+  public static boolean hasExtensions(Path file, @Nullable Array<String> extensions) {
+    return hasExtensions(file.toString(), extensions);
+  }
+
+  public static boolean hasExtensions(Path file, @Nullable Collection<String> extensions) {
+    return hasExtensions(file.toString(), extensions);
+  }
+
+  public static boolean hasExtensions(String path, String @Nullable [] extensions) {
+    return ArrayUtils.anyMatchR(extensions, path, String::endsWith);
+  }
+
+  public static boolean hasExtensions(String path, @Nullable Array<String> extensions) {
+    return extensions != null && extensions.anyMatchR(path, String::endsWith);
+  }
+
+  public static boolean hasExtensions(String path, @Nullable Collection<String> extensions) {
+    return extensions != null && extensions
+        .stream()
+        .anyMatch(path::endsWith);
+  }
+
+  public static void delete(Path file) {
     try {
-      return read(Files.newInputStream(file));
+      deleteImpl(file);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
   }
 
+  private static void deleteImpl(Path path) throws IOException {
+    if (!Files.isDirectory(path)) {
+      Files.delete(path);
+    } else {
+      Files.walkFileTree(path, DELETE_FOLDER_VISITOR);
+    }
+  }
+
+  public static boolean hasExtension(@Nullable String path) {
+
+    if (StringUtils.isEmpty(path)) {
+      return false;
+    }
+
+    int index = path.lastIndexOf('.');
+    if (index == -1) {
+      return false;
+    }
+
+    var separatorIndex = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+    return separatorIndex < index;
+  }
+
+  /**
+   * Get an extension of the path or empty string.
+   */
+  @Nullable
+  public static String getExtension(@Nullable String path) {
+    return getExtension(path, false);
+  }
+
+  @Nullable
+  public static String getExtension(@Nullable String path, boolean toLowerCase) {
+
+    if (StringUtils.isEmpty(path)) {
+      return null;
+    }
+
+    int index = path.lastIndexOf('.');
+    if (index == -1) {
+      return null;
+    }
+
+    int separatorIndex = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+    if (separatorIndex > index) {
+      return null;
+    }
+
+    String result = path.substring(index + 1);
+    if (toLowerCase) {
+      return result.toLowerCase();
+    }
+
+    return result;
+  }
+
+  @Nullable
+  public static String getExtension(Path file) {
+
+    if (Files.isDirectory(file)) {
+      return null;
+    }
+
+    return getExtension(fileName(file));
+  }
+
+  @Nullable
+  public static String getExtension(Path file, boolean toLowerCase) {
+
+    if (Files.isDirectory(file)) {
+      return null;
+    }
+
+    return getExtension(fileName(file), toLowerCase);
+  }
+
+  @Nullable
+  public static String getNameWithoutExtension(@Nullable String fileName) {
+
+    if (StringUtils.isEmpty(fileName)) {
+      return fileName;
+    }
+
+    int index = fileName.lastIndexOf('.');
+    if (index == -1) {
+      return fileName;
+    }
+
+    return fileName.substring(0, index);
+  }
+
+  @Nullable
+  public static String getNameWithoutExtension(Path file) {
+    return getNameWithoutExtension(fileName(file));
+  }
+
+  @Nullable
+  public static String readFromClasspath(String path) {
+    return readFromClasspath(FileUtils.class, path);
+  }
+
+  /**
+   * Read the file as a string from classpath.
+   */
+  @Nullable
+  public static String readFromClasspath(Class<?> cs, String path) {
+    InputStream inputStream = cs.getResourceAsStream(path);
+    if (inputStream != null) {
+      return IoUtils.toString(inputStream);
+    }
+    return null;
+  }
+
   /**
    * Find a first free file name in the directory.
-   *
-   * @param directory the directory.
-   * @param file the checked file.
-   * @return the first free name.
    */
   public static String getFirstFreeName(Path directory, Path file) {
 
@@ -606,7 +410,7 @@ public class FileUtils {
         String entryName = entry.getName();
         Path targetFile = destination
             .resolve(entryName)
-            .normalize();
+            .toRealPath(LinkOption.NOFOLLOW_LINKS);
 
         if (!targetFile.startsWith(destination)) {
           LOGGER.warning(entryName, "Unexpected entry name:[%s] which is outside"::formatted);
@@ -639,12 +443,11 @@ public class FileUtils {
     }
 
     int index = path.lastIndexOf(separator);
-
     if (index == -1) {
       return path;
     }
 
-    return path.substring(index + 1, path.length());
+    return path.substring(index + 1);
   }
 
   /**
@@ -661,7 +464,6 @@ public class FileUtils {
     }
 
     int index = path.lastIndexOf(separator);
-
     if (index == -1) {
       return path;
     }
@@ -790,24 +592,6 @@ public class FileUtils {
     }
   }
 
-  /**
-   * Apply each sub-file of the directory to the consumer.
-   *
-   * @param directory the directory.
-   * @param consumer the consumer.
-   */
-  public static void forEach(Path directory, Consumer<Path> consumer) {
-    validateDirectory(directory);
-
-    try (var stream = Files.newDirectoryStream(directory)) {
-      for (var path : stream) {
-        consumer.accept(path);
-      }
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
   private static void validateDirectory(Path directory) {
     if (!Files.isDirectory(directory)) {
       throw new IllegalArgumentException("The file " + directory + " isn't a directory.");
@@ -816,35 +600,7 @@ public class FileUtils {
     }
   }
 
-  /**
-   * Apply each sub-file of the directory to the consumer.
-   *
-   * @param directory the directory.
-   * @param argument the argument.
-   * @param consumer the consumer.
-   * @param <T> the argument's type.
-   */
-  public static <T> void forEach(
-      Path directory,
-      T argument,
-      BiConsumer<Path, T> consumer) {
-    validateDirectory(directory);
 
-    try (var stream = Files.newDirectoryStream(directory)) {
-      for (var path : stream) {
-        consumer.accept(path, argument);
-      }
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  /**
-   * Get children's stream of the directory.
-   *
-   * @param directory the directory.
-   * @return children's stream of the directory.
-   */
   public static Stream<Path> stream(Path directory) {
     validateDirectory(directory);
 
@@ -857,55 +613,5 @@ public class FileUtils {
     }
 
     return files.stream();
-  }
-
-  /**
-   * Apply each sub-file of the directory to the consumer.
-   *
-   * @param directory the directory.
-   * @param argument the argument.
-   * @param consumer the consumer.
-   * @param <T> the argument's type.
-   */
-  public static <T> void forEachR(
-      Path directory,
-      T argument,
-      BiConsumer<T, Path> consumer) {
-    validateDirectory(directory);
-
-    try (var stream = Files.newDirectoryStream(directory)) {
-      for (var path : stream) {
-        consumer.accept(argument, path);
-      }
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  /**
-   * Apply each sub-file of the directory to the consumer.
-   *
-   * @param directory the directory.
-   * @param argument the argument.
-   * @param condition the condition.
-   * @param consumer the consumer.
-   * @param <T> the argument's type.
-   */
-  public static <T> void forEachR(
-      Path directory,
-      T argument,
-      Predicate<Path> condition,
-      BiConsumer<T, Path> consumer) {
-    validateDirectory(directory);
-
-    try (var stream = Files.newDirectoryStream(directory)) {
-      for (var path : stream) {
-        if (condition.test(path)) {
-          consumer.accept(argument, path);
-        }
-      }
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
   }
 }

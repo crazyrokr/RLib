@@ -1,15 +1,12 @@
 package javasabr.rlib.logger.impl;
 
 import java.util.Arrays;
-import java.util.Objects;
 import javasabr.rlib.common.util.StringUtils;
-import javasabr.rlib.common.util.array.Array;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerLevel;
 import javasabr.rlib.logger.api.LoggerService;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import org.jspecify.annotations.Nullable;
 
 /**
  * @author JavaSaBr

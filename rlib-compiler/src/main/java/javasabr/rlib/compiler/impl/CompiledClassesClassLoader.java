@@ -1,8 +1,8 @@
 package javasabr.rlib.compiler.impl;
 
-import javasabr.rlib.compiler.CompiledClassData;
 import javasabr.rlib.common.util.Utils;
 import javasabr.rlib.common.util.array.Array;
+import javasabr.rlib.compiler.CompiledClassData;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import lombok.AccessLevel;

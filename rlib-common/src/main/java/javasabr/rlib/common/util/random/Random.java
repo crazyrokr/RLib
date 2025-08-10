@@ -1,7 +1,5 @@
 package javasabr.rlib.common.util.random;
 
-import org.jspecify.annotations.NullMarked;
-
 /**
  * The interface to implement a random.
  *

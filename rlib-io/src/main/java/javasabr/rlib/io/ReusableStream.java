@@ -1,25 +1,16 @@
-package javasabr.rlib.common.io;
+package javasabr.rlib.io;
 
 import java.io.IOException;
-import org.jspecify.annotations.NullMarked;
 
 /**
- * The interface to implement a reusable streams.
- *
  * @author JavaSaBr
  */
-@NullMarked
 public interface ReusableStream {
 
-  /**
-   * Reset this stream.
-   *
-   * @throws IOException the io exception
-   */
   void reset() throws IOException;
 
   /**
-   * Initialize this string using the buffer.
+   * Initialize this stream to use the buffer.
    *
    * @param buffer the buffer data.
    * @param offset the offset.

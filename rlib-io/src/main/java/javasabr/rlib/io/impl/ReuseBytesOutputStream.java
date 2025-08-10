@@ -1,28 +1,24 @@
-package javasabr.rlib.common.io.impl;
+package javasabr.rlib.io.impl;
 
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
-import javasabr.rlib.common.io.ReusableStream;
-import org.jspecify.annotations.NullMarked;
+import javasabr.rlib.io.ReusableStream;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldDefaults;
 
 /**
- * The implementation of reusable output stream.
- *
  * @author JavaSaBr
  */
-@NullMarked
+@Getter
+@Accessors(fluent = true)
+@FieldDefaults(level = AccessLevel.PROTECTED)
 public final class ReuseBytesOutputStream extends OutputStream implements ReusableStream {
 
-  /**
-   * The data buffer.
-   */
-  protected byte[] data;
-
-  /**
-   * The size of stream.
-   */
-  protected int size;
+  byte[] data;
+  int size;
 
   public ReuseBytesOutputStream() {
     this(32);
@@ -46,11 +42,6 @@ public final class ReuseBytesOutputStream extends OutputStream implements Reusab
     this.size = length;
   }
 
-  /**
-   * Check needing resizing the buffer.
-   *
-   * @param minCapacity the min capacity.
-   */
   private void checkLength(int minCapacity) {
     if (minCapacity - data.length > 0) {
       resizeData(minCapacity);
@@ -58,28 +49,13 @@ public final class ReuseBytesOutputStream extends OutputStream implements Reusab
   }
 
   @Override
-  public void close() {
-  }
-
-  /**
-   * Get the wrapped data array.
-   *
-   * @return the wrapped data array.
-   */
-  public byte[] getData() {
-    return data;
-  }
+  public void close() {}
 
   @Override
   public void reset() {
     size = 0;
   }
 
-  /**
-   * Resize the data buffer.
-   *
-   * @param minCapacity the min capacity.
-   */
   private void resizeData(int minCapacity) {
 
     int oldCapacity = data.length;
@@ -101,11 +77,6 @@ public final class ReuseBytesOutputStream extends OutputStream implements Reusab
     data = Arrays.copyOf(data, newCapacity);
   }
 
-  /**
-   * Get the current size.
-   *
-   * @return the current size.
-   */
   public int size() {
     return size;
   }
@@ -115,13 +86,6 @@ public final class ReuseBytesOutputStream extends OutputStream implements Reusab
     return new String(data, 0, size);
   }
 
-  /**
-   * To string string.
-   *
-   * @param charsetName the charset name
-   * @return the string
-   * @throws UnsupportedEncodingException the unsupported encoding exception
-   */
   public String toString(String charsetName) throws UnsupportedEncodingException {
     return new String(data, 0, size, charsetName);
   }
