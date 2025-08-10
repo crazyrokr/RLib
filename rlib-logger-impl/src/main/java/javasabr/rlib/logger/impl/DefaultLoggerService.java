@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import javasabr.rlib.common.util.array.Array;
@@ -14,6 +15,7 @@ import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerFactory;
 import javasabr.rlib.logger.api.LoggerLevel;
 import javasabr.rlib.logger.api.LoggerListener;
+import javasabr.rlib.logger.api.LoggerService;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
@@ -23,7 +25,9 @@ import lombok.experimental.FieldDefaults;
  * @author JavaSaBr
  */
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
-public class DefaultLoggerFactory implements LoggerFactory {
+public class DefaultLoggerService implements LoggerFactory, LoggerService {
+
+  static final LoggerLevel[] LOGGER_LEVELS = LoggerLevel.values();
 
   ConcurrentMap<String, Logger> loggers;
   Array<LoggerListener> listeners;
@@ -31,13 +35,16 @@ public class DefaultLoggerFactory implements LoggerFactory {
 
   Logger logger;
   DateTimeFormatter timeFormatter;
+  int[] override;
 
-  public DefaultLoggerFactory() {
+  public DefaultLoggerService() {
     this.loggers = new ConcurrentHashMap<>();
     this.logger = new DefaultLogger("", this);
     this.timeFormatter = DateTimeFormatter.ofPattern("d.MM.yyyy HH:mm:ss:SSS");
     this.listeners = ArrayFactory.newCopyOnModifyArray(LoggerListener.class);
     this.writers = ArrayFactory.newCopyOnModifyArray(Writer.class);
+    this.override = new int[LOGGER_LEVELS.length];
+    Arrays.fill(override, NOT_CONFIGURE);
   }
 
   @Override
@@ -80,18 +87,44 @@ public class DefaultLoggerFactory implements LoggerFactory {
     writers.remove(writer);
   }
 
-  void write(LoggerLevel level, String name, String message) {
+  @Override
+  public void enable(Class<?> cs, LoggerLevel level) {
+    make(cs).overrideEnabled(level, true);
+  }
 
-    var timeStamp = timeFormatter.format(LocalDateTime.now());
-    var result = level.title() + level.offset() + ' ' + timeStamp + ' ' + name + ": " + message;
+  @Override
+  public void disable(Class<?> cs, LoggerLevel level) {
+    make(cs).overrideEnabled(level, false);
+  }
 
-    write(level, result);
+  @Override
+  public void configureDefault(LoggerLevel level, boolean def) {
+    override[level.ordinal()] = def ? ENABLED : DISABLED;
+  }
+
+  @Override
+  public void removeDefault(LoggerLevel level) {
+    override[level.ordinal()] = NOT_CONFIGURE;
+  }
+
+  @Override
+  public int enabled(LoggerLevel level) {
+    return override[level.ordinal()];
+  }
+
+  @Override
+  public void write(LoggerLevel level, String loggerName, String logMessage) {
+
+    var timestamp = timeFormatter.format(LocalDateTime.now());
+    var resultMessage = level.title() + level.offset() + ' ' + timestamp + ' ' + loggerName + ": " + logMessage;
+
+    write(level, resultMessage);
   }
 
   private void write(LoggerLevel level, String resultMessage) {
 
     listeners.forEachR(resultMessage, LoggerListener::println);
-    writers.forEachR(resultMessage, DefaultLoggerFactory::append);
+    writers.forEachR(resultMessage, DefaultLoggerService::append);
 
     switch (level) {
       case INFO, DEBUG -> System.out.println(resultMessage);
@@ -103,7 +136,7 @@ public class DefaultLoggerFactory implements LoggerFactory {
     }
 
     listeners.forEach(LoggerListener::flush);
-    writers.forEach(DefaultLoggerFactory::flush);
+    writers.forEach(DefaultLoggerService::flush);
   }
 
   private static void append(Writer writer, String toWrite) {

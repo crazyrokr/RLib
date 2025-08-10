@@ -44,9 +44,9 @@ public class CompiledJavaFileManager extends ForwardingJavaFileManager<StandardJ
       Kind kind,
       FileObject sibling) {
 
-    CompiledByteCode byteCode = new CompiledByteCode(name);
+    SimpleCompiledClassData byteCode = new SimpleCompiledClassData(name);
 
-    classLoader.addByteCode(byteCode);
+    classLoader.registerClassData(byteCode);
     classNames.add(name);
 
     return byteCode;

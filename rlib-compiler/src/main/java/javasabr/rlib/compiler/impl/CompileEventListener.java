@@ -21,7 +21,7 @@ public class CompileEventListener implements DiagnosticListener<JavaFileObject> 
   Array<Diagnostic<? extends JavaFileObject>> diagnostics;
 
   public CompileEventListener() {
-    this.diagnostics = ArrayFactory.newArray(Diagnostic.class);
+    this.diagnostics = Array.ofType(Diagnostic.class);
   }
 
   public void clear() {

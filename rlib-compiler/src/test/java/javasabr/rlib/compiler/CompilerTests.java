@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 public class CompilerTests {
 
   static {
-    LoggerManager.enable(Compiler.class, LoggerLevel.DEBUG);
+    LoggerManager.configureDefault(LoggerLevel.DEBUG, true);
   }
 
   @Test

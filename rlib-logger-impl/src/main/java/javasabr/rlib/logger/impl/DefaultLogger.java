@@ -1,9 +1,12 @@
 package javasabr.rlib.logger.impl;
 
+import java.util.Arrays;
 import java.util.Objects;
 import javasabr.rlib.common.util.StringUtils;
+import javasabr.rlib.common.util.array.Array;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerLevel;
+import javasabr.rlib.logger.api.LoggerService;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
@@ -16,45 +19,51 @@ public final class DefaultLogger implements Logger {
 
   private static final LoggerLevel[] VALUES = LoggerLevel.values();
 
-  @Nullable Boolean[] override;
+  int[] override;
   String name;
-  DefaultLoggerFactory loggerFactory;
+  LoggerService loggerService;
 
-  public DefaultLogger(String name, DefaultLoggerFactory loggerFactory) {
+  public DefaultLogger(String name, LoggerService loggerService) {
     this.name = name;
-    this.loggerFactory = loggerFactory;
-    this.override = new Boolean[VALUES.length];
+    this.loggerService = loggerService;
+    this.override = new int[DefaultLoggerService.LOGGER_LEVELS.length];
+    Arrays.fill(override, LoggerService.NOT_CONFIGURE);
   }
 
   @Override
   public boolean enabled(LoggerLevel level) {
-    var value = override[level.ordinal()];
-    return Objects.requireNonNullElse(value, level.enabled());
+    int value = override[level.ordinal()];
+    if (value != LoggerService.NOT_CONFIGURE) {
+      return value == LoggerService.ENABLED;
+    }
+    value = loggerService.enabled(level);
+    if (value != LoggerService.NOT_CONFIGURE) {
+      return value == LoggerService.ENABLED;
+    }
+    return level.enabled();
   }
 
   @Override
-  public boolean overrideEnabled(LoggerLevel level, boolean enabled) {
-    override[level.ordinal()] = enabled;
-    return true;
+  public void overrideEnabled(LoggerLevel level, boolean enabled) {
+    override[level.ordinal()] = enabled ? LoggerService.ENABLED : LoggerService.DISABLED;
   }
 
   @Override
-  public boolean resetToDefault(LoggerLevel level) {
-    override[level.ordinal()] = null;
-    return true;
+  public void resetToDefault(LoggerLevel level) {
+    override[level.ordinal()] = LoggerService.NOT_CONFIGURE;
   }
 
   @Override
-  public void print(LoggerLevel level, String message) {
+  public void print(LoggerLevel level, String logMessage) {
     if (enabled(level)) {
-      loggerFactory.write(level, name, message);
+      loggerService.write(level, name, logMessage);
     }
   }
 
   @Override
   public void print(LoggerLevel level, Throwable exception) {
     if (enabled(level)) {
-      loggerFactory.write(level, name, StringUtils.toString(exception));
+      loggerService.write(level, name, StringUtils.toString(exception));
     }
   }
 }

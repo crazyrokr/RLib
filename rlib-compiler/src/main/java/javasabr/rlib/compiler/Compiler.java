@@ -13,6 +13,8 @@ public interface Compiler {
   String CLASS_EXTENSION = ".class";
 
   Array<Class<?>> compileByUrls(Array<URI> urls);
+
   Array<Class<?>> compileFiles(Array<Path> files);
+
   Array<Class<?>> compileDirectories(Array<Path> directories);
 }

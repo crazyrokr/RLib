@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 public class ClasspathScannerTests {
 
   static {
-    LoggerManager.enable(ClassPathScanner.class, LoggerLevel.DEBUG);
+    LoggerManager.configureDefault(LoggerLevel.DEBUG, true);
   }
 
   @Test

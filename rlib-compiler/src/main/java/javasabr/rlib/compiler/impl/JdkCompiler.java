@@ -29,7 +29,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class JdkCompiler implements Compiler {
 
-  private static final Logger LOGGER = LoggerManager.getLogger(Compiler.class);
+  private static final Logger LOGGER = LoggerManager.getLogger(JdkCompiler.class);
 
   private static final Class<?>[] EMPTY_CLASSES = new Class[0];
 
@@ -40,7 +40,7 @@ public class JdkCompiler implements Compiler {
 
   boolean showDiagnostic;
 
-  public JdkCompiler(final boolean showDiagnostic) {
+  public JdkCompiler(boolean showDiagnostic) {
     this.compiler = ToolProvider.getSystemJavaCompiler();
     this.listener = new CompileEventListener();
     this.loader = new CompiledClassesClassLoader();
@@ -101,6 +101,8 @@ public class JdkCompiler implements Compiler {
       @Nullable Array<String> options,
       Array<JavaFileObject> sources) {
 
+    LOGGER.debug(sources.size(), "Start compiling [%s] source files..."::formatted);
+
     JavaCompiler compiler = compiler();
     CompiledJavaFileManager fileManager = fileManager();
     CompileEventListener listener = listener();
@@ -121,7 +123,10 @@ public class JdkCompiler implements Compiler {
       Array<Class<?>> result = Array.ofType(Class.class);
       String[] classNames = fileManager.classNames();
 
+      LOGGER.debug(classNames.length, "Got [%s] compiled class names"::formatted);
+
       for (String className : classNames) {
+        LOGGER.debug(className, "Try to load class:[%s]"::formatted);
         try {
           Class<?> klass = Class.forName(className, false, loader);
           result.add(klass);
