@@ -10,6 +10,7 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.CharBuffer;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -132,37 +133,32 @@ public class FileUtils {
         .replaceAll("_");
   }
 
-  /**
-   * Add recursive all files to the container from the folder.
-   *
-   * @param container the file container.
-   * @param dir the folder.
-   * @param withFolders need to add folders.
-   * @param extensions extensions filter.
-   */
   public static void addFilesTo(
       Array<Path> container,
-      Path dir,
-      boolean withFolders,
+      Path directory,
+      boolean includeDirectoriesToResult,
       String @Nullable ... extensions) {
 
-    if (Files.isDirectory(dir) && withFolders) {
-      container.add(dir);
+    if (Files.isDirectory(directory) && includeDirectoriesToResult) {
+      container.add(directory);
     }
 
-    if (!Files.exists(dir)) {
+    if (!Files.exists(directory)) {
       LoggerManager
           .getDefaultLogger()
-          .warning(dir, arg -> "Folder " + arg + " not found");
+          .warning(directory, "Directory:[%s] not found"::formatted);
       return;
     }
 
-    try (var stream = Files.newDirectoryStream(dir)) {
-      for (var path : stream) {
-        if (Files.isDirectory(path)) {
-          addFilesTo(container, path, withFolders, extensions);
-        } else if (extensions == null || extensions.length < 1 || containsExtensions(extensions, path.getFileName())) {
-          container.add(path);
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
+      for (Path file : stream) {
+        if (Files.isDirectory(file)) {
+          addFilesTo(container, file, includeDirectoriesToResult, extensions);
+          continue;
+        }
+
+        if (extensions == null || extensions.length < 1 || hasExtensions(file.getFileName(), extensions)) {
+          container.add(file);
         }
       }
 
@@ -171,26 +167,20 @@ public class FileUtils {
     }
   }
 
-  /**
-   * Check the extensions of the file.
-   *
-   * @param extensions the checked extensions.
-   * @param path the file.
-   * @return true if the file has a checked extension.
-   */
-  public static boolean containsExtensions(String @Nullable [] extensions, Path path) {
-    return containsExtensions(extensions, path.toString());
+  public static String fileName(Path file) {
+    return file.getFileName().toString();
   }
 
-  /**
-   * Check the extensions of the path.
-   *
-   * @param extensions the checked extensions.
-   * @param path the path.
-   * @return true if the path has a checked extension.
-   */
-  public static boolean containsExtensions(String @Nullable [] extensions, String path) {
-    return ArrayUtils.anyMatchR(extensions, path, String::endsWith);
+  public static boolean hasExtension(Path file, String extension) {
+    return fileName(file).endsWith(extension);
+  }
+
+  public static boolean hasExtensions(Path fileName, String @Nullable [] extensions) {
+    return hasExtensions(fileName.toString(), extensions);
+  }
+
+  public static boolean hasExtensions(String fileName, String @Nullable [] extensions) {
+    return ArrayUtils.anyMatchR(extensions, fileName, String::endsWith);
   }
 
   /**
@@ -200,8 +190,8 @@ public class FileUtils {
    * @param path the file.
    * @return true if the file has a checked extension.
    */
-  public static boolean containsExtensions(@Nullable Array<String> extensions, Path path) {
-    return containsExtensions(extensions, path.toString());
+  public static boolean hasExtensions(@Nullable Array<String> extensions, Path path) {
+    return hasExtensions(extensions, path.toString());
   }
 
   /**
@@ -211,7 +201,7 @@ public class FileUtils {
    * @param path the path.
    * @return true if the path has a checked extension.
    */
-  public static boolean containsExtensions(@Nullable Array<String> extensions, String path) {
+  public static boolean hasExtensions(@Nullable Array<String> extensions, String path) {
     return extensions != null && extensions.anyMatchR(path, String::endsWith);
   }
 
@@ -222,8 +212,8 @@ public class FileUtils {
    * @param path the file.
    * @return true if the file has a checked extension.
    */
-  public static boolean containsExtensions(@Nullable Collection<String> extensions, Path path) {
-    return containsExtensions(extensions, path.toString());
+  public static boolean hasExtensions(@Nullable Collection<String> extensions, Path path) {
+    return hasExtensions(extensions, path.toString());
   }
 
   /**
@@ -233,7 +223,7 @@ public class FileUtils {
    * @param path the path.
    * @return true if the path has a checked extension.
    */
-  public static boolean containsExtensions(@Nullable Collection<String> extensions, String path) {
+  public static boolean hasExtensions(@Nullable Collection<String> extensions, String path) {
     return extensions != null && extensions
         .stream()
         .anyMatch(path::endsWith);
@@ -437,7 +427,7 @@ public class FileUtils {
 
       if (Files.isDirectory(file)) {
         files.addAll(getFiles(file, extensions));
-      } else if (extensions == null || extensions.length < 1 || containsExtensions(extensions, path)) {
+      } else if (extensions == null || extensions.length < 1 || hasExtensions(path, extensions)) {
         files.add(file);
       }
     }

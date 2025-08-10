@@ -14,6 +14,8 @@ import org.jspecify.annotations.Nullable;
 public interface ClassPathScanner {
 
   String JAR_EXTENSION = ".jar";
+  String SOURCE_EXTENSION = ".java";
+  String CLASS_EXTENSION = ".class";
 
   @Nullable ClassPathScanner NULL_SCANNER = null;
 

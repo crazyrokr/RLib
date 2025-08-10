@@ -15,7 +15,6 @@ import java.util.function.Predicate;
 import java.util.jar.JarInputStream;
 import java.util.zip.ZipException;
 import javasabr.rlib.common.classpath.ClassPathScanner;
-import javasabr.rlib.common.compiler.Compiler;
 import javasabr.rlib.common.io.impl.ReuseBytesInputStream;
 import javasabr.rlib.common.io.impl.ReuseBytesOutputStream;
 import javasabr.rlib.common.util.ArrayUtils;
@@ -246,7 +245,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
           }
 
           loadClass(rootPath, file, path, classes);
-        } else if (!filename.endsWith(Compiler.SOURCE_EXTENSION)) {
+        } else if (!filename.endsWith(SOURCE_EXTENSION)) {
 
           String path = file
               .subpath(rootPath.getNameCount(), file.getNameCount())
@@ -310,7 +309,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
         scanJar(classes, resources, rin);
       } else if (name.endsWith(CLASS_EXTENSION)) {
         loadClass(null, null, name, classes);
-      } else if (!name.endsWith(Compiler.SOURCE_EXTENSION)) {
+      } else if (!name.endsWith(SOURCE_EXTENSION)) {
         resources.add(name);
       }
     }

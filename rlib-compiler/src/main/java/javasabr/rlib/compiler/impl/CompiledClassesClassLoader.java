@@ -1,31 +1,27 @@
-package javasabr.rlib.common.compiler.impl;
+package javasabr.rlib.compiler.impl;
 
-import javasabr.rlib.common.compiler.ByteCode;
+import javasabr.rlib.compiler.ByteCode;
 import javasabr.rlib.common.util.Utils;
 import javasabr.rlib.common.util.array.Array;
 import javasabr.rlib.common.util.array.ArrayFactory;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The implementation of a class loader of compiled classes.
- *
  * @author JavaSaBr
  */
-public class CompileClassLoader extends ClassLoader {
+@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
+public class CompiledClassesClassLoader extends ClassLoader {
 
-  /**
-   * The list of byte codes of loaded classes.
-   */
-  private final Array<ByteCode> byteCode;
+  Array<ByteCode> byteCode;
 
-  public CompileClassLoader() {
+  public CompiledClassesClassLoader() {
     this.byteCode = ArrayFactory.newArray(ByteCode.class);
   }
 
   /**
    * Add a new compiled class.
-   *
-   * @param byteCode the byte code
    */
   public synchronized void addByteCode(ByteCode byteCode) {
     this.byteCode.add(byteCode);
@@ -38,9 +34,11 @@ public class CompileClassLoader extends ClassLoader {
       return null;
     }
 
-    for (var byteCode : this.byteCode) {
-      var content = byteCode.getByteCode();
-      return Utils.uncheckedGet(() -> defineClass(name, content, 0, content.length));
+    for (ByteCode byteCode : this.byteCode) {
+      if (name.equals(byteCode.name())) {
+        byte[] content = byteCode.byteCode();
+        return Utils.uncheckedGet(() -> defineClass(name, content, 0, content.length));
+      }
     }
 
     return null;

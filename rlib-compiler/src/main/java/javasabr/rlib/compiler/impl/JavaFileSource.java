@@ -1,34 +1,28 @@
-package javasabr.rlib.common.compiler.impl;
+package javasabr.rlib.compiler.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import javax.tools.SimpleJavaFileObject;
 
 /**
- * The implementation of java class source.
- *
  * @author JavaSaBr
  */
 public class JavaFileSource extends SimpleJavaFileObject {
 
-  protected JavaFileSource(final File file) {
-    super(file.toURI(), Kind.SOURCE);
-  }
-
-  protected JavaFileSource(final Path path) {
+  protected JavaFileSource(Path path) {
     super(path.toUri(), Kind.SOURCE);
   }
 
-  protected JavaFileSource(final URI uri) {
+  protected JavaFileSource(URI uri) {
     super(uri, Kind.SOURCE);
   }
 
   @Override
-  public boolean equals(final Object obj) {
+  public boolean equals(Object obj) {
 
     if (this == obj) {
       return true;
@@ -52,9 +46,8 @@ public class JavaFileSource extends SimpleJavaFileObject {
   }
 
   @Override
-  public CharSequence getCharContent(final boolean ignoreEncodingErrors) throws IOException {
-    final Path path = Paths.get(uri);
-    return new String(Files.readAllBytes(path), "UTF-8");
+  public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
+    return Files.readString(Paths.get(uri), StandardCharsets.UTF_8);
   }
 
   @Override

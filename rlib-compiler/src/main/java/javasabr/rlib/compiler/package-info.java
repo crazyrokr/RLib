@@ -1,4 +1,4 @@
 @NullMarked
-package javasabr.rlib.common.compiler;
+package javasabr.rlib.compiler;
 
 import org.jspecify.annotations.NullMarked;
