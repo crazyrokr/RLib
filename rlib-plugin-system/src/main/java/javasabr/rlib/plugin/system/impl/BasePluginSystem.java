@@ -281,7 +281,7 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
 
     var classLoader = new URLClassLoader(urls);
     var scanner = ClassPathScannerFactory.newDefaultScanner(classLoader, additionalPaths);
-    scanner.setUseSystemClasspath(false);
+    scanner.useSystemClassPath(false);
     try {
       scanner.scan();
     } catch (Throwable throwable) {
@@ -289,7 +289,7 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
       return null;
     }
 
-    Array<Class<Plugin>> pluginImplementations = scanner.findImplements(Plugin.class);
+    Array<Class<Plugin>> pluginImplementations = scanner.findImplementations(Plugin.class);
     if (pluginImplementations.isEmpty()) {
       LOGGER.warning(
           directory,

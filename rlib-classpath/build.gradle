@@ -1,0 +1,5 @@
+
+dependencies {
+  api projects.rlibCommon
+  testImplementation projects.rlibLoggerImpl
+}

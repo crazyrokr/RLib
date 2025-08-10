@@ -4,6 +4,7 @@ import static javasabr.rlib.common.util.ObjectUtils.notNull;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,7 +51,7 @@ public class DefaultLoggerFactory implements LoggerFactory {
   public DefaultLoggerFactory() {
     this.loggers = new ConcurrentHashMap<>();
     this.logger = new DefaultLogger("", this);
-    this.timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss:SSS");
+    this.timeFormatter = DateTimeFormatter.ofPattern("d.MM.yyyy HH:mm:ss:SSS");
     this.listeners = ConcurrentArray.ofType(LoggerListener.class);
     this.writers = ConcurrentArray.ofType(Writer.class);
   }
@@ -99,7 +100,7 @@ public class DefaultLoggerFactory implements LoggerFactory {
    */
   void write(LoggerLevel level, String name, String message) {
 
-    var timeStump = timeFormatter.format(LocalTime.now());
+    var timeStump = timeFormatter.format(LocalDateTime.now());
     var result = level.getTitle() + ' ' + timeStump + ' ' + name + ": " + message;
 
     write(level, result);
@@ -116,7 +117,10 @@ public class DefaultLoggerFactory implements LoggerFactory {
     listeners.forEachInReadLockR(resultMessage, LoggerListener::println);
     writers.forEachInReadLockR(resultMessage, DefaultLoggerFactory::append);
 
-    System.err.println(resultMessage);
+    switch (level) {
+      case INFO, DEBUG -> System.out.println(resultMessage);
+      case ERROR, WARNING -> System.err.println(resultMessage);
+    }
 
     if (!level.isForceFlush()) {
       return;

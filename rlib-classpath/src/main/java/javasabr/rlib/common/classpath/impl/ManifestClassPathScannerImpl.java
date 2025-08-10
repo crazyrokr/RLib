@@ -1,31 +1,27 @@
 package javasabr.rlib.common.classpath.impl;
 
+import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Enumeration;
+import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import javasabr.rlib.common.classpath.ClassPathScanner;
 import javasabr.rlib.common.util.Utils;
 import javasabr.rlib.common.util.array.Array;
 import javasabr.rlib.common.util.array.ArrayFactory;
-import org.jspecify.annotations.NullMarked;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 /**
- * The implementation of the {@link ClassPathScanner} with parsing manifest file.
- *
  * @author JavaSaBr
  */
-@NullMarked
+@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class ManifestClassPathScannerImpl extends ClassPathScannerImpl {
 
-  /**
-   * The roo class.
-   */
-  private final Class<?> rootClass;
-
-  /**
-   * The classpath key.
-   */
-  private final String classPathKey;
+  Class<?> rootClass;
+  String classPathKey;
 
   public ManifestClassPathScannerImpl(
       ClassLoader classLoader,
@@ -36,47 +32,38 @@ public class ManifestClassPathScannerImpl extends ClassPathScannerImpl {
     this.classPathKey = classPathKey;
   }
 
-  /**
-   * Get manifest class path.
-   *
-   * @return the class paths.
-   */
-  protected String[] getManifestClassPath() {
+  protected String[] calculateManifestClassPath() {
 
-    var root = Utils.getRootFolderFromClass(rootClass);
     var result = Array.ofType(String.class);
-
     var currentThread = Thread.currentThread();
-    var loader = currentThread.getContextClassLoader();
-    var urls = Utils.uncheckedGet(loader, arg -> arg.getResources(JarFile.MANIFEST_NAME));
+
+    Path root = Utils.getRootFolderFromClass(rootClass);
+    ClassLoader loader = currentThread.getContextClassLoader();
+    Enumeration<URL> urls = Utils.uncheckedGet(loader, arg -> arg.getResources(JarFile.MANIFEST_NAME));
 
     while (urls.hasMoreElements()) {
 
       try {
 
-        var url = urls.nextElement();
-        var is = url.openStream();
-
+        URL url = urls.nextElement();
+        InputStream is = url.openStream();
         if (is == null) {
           LOGGER.warning(url, arg -> "not found input stream for the url " + arg);
           continue;
         }
 
         var manifest = new Manifest(is);
-        var attributes = manifest.getMainAttributes();
 
-        var value = attributes.getValue(classPathKey);
-
+        Attributes attributes = manifest.getMainAttributes();
+        String value = attributes.getValue(classPathKey);
         if (value == null) {
           continue;
         }
 
-        var classpath = value.split(" ");
+        String[] classpath = value.split(" ");
 
-        for (var path : classpath) {
-
-          var file = root.resolve(path);
-
+        for (String path : classpath) {
+          Path file = root.resolve(path);
           if (Files.exists(file)) {
             result.add(file.toString());
           }
@@ -91,11 +78,11 @@ public class ManifestClassPathScannerImpl extends ClassPathScannerImpl {
   }
 
   @Override
-  protected String[] getPathsToScan() {
+  protected String[] calculatePathsToScan() {
 
     var result = ArrayFactory.newArraySet(String.class);
-    result.addAll(super.getPathsToScan());
-    result.addAll(getManifestClassPath());
+    result.addAll(super.calculatePathsToScan());
+    result.addAll(calculateManifestClassPath());
 
     return result.toArray(String.class);
   }

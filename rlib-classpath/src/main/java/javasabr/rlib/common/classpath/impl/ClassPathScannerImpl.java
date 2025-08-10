@@ -8,9 +8,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.function.Predicate;
 import java.util.jar.JarInputStream;
 import java.util.zip.ZipException;
@@ -26,16 +26,16 @@ import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import lombok.AccessLevel;
 import lombok.Getter;
-import org.jspecify.annotations.NullMarked;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The base implementation of the {@link ClassPathScanner}.
- *
  * @author JavaSaBr
  */
-@NullMarked
-@Getter(AccessLevel.PRIVATE)
+@Accessors(fluent = true)
+@Getter(AccessLevel.PROTECTED)
+@FieldDefaults(level = AccessLevel.PROTECTED)
 public class ClassPathScannerImpl implements ClassPathScanner {
 
   protected static final Logger LOGGER = LoggerManager.getLogger(ClassPathScanner.class);
@@ -43,31 +43,17 @@ public class ClassPathScannerImpl implements ClassPathScanner {
   private static final String CLASS_PATH = System.getProperty("java.class.path");
   private static final String PATH_SEPARATOR = File.pathSeparator;
   private static final String CLASS_EXTENSION = ".class";
+  private static final String MODULE_INFO_CLASS = "module-info.class";
+  private static final String META_INF_PREFIX = "META-INF";
 
-  /**
-   * The list of additional paths to scan.
-   */
-  private final Array<String> additionalPaths;
+  final Array<String> additionalPaths;
+  final ClassLoader loader;
 
-  /**
-   * The class loader.
-   */
-  private final ClassLoader loader;
+  Class<?>[] classes;
+  String[] resources;
 
-  /**
-   * The found classes.
-   */
-  private Class<?>[] classes;
-
-  /**
-   * The found resources.
-   */
-  private String[] resources;
-
-  /**
-   * The flag of using system classpath.
-   */
-  private boolean useSystemClassPath;
+  @Getter
+  boolean useSystemClassPath;
 
   public ClassPathScannerImpl(ClassLoader classLoader) {
     this.additionalPaths = ArrayFactory.newArray(String.class);
@@ -77,90 +63,97 @@ public class ClassPathScannerImpl implements ClassPathScanner {
   }
 
   @Override
+  public void useSystemClassPath(boolean useSystemClassPath) {
+    this.useSystemClassPath = useSystemClassPath;
+  }
+
+  @Override
   public void addClasses(Array<Class<?>> classes) {
-    this.classes = ArrayUtils.combine(this.classes, classes.toArray(ArrayUtils.EMPTY_CLASS_ARRAY), Class.class);
+    this.classes = ArrayUtils.combine(
+        this.classes,
+        classes.toArray(ArrayUtils.EMPTY_CLASS_ARRAY),
+        Class.class);
   }
 
   @Override
   public void addResources(Array<String> resources) {
-    this.resources = ArrayUtils.combine(this.resources, resources.toArray(ArrayUtils.EMPTY_STRING_ARRAY), String.class);
+    this.resources = ArrayUtils.combine(
+        this.resources,
+        resources.toArray(ArrayUtils.EMPTY_STRING_ARRAY),
+        String.class);
   }
 
   @Override
-  public <T> void findImplements(Array<Class<T>> container, Class<T> interfaceClass) {
+  public <T> void findImplementationsTo(Array<Class<T>> container, Class<T> interfaceClass) {
 
     if (!interfaceClass.isInterface()) {
       throw new IllegalArgumentException("Class " + interfaceClass + " is not interface.");
     }
 
-    for (var cs : getClasses()) {
-
-      if (cs.isInterface() || !interfaceClass.isAssignableFrom(cs) || isAbstract(cs.getModifiers())) {
+    for (Class<?> klass : classes) {
+      if (klass.isInterface() ||
+          !interfaceClass.isAssignableFrom(klass) ||
+          isAbstract(klass.getModifiers())) {
         continue;
       }
-
-      container.add(unsafeNNCast(cs));
+      container.add(unsafeNNCast(klass));
     }
   }
 
   @Override
-  public <T> void findInherited(Array<Class<T>> container, Class<T> parentClass) {
+  public <T> void findInheritedTo(Array<Class<T>> container, Class<T> parentClass) {
 
     if (Modifier.isFinal(parentClass.getModifiers())) {
       throw new IllegalArgumentException("Class " + parentClass + " is final class.");
     }
 
-    for (var cs : getClasses()) {
-
-      if (cs.isInterface() || cs == parentClass || !parentClass.isAssignableFrom(cs) || isAbstract(cs.getModifiers())) {
+    for (Class<?> klass : classes) {
+      if (klass.isInterface() ||
+          klass == parentClass ||
+          !parentClass.isAssignableFrom(klass) ||
+          isAbstract(klass.getModifiers())) {
         continue;
       }
-
-      container.add(unsafeNNCast(cs));
+      container.add(unsafeNNCast(klass));
     }
   }
 
   @Override
-  public void findAnnotated(Array<Class<?>> container, Class<? extends Annotation> annotationClass) {
-    for (var cs : getClasses()) {
-
-      if (cs.isInterface() || isAbstract(cs.getModifiers()) || cs.isAnnotation() || !cs.isAnnotationPresent(
-          annotationClass)) {
+  public void findAnnotatedTo(Array<Class<?>> container, Class<? extends Annotation> annotationClass) {
+    for (Class<?> klass : classes) {
+      if (klass.isInterface() ||
+          isAbstract(klass.getModifiers()) ||
+          klass.isAnnotation() ||
+          !klass.isAnnotationPresent(annotationClass)) {
         continue;
       }
-
-      container.add(cs);
+      container.add(klass);
     }
   }
 
   @Override
-  public void getFoundClasses(Array<Class<?>> container) {
-    container.addAll(getClasses());
+  public void foundClassesTo(Array<Class<?>> container) {
+    container.addAll(classes);
   }
 
   @Override
-  public void getFoundResources(Array<String> container) {
-    container.addAll(getResources());
+  public void foundResourcesTo(Array<String> container) {
+    container.addAll(resources);
   }
 
   @Override
-  public Array<Class<?>> getFoundClasses() {
-    return Array.of(getClasses());
+  public Array<Class<?>> foundClasses() {
+    return Array.of(classes);
   }
 
   @Override
-  public Array<String> getFoundResources() {
-    return Array.of(getResources());
+  public Array<String> foundResources() {
+    return Array.of(resources);
   }
 
-  /**
-   * Get a list of paths to scan.
-   *
-   * @return the list of paths.
-   */
-  protected String[] getPathsToScan() {
+  protected String[] calculatePathsToScan() {
 
-    var systemClasspath = useSystemClasspath() ? getClasspathPaths() : ArrayUtils.EMPTY_STRING_ARRAY;
+    var systemClasspath = useSystemClassPath() ? classpathPaths() : ArrayUtils.EMPTY_STRING_ARRAY;
     var capacity = additionalPaths.size() + systemClasspath.length;
 
     var result = Array.ofType(String.class, capacity);
@@ -170,37 +163,10 @@ public class ClassPathScannerImpl implements ClassPathScanner {
     return result.toArray(String.class);
   }
 
-  /**
-   * Return true if need to scan the system classpath.
-   *
-   * @return true if need to scan the system classpath.
-   */
-  protected boolean useSystemClasspath() {
-    return useSystemClassPath;
-  }
-
-  @Override
-  public void setUseSystemClasspath(boolean useSystemClasspath) {
-    this.useSystemClassPath = useSystemClasspath;
-  }
-
-  /**
-   * Get the list of paths of system classpath.
-   *
-   * @return the list of paths of system classpath.
-   */
-  protected String[] getClasspathPaths() {
+  protected String[] classpathPaths() {
     return CLASS_PATH.split(PATH_SEPARATOR);
   }
 
-  /**
-   * Load a class by its name to container.
-   *
-   * @param rootPath the root folder.
-   * @param file the class file.
-   * @param name the name.
-   * @param container the container.
-   */
   private void loadClass(
       @Nullable Path rootPath,
       @Nullable Path file,
@@ -208,6 +174,12 @@ public class ClassPathScannerImpl implements ClassPathScanner {
       Array<Class<?>> container) {
 
     if (!name.endsWith(CLASS_EXTENSION)) {
+      return;
+    } else if(MODULE_INFO_CLASS.equals(name)) {
+      LOGGER.debug("Skip loading module-info...");
+      return;
+    } else if(name.startsWith(META_INF_PREFIX)) {
+      LOGGER.debug("Skip loading META-INF class...");
       return;
     }
 
@@ -217,50 +189,40 @@ public class ClassPathScannerImpl implements ClassPathScanner {
       StringBuilder result = new StringBuilder(name.length() - CLASS_EXTENSION.length());
 
       for (int i = 0, length = name.length() - CLASS_EXTENSION.length(); i < length; i++) {
-
         char ch = name.charAt(i);
-
         if (ch == '/' || ch == '\\') {
           ch = '.';
         }
-
         result.append(ch);
       }
 
       className = result.toString();
 
     } catch (Exception e) {
-      LOGGER.warning(name, arg -> "Incorrect replaced " + arg + " to java path, used separator " + File.separator);
+      LOGGER.warning(name, File.separator, "Incorrect replaced class name:[%s] to java path, used separator:[%s]"::formatted);
       return;
     }
 
+    LOGGER.debug(className, "Try to load class:[%s]"::formatted);
     try {
-      container.add(getLoader().loadClass(className));
+      container.add(loader().loadClass(className));
     } catch (NoClassDefFoundError error) {
-      LOGGER.warning(
-          "Can't load class: " + className + "\n" + "Original name:" + name + "\n" + "Root folder: " + rootPath + "\n"
-              + "Class file: " + file);
+      LOGGER.warning(className, name, rootPath, file,
+          "Can't load class:[%s] with original name:[%s], root folder:[%s] and class file:[%s]"::formatted);
       LOGGER.warning(error);
     } catch (Throwable e) {
       LOGGER.warning(e);
     }
   }
 
-  /**
-   * Scan a directory and find here classes, resources or jars.
-   *
-   * @param classes the classes container.
-   * @param resources the resources container.
-   * @param directory the directory.
-   */
   private void scanDirectory(
       Path rootPath,
       Array<Class<?>> classes,
       Array<String> resources,
       Path directory) {
-
-    try (var stream = Files.newDirectoryStream(directory)) {
-      for (var file : stream) {
+    LOGGER.debug(directory, "Scanning directory:[%s]"::formatted);
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
+      for (Path file : stream) {
 
         if (Files.isDirectory(file)) {
           scanDirectory(rootPath, classes, resources, file);
@@ -280,11 +242,10 @@ public class ClassPathScannerImpl implements ClassPathScanner {
               .toString();
 
           if (path.startsWith(File.separator)) {
-            path = path.substring(1, path.length());
+            path = path.substring(1);
           }
 
           loadClass(rootPath, file, path, classes);
-
         } else if (!filename.endsWith(Compiler.SOURCE_EXTENSION)) {
 
           String path = file
@@ -292,7 +253,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
               .toString();
 
           if (path.startsWith(File.separator)) {
-            path = path.substring(1, path.length());
+            path = path.substring(1);
           }
 
           resources.add(path);
@@ -304,29 +265,22 @@ public class ClassPathScannerImpl implements ClassPathScanner {
     }
   }
 
-  /**
-   * Scan a .jar to load classes.
-   *
-   * @param classes the classes container.
-   * @param resources the resources container.
-   * @param jarFile the .jar file.
-   */
   private void scanJar(Array<Class<?>> classes, Array<String> resources, Path jarFile) {
+    LOGGER.debug(jarFile, "Scanning jar:[%s]"::formatted);
 
     if (!Files.exists(jarFile)) {
-      LOGGER.warning(jarFile, arg -> "Not exists " + arg);
+      LOGGER.warning(jarFile, "Jar file:[%s] does not exists"::formatted);
       return;
     }
 
     var rout = new ReuseBytesOutputStream();
     var rin = new ReuseBytesInputStream();
-
     var buffer = new byte[128];
 
     try (var jin = new JarInputStream(Files.newInputStream(jarFile))) {
       scanJarInputStream(classes, resources, rout, rin, buffer, jin);
     } catch (ZipException e) {
-      LOGGER.warning(jarFile, arg -> "Can't open zip file " + arg);
+      LOGGER.warning(jarFile, "Can't open zip file:[%s]"::formatted);
       LOGGER.warning(e);
     } catch (IOException e) {
       LOGGER.warning(e);
@@ -362,18 +316,11 @@ public class ClassPathScannerImpl implements ClassPathScanner {
     }
   }
 
-  /**
-   * Scan a .jar to load classes.
-   *
-   * @param classes the classes container.
-   * @param resources the resources container.
-   * @param jarFile the input stream of a .jar.
-   */
   private void scanJar(Array<Class<?>> classes, Array<String> resources, InputStream jarFile) {
+    LOGGER.debug(jarFile, "Scanning jar:[%s]"::formatted);
 
     var rout = new ReuseBytesOutputStream();
     var rin = new ReuseBytesInputStream();
-
     var buffer = new byte[128];
 
     try (var jin = new JarInputStream(jarFile)) {
@@ -389,20 +336,18 @@ public class ClassPathScannerImpl implements ClassPathScanner {
   @Override
   public void scan(@Nullable Predicate<String> filter) {
 
-    var paths = getPathsToScan();
+    var paths = calculatePathsToScan();
 
     Array<Class<?>> classes = Array.ofType(Class.class);
     Array<String> resources = Array.ofType(String.class);
 
-    for (var path : paths) {
-
-      var file = Paths.get(path);
-
+    for (String path : paths) {
+      var file = Path.of(path);
       if (!Files.exists(file) || (filter != null && !filter.test(path))) {
         continue;
       }
 
-      LOGGER.debug(file, arg -> "Scan " + arg);
+      LOGGER.debug(file, "Scanning file:[%s]"::formatted);
 
       var filename = file
           .getFileName()
@@ -419,9 +364,9 @@ public class ClassPathScannerImpl implements ClassPathScanner {
     this.resources = resources.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
 
     LOGGER.debug(
-        getClasses(),
-        getResources(),
-        (arg1, arg2) -> "Scanned " + arg1.length + " classes and " + arg2.length + " resources.");
+        classes().length,
+        resources().length,
+        "Scanned [%s] classes and [%s] resources"::formatted);
   }
 
   @Override

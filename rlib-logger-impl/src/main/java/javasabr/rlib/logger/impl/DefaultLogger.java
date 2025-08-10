@@ -4,6 +4,7 @@ import java.util.Objects;
 import javasabr.rlib.common.util.StringUtils;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerLevel;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The base implementation of the logger.
@@ -17,7 +18,7 @@ public final class DefaultLogger implements Logger {
   /**
    * The table of override enabled statuses.
    */
-  private final Boolean[] override;
+  private final @Nullable Boolean[] override;
 
   /**
    * The logger name.
@@ -36,33 +37,33 @@ public final class DefaultLogger implements Logger {
   }
 
   @Override
-  public boolean isEnabled(LoggerLevel level) {
+  public boolean enabled(LoggerLevel level) {
     var value = override[level.ordinal()];
     return Objects.requireNonNullElse(value, level.isEnabled());
   }
 
   @Override
-  public boolean setEnabled(LoggerLevel level, boolean enabled) {
+  public boolean overrideEnabled(LoggerLevel level, boolean enabled) {
     override[level.ordinal()] = enabled;
     return true;
   }
 
   @Override
-  public boolean applyDefault(LoggerLevel level) {
+  public boolean resetToDefault(LoggerLevel level) {
     override[level.ordinal()] = null;
     return true;
   }
 
   @Override
   public void print(LoggerLevel level, String message) {
-    if (isEnabled(level)) {
+    if (enabled(level)) {
       loggerFactory.write(level, name, message);
     }
   }
 
   @Override
   public void print(LoggerLevel level, Throwable exception) {
-    if (isEnabled(level)) {
+    if (enabled(level)) {
       loggerFactory.write(level, name, StringUtils.toString(exception));
     }
   }

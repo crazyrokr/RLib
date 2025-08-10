@@ -159,7 +159,7 @@ public abstract class AbstractPacketReader<R extends ReadablePacket, C extends C
 
         tempPendingBuffer = notNull(getTempPendingBuffer());
 
-        LOGGER.debugNullable(
+        LOGGER.debug(
             receivedBuffer,
             tempPendingBuffer,
             (buf, mappedBuf) -> "Put received buffer: " + buf + " to mapped buffer: " + mappedBuf);

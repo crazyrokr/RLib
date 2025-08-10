@@ -10,7 +10,7 @@ public class Slf4jLogger implements Logger {
   private final org.slf4j.Logger logger;
 
   @Override
-  public boolean isEnabled(LoggerLevel level) {
+  public boolean enabled(LoggerLevel level) {
 
     switch (level) {
       case INFO:

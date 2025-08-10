@@ -1,5 +1,5 @@
 rootProject.version = "9.10.0"
-group = 'javasabr'
+group = 'javasabr.rlib'
 
 subprojects {
 

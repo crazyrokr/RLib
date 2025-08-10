@@ -151,7 +151,7 @@ public class WindowDragHandler {
     var newXPos = startX + dragX;
     var newYPos = startY + dragY;
 
-    if (LOGGER.isEnabled(LoggerLevel.DEBUG)) {
+    if (LOGGER.enabled(LoggerLevel.DEBUG)) {
       LOGGER.debug("processMove -> newXY -> " + newXPos + ", " + newYPos);
     }
 

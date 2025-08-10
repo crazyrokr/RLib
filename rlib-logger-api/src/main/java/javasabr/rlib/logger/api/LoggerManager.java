@@ -127,7 +127,7 @@ public class LoggerManager {
    * @param level the logger level to enable.
    */
   public static void enable(Class<?> cs, LoggerLevel level) {
-    getLogger(cs).setEnabled(level, true);
+    getLogger(cs).overrideEnabled(level, true);
   }
 
   /**
@@ -137,6 +137,6 @@ public class LoggerManager {
    * @param level the logger level to disable.
    */
   public static void disable(Class<?> cs, LoggerLevel level) {
-    getLogger(cs).setEnabled(level, false);
+    getLogger(cs).overrideEnabled(level, false);
   }
 }
