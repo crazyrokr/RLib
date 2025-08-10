@@ -2,6 +2,7 @@ package javasabr.rlib.io;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javasabr.rlib.io.util.FileUtils;
@@ -56,8 +57,8 @@ public class FileUtilsTest {
     assertEquals("jpg", FileUtils.getExtension(path4));
     assertEquals("TxT", FileUtils.getExtension(path5));
     assertEquals("txt", FileUtils.getExtension(path5, true));
-    assertEquals("", FileUtils.getExtension(path6));
-    assertEquals("", FileUtils.getExtension(path7));
+    assertNull(FileUtils.getExtension(path6));
+    assertNull(FileUtils.getExtension(path7));
   }
 
   @Test
