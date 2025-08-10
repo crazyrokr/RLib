@@ -1,4 +1,4 @@
-package javasabr.rlib.common.util;
+package javasabr.rlib.io;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -7,13 +7,15 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import javasabr.rlib.common.util.StringUtils;
+import javasabr.rlib.io.util.IoUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author JavaSaBr
  */
-class IOUtilsTest {
+class IoUtilsTest {
 
   @Test
   void shouldConvertInputStreamToString() {
@@ -21,7 +23,7 @@ class IOUtilsTest {
     var original = StringUtils.generate(2048);
     var source = new ByteArrayInputStream(original.getBytes(StandardCharsets.UTF_8));
 
-    Assertions.assertEquals(original, IOUtils.toString(source), "result string should be the same");
+    Assertions.assertEquals(original, IoUtils.toString(source), "result string should be the same");
   }
 
   @Test
@@ -31,14 +33,14 @@ class IOUtilsTest {
 
     Assertions.assertEquals(
         original,
-        IOUtils.toString(() -> new ByteArrayInputStream(original.getBytes(StandardCharsets.UTF_8))),
+        IoUtils.toString(() -> new ByteArrayInputStream(original.getBytes(StandardCharsets.UTF_8))),
         "result string should be the same");
   }
 
   @Test
   void shouldThrowUncheckedIOExceptionDuringConvertingInputStreamToString() {
     Assertions.assertThrows(
-        UncheckedIOException.class, () -> IOUtils.toString(new InputStream() {
+        UncheckedIOException.class, () -> IoUtils.toString(new InputStream() {
 
           @Override
           public int read() throws IOException {
@@ -50,7 +52,7 @@ class IOUtilsTest {
   @Test
   void shouldThrowUncheckedIOExceptionDuringConvertingSupplierOfInputStreamToString() {
     Assertions.assertThrows(
-        UncheckedIOException.class, () -> IOUtils.toString(() -> new InputStream() {
+        UncheckedIOException.class, () -> IoUtils.toString(() -> new InputStream() {
 
           @Override
           public int read() throws IOException {
@@ -63,7 +65,7 @@ class IOUtilsTest {
   void shouldThrowRuntimeExceptionDuringConvertingSupplierOfInputStreamToString() {
     Assertions.assertThrows(
         RuntimeException.class, () -> {
-          IOUtils.toString(() -> {
+          IoUtils.toString(() -> {
             throw new RuntimeException("test");
           });
         });
@@ -74,22 +76,21 @@ class IOUtilsTest {
 
     var original = StringUtils.generate(2048);
 
-    Assertions.assertEquals(original, IOUtils.toStringUsingTLB(new StringReader(original)));
+    Assertions.assertEquals(original, IoUtils.toStringUsingTlb(new StringReader(original)));
   }
 
   @Test
   void shouldThrownUncheckedIOExceptionDuringConvertingReaderToStrungUsingTLB() {
 
     Assertions.assertThrows(
-        UncheckedIOException.class, () -> IOUtils.toStringUsingTLB(new Reader() {
+        UncheckedIOException.class, () -> IoUtils.toStringUsingTlb(new Reader() {
           @Override
           public int read(char[] cbuf, int off, int len) throws IOException {
             throw new IOException("test");
           }
 
           @Override
-          public void close() {
-          }
+          public void close() {}
         }));
   }
 }

@@ -1,6 +1,7 @@
 
 dependencies {
   api projects.rlibCommon
+  api projects.rlibIo
   api projects.rlibClasspath
   testImplementation projects.rlibLoggerImpl
 }

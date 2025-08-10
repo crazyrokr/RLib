@@ -3,10 +3,10 @@ package javasabr.rlib.compiler.impl;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import javasabr.rlib.common.util.FileUtils;
 import javasabr.rlib.common.util.array.Array;
 import javasabr.rlib.common.util.array.ArrayCollectors;
 import javasabr.rlib.compiler.Compiler;
+import javasabr.rlib.io.util.FileUtils;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import javax.tools.Diagnostic;
@@ -82,7 +82,7 @@ public class JdkCompiler implements Compiler {
         continue;
       }
 
-      FileUtils.addFilesTo(files, directory, false, Compiler.SOURCE_EXTENSION);
+      FileUtils.collectFilesTo(files, directory, false, Compiler.SOURCE_EXTENSION);
     }
 
     if (files.isEmpty()) {

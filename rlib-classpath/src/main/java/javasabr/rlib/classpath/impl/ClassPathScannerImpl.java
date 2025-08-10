@@ -18,9 +18,9 @@ import javasabr.rlib.classpath.ClassPathScanner;
 import javasabr.rlib.io.impl.ReuseBytesInputStream;
 import javasabr.rlib.io.impl.ReuseBytesOutputStream;
 import javasabr.rlib.common.util.ArrayUtils;
-import javasabr.rlib.common.util.IOUtils;
 import javasabr.rlib.common.util.array.Array;
 import javasabr.rlib.common.util.array.ArrayFactory;
+import javasabr.rlib.io.util.IoUtils;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import lombok.AccessLevel;
@@ -304,8 +304,8 @@ public class ClassPathScannerImpl implements ClassPathScanner {
 
       if (name.endsWith(JAR_EXTENSION)) {
         rout.reset();
-        IOUtils.copy(jin, rout, buffer, false);
-        rin.initFor(rout.getData(), 0, rout.size());
+        IoUtils.copy(jin, rout, buffer, false);
+        rin.initFor(rout.data(), 0, rout.size());
         scanJar(classes, resources, rin);
       } else if (name.endsWith(CLASS_EXTENSION)) {
         loadClass(null, null, name, classes);

@@ -1,15 +1,14 @@
-package javasabr.rlib.common.util;
+package javasabr.rlib.io;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import javasabr.rlib.io.util.FileUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * The test to test file utils.
- *
  * @author JavaSaBr
  */
 public class FileUtilsTest {
