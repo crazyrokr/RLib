@@ -73,7 +73,7 @@ public class ControlDragHandler {
 
     LOGGER.debug(event, ev -> "processMove -> " + ev);
 
-    if (LOGGER.isEnabled(LoggerLevel.DEBUG)) {
+    if (LOGGER.enabled(LoggerLevel.DEBUG)) {
       LOGGER.debug("processMove -> dragOffset -> " + offsetX + "," + offsetY);
     }
 
@@ -84,14 +84,14 @@ public class ControlDragHandler {
     var dragX = dragPosition.getX() - offsetX;
     var dragY = dragPosition.getY() - offsetY;
 
-    if (LOGGER.isEnabled(LoggerLevel.DEBUG)) {
+    if (LOGGER.enabled(LoggerLevel.DEBUG)) {
       LOGGER.debug("processMove -> dragXY -> " + (dragX - offsetX) + "-" + (dragY - offsetY));
     }
 
     var newXPos = startX + dragX;
     var newYPos = startY + dragY;
 
-    if (LOGGER.isEnabled(LoggerLevel.DEBUG)) {
+    if (LOGGER.enabled(LoggerLevel.DEBUG)) {
       LOGGER.debug("processMove -> newXY -> " + newXPos + ", " + newYPos);
     }
 

@@ -71,12 +71,12 @@ public abstract class AbstractArray<E> implements Array<E> {
 
   @Override
   public String toString() {
-    return getClass().getSimpleName() + " size = " + size() + " :\n " + ArrayUtils.toString(this);
+    return ArrayUtils.toString(this);
   }
 
   @Override
   public String toString(Function<E, String> toString) {
-    return getClass().getSimpleName() + " size = " + size() + " :\n " + ArrayUtils.toString(this, toString);
+    return ArrayUtils.toString(this, toString);
   }
 
   @Override

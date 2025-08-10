@@ -1,10 +1,12 @@
 package javasabr.rlib.common.util.dictionary;
 
+import java.util.function.BiFunction;
 import javasabr.rlib.common.function.NotNullBiConsumer;
 import javasabr.rlib.common.function.NotNullConsumer;
 import javasabr.rlib.common.function.NotNullNullableBiFunction;
 import javasabr.rlib.common.function.NotNullNullableTripleFunction;
 import javasabr.rlib.common.function.NotNullTripleConsumer;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -132,21 +134,12 @@ public interface ConcurrentObjectDictionary<K, V> extends ObjectDictionary<K, V>
     return this;
   }
 
-  /**
-   * Get the value from a function for this dictionary under block {@link ConcurrentObjectDictionary#readLock()}.
-   *
-   * @param argument the argument.
-   * @param function the function.
-   * @param <A> the argument's type.
-   * @param <R> the result's type.
-   * @return the result of the function.
-   */
-  default <A, R> @Nullable R getInReadLock(
-      A argument,
-      NotNullNullableBiFunction<ConcurrentObjectDictionary<K, V>, A, R> function) {
+  default <A, R> @Nullable R getFromReadLock(
+      A arg1,
+      BiFunction<@NonNull ConcurrentObjectDictionary<K, V>, A, R> function) {
     var stamp = readLock();
     try {
-      return function.apply(this, argument);
+      return function.apply(this, arg1);
     } finally {
       readUnlock(stamp);
     }

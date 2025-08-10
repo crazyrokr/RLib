@@ -70,7 +70,7 @@ public class ConcurrentStampedLockObjectDictionaryTest {
 
     Assertions.assertNotEquals(0, stamp);
 
-    var asyncRead = CompletableFuture.supplyAsync(() -> dictionary.getInReadLock("Key1", ObjectDictionary::get));
+    var asyncRead = CompletableFuture.supplyAsync(() -> dictionary.getFromReadLock("Key1", ObjectDictionary::get));
     var result = Utils.uncheckedGet(() -> asyncRead.get(100, TimeUnit.MILLISECONDS));
 
     Assertions.assertEquals(dictionary.get("Key1"), result);

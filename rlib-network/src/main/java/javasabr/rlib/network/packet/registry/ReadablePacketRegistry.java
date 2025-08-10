@@ -43,7 +43,7 @@ public interface ReadablePacketRegistry<R extends IdBasedReadablePacket<R>> {
   static ReadablePacketRegistry<?> newDefault() {
 
     var scanner = ClassPathScannerFactory.newDefaultScanner();
-    scanner.setUseSystemClasspath(true);
+    scanner.useSystemClassPath(true);
     scanner.scan();
 
     return of(scanner);
@@ -58,7 +58,7 @@ public interface ReadablePacketRegistry<R extends IdBasedReadablePacket<R>> {
   static ReadablePacketRegistry<?> newDefault(Class<?> mainClass) {
 
     var scanner = ClassPathScannerFactory.newManifestScanner(mainClass);
-    scanner.setUseSystemClasspath(false);
+    scanner.useSystemClassPath(false);
     scanner.scan();
 
     return of(scanner);
@@ -73,7 +73,7 @@ public interface ReadablePacketRegistry<R extends IdBasedReadablePacket<R>> {
   static ReadablePacketRegistry<?> of(ClassPathScanner scanner) {
 
     var result = scanner
-        .findImplements(IdBasedReadablePacket.class)
+        .findImplementations(IdBasedReadablePacket.class)
         .stream()
         .filter(type -> type.getAnnotation(PacketDescription.class) != null)
         .collect(ArrayCollectors.<Class<? extends IdBasedReadablePacket>>toArray(Class.class));

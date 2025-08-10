@@ -1,5 +1,6 @@
 dependencies {
   api projects.rlibCommon
+  api projects.rlibClasspath
   api libs.project.reactor.core
   testRuntimeOnly projects.rlibLoggerImpl
 }

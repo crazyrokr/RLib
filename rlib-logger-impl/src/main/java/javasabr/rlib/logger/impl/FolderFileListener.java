@@ -3,36 +3,30 @@ package javasabr.rlib.logger.impl;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.Writer;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import javasabr.rlib.logger.api.LoggerListener;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 /**
- * The implementation of a logger listener to save log to files in a directory.
- *
  * @author JavaSaBr
  */
+@FieldDefaults(level = AccessLevel.PROTECTED)
 public class FolderFileListener implements LoggerListener {
 
   private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyy-MM-dd_HH-mm-ss");
 
-  /**
-   * The folder with log files.
-   */
-  private final Path folder;
-
-  /**
-   * The current writer.
-   */
-  private Writer writer;
+  final Path folder;
+  Writer writer;
 
   public FolderFileListener(Path folder) {
 
     if (!Files.isDirectory(folder)) {
-      throw new IllegalArgumentException("file is not directory.");
+      throw new IllegalArgumentException("File:[%s] is not directory".formatted(folder));
     }
 
     if (!Files.exists(folder)) {
@@ -44,23 +38,14 @@ public class FolderFileListener implements LoggerListener {
     }
 
     this.folder = folder;
-
   }
 
-  /**
-   * Get or create a writer.
-   *
-   * @return the writer.
-   * @throws IOException the io exception
-   */
-  public Writer getWriter() throws IOException {
+  public Writer getOrCreateWriter() throws IOException {
 
     if (writer == null) {
-
       var dateTime = LocalDateTime.now();
       var filename = TIME_FORMATTER.format(dateTime) + ".log";
-
-      writer = Files.newBufferedWriter(folder.resolve(filename), Charset.forName("UTF-8"));
+      writer = Files.newBufferedWriter(folder.resolve(filename), StandardCharsets.UTF_8);
     }
 
     return writer;
@@ -69,12 +54,13 @@ public class FolderFileListener implements LoggerListener {
   @Override
   public void println(String text) {
     try {
-      var writer = getWriter();
+      var writer = getOrCreateWriter();
       writer.append(text);
       writer.append('\n');
       writer.flush();
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException exception) {
+      //noinspection CallToPrintStackTrace
+      exception.printStackTrace();
     }
   }
 }

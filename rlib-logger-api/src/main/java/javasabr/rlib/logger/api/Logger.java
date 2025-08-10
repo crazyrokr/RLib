@@ -1,60 +1,68 @@
 package javasabr.rlib.logger.api;
 
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 
 /**
- * The interface to implement a logger.
- *
  * @author JavaSaBr
  */
+@NullUnmarked
 public interface Logger {
 
   @FunctionalInterface
   interface Factory {
 
+    @NonNull
     String make();
   }
 
   @FunctionalInterface
-  interface SinFactory<F> {
+  interface N1Factory<F> {
 
-    String make(F first);
+    @NonNull
+    String make(F arg1);
   }
 
   @FunctionalInterface
-  interface IntSinFactory {
+  interface IntN1Factory {
 
-    String make(int val);
+    @NonNull
+    String make(int arg1);
   }
 
   @FunctionalInterface
-  interface BiFactory<F, S> {
+  interface N2Factory<F, S> {
 
-    String make(F first, S second);
+    @NonNull
+    String make(F arg1, S arg2);
   }
 
   @FunctionalInterface
-  interface NullableBiFactory<F, S> {
+  interface N1IntFactory<F> {
 
-    String make(@Nullable F first, @Nullable S second);
+    @NonNull
+    String make(F arg1, int arg2);
   }
 
   @FunctionalInterface
-  interface ObjIntFactory<F> {
+  interface Int2Factory {
 
-    String make(F first, int second);
+    @NonNull
+    String make(int arg1, int arg2);
   }
 
   @FunctionalInterface
-  interface IntBiFactory {
+  interface N3Factory<F, S, T> {
 
-    String make(int first, int second);
+    @NonNull
+    String make(F arg1, S arg2, T arg3);
   }
 
   @FunctionalInterface
-  interface TriFactory<F, S, T> {
+  interface N4Factory<F, S, T, FO> {
 
-    String make(F first, S second, T third);
+    @NonNull
+    String make(F arg1, S arg2, T arg3, FO arg4);
   }
 
   /**
@@ -62,382 +70,170 @@ public interface Logger {
    *
    * @param message the message.
    */
-  default void debug(String message) {
+  default void debug(@NonNull String message) {
     print(LoggerLevel.DEBUG, message);
   }
 
-  /**
-   * Print a build debug message.
-   *
-   * @param arg the arg for the message factory.
-   * @param messageFactory the message factory.
-   */
-  default void debug(int arg, Logger.IntSinFactory messageFactory) {
-    print(LoggerLevel.DEBUG, arg, messageFactory);
+  default void debug(int arg1, @NonNull IntN1Factory factory) {
+    print(LoggerLevel.DEBUG, arg1, factory);
   }
 
-  /**
-   * Print a build debug message.
-   *
-   * @param arg the arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <T> the argument's type.
-   */
-  default <T> void debug(T arg, Logger.SinFactory<T> messageFactory) {
-    print(LoggerLevel.DEBUG, arg, messageFactory);
+  default <T> void debug(T arg1, @NonNull N1Factory<T> factory) {
+    print(LoggerLevel.DEBUG, arg1, factory);
   }
 
-  /**
-   * Print a build debug message.
-   *
-   * @param first the first arg for the message factory.
-   * @param second the second arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <F> the first argument's type.
-   * @param <S> the second argument's type.
-   */
-  default <F, S> void debug(F first, S second, Logger.BiFactory<F, S> messageFactory) {
-    print(LoggerLevel.DEBUG, first, second, messageFactory);
+  default <F, S> void debug(F arg1, S arg2, @NonNull N2Factory<F, S> factory) {
+    print(LoggerLevel.DEBUG, arg1, arg2, factory);
   }
 
-  /**
-   * Print a build debug message.
-   *
-   * @param first the first arg for the message factory.
-   * @param second the second arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <F> the first argument's type.
-   * @param <S> the second argument's type.
-   */
-  default <F, S> void debugNullable(
-      @Nullable F first,
-      @Nullable S second,
-      Logger.NullableBiFactory<F, S> messageFactory) {
-    print(LoggerLevel.DEBUG, first, second, messageFactory);
+  default <F> void debug(F arg1, int arg2, @NonNull N1IntFactory<F> factory) {
+    print(LoggerLevel.DEBUG, arg1, arg2, factory);
   }
 
-  /**
-   * Print a build debug message.
-   *
-   * @param first the first arg for the message factory.
-   * @param second the second arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <F> the first argument's type.
-   */
-  default <F> void debug(F first, int second, Logger.ObjIntFactory<F> messageFactory) {
-    print(LoggerLevel.DEBUG, first, second, messageFactory);
+  default void debug(int arg1, int arg2, @NonNull Int2Factory factory) {
+    print(LoggerLevel.DEBUG, arg1, arg2, factory);
   }
 
-  /**
-   * Print a build debug message.
-   *
-   * @param first the first arg for the message factory.
-   * @param second the second arg for the message factory.
-   * @param messageFactory the message factory.
-   */
-  default void debug(int first, int second, Logger.IntBiFactory messageFactory) {
-    print(LoggerLevel.DEBUG, first, second, messageFactory);
+  default <F, S, T> void debug(F arg1, S arg2, T arg3, @NonNull N3Factory<F, S, T> factory) {
+    print(LoggerLevel.DEBUG, arg1, arg2, arg3, factory);
   }
 
-  /**
-   * Print a build debug message.
-   *
-   * @param first the first arg for the message factory.
-   * @param second the second arg for the message factory.
-   * @param third the third arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <F> the first argument's type.
-   * @param <S> the second argument's type.
-   * @param <T> the third argument's type.
-   */
-  default <F, S, T> void debug(
-      F first,
-      S second,
-      T third,
-      Logger.TriFactory<F, S, T> messageFactory) {
-    print(LoggerLevel.DEBUG, first, second, third, messageFactory);
-  }
-
-  /**
-   * Print a build error message.
-   *
-   * @param message the message.
-   */
-  default void error(String message) {
+  default void error(@NonNull String message) {
     print(LoggerLevel.ERROR, message);
   }
 
-  /**
-   * Print a build error message.
-   *
-   * @param exception the exception.
-   */
-  default void error(Throwable exception) {
+  default void error(@NonNull Throwable exception) {
     print(LoggerLevel.ERROR, exception);
   }
 
-  /**
-   * Print a build information message.
-   *
-   * @param message the message.
-   */
-  default void info(String message) {
+  default void info(@NonNull String message) {
     print(LoggerLevel.INFO, message);
   }
 
-  /**
-   * Print a build information message.
-   *
-   * @param arg the arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <T> the argument's type.
-   */
-  default <T> void info(T arg, Logger.SinFactory<T> messageFactory) {
-    print(LoggerLevel.INFO, arg, messageFactory);
+  default <T> void info(T arg1, @NonNull N1Factory<T> factory) {
+    print(LoggerLevel.INFO, arg1, factory);
   }
 
-  /**
-   * Print a build information message.
-   *
-   * @param first the first arg for the message factory.
-   * @param second the second arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <F> the first argument's type.
-   * @param <S> the second argument's type.
-   */
-  default <F, S> void info(F first, S second, Logger.BiFactory<F, S> messageFactory) {
-    print(LoggerLevel.INFO, first, second, messageFactory);
+  default <F, S> void info(F arg1, S arg2, @NonNull N2Factory<F, S> factory) {
+    print(LoggerLevel.INFO, arg1, arg2, factory);
   }
 
-  /**
-   * Print a build information message.
-   *
-   * @param first the first arg for the message factory.
-   * @param second the second arg for the message factory.
-   * @param third the third arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <F> the first argument's type.
-   * @param <S> the second argument's type.
-   * @param <T> the third argument's type.
-   */
-  default <F, S, T> void info(
-      F first,
-      S second,
-      T third,
-      Logger.TriFactory<F, S, T> messageFactory) {
-    print(LoggerLevel.INFO, first, second, third, messageFactory);
+  default <F, S, T> void info(F arg1, S arg2, T arg3, @NonNull N3Factory<F, S, T> factory) {
+    print(LoggerLevel.INFO, arg1, arg2, arg3, factory);
   }
 
   /**
    * Check of enabling the logger level.
-   *
-   * @param level the logger level.
-   * @return true if the level is enabled.
    */
-  default boolean isEnabled(LoggerLevel level) {
-    return level.isEnabled();
+  default boolean enabled(@NonNull LoggerLevel level) {
+    return level.enabled();
   }
 
   /**
    * Override the enabling status of the logger level.
-   *
-   * @param level the logger level.
-   * @param enabled true if need to be enabled.
-   * @return true if the status was changed.
    */
-  default boolean setEnabled(LoggerLevel level, boolean enabled) {
+  default boolean overrideEnabled(@NonNull LoggerLevel level, boolean enabled) {
     return false;
   }
 
   /**
    * Remove overriding of enabling status if the logger level.
-   *
-   * @param level the logger level.
-   * @return true if the status was changed.
    */
-  default boolean applyDefault(LoggerLevel level) {
+  default boolean resetToDefault(@NonNull LoggerLevel level) {
     return false;
   }
 
-  /**
-   * Print the warning message.
-   *
-   * @param message the message.
-   */
-  default void warning(String message) {
+  default void warning(@NonNull String message) {
     print(LoggerLevel.WARNING, message);
   }
 
-  /**
-   * Print the warning message.
-   *
-   * @param exception the exception.
-   */
-  default void warning(Throwable exception) {
+  default void warning(@NonNull Throwable exception) {
     print(LoggerLevel.WARNING, exception);
   }
 
-  /**
-   * Print a warning debug message.
-   *
-   * @param arg the arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <A> the argument's type.
-   */
-  default <A> void warning(A arg, Logger.SinFactory<A> messageFactory) {
-    print(LoggerLevel.WARNING, arg, messageFactory);
+  default <A> void warning(A arg1, @NonNull N1Factory<A> factory) {
+    print(LoggerLevel.WARNING, arg1, factory);
   }
 
-  /**
-   * Print a warning debug message.
-   *
-   * @param first the first arg for the message factory.
-   * @param second the second arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <F> the first argument's type.
-   * @param <S> the second argument's type.
-   */
-  default <F, S> void warning(F first, S second, Logger.BiFactory<F, S> messageFactory) {
-    print(LoggerLevel.WARNING, first, second, messageFactory);
+  default <F, S> void warning(F arg1, S arg2, @NonNull N2Factory<F, S> factory) {
+    print(LoggerLevel.WARNING, arg1, arg2, factory);
   }
 
-  /**
-   * Print the message.
-   *
-   * @param level the level of the message.
-   * @param message the message.
-   */
-  void print(LoggerLevel level, String message);
+  default <F, S, T, FO> void warning(
+      F arg1,
+      S arg2,
+      T arg3,
+      FO arg4,
+      @NonNull N4Factory<F, S, T, FO> factory) {
+    print(LoggerLevel.WARNING, arg1, arg2, arg3, arg4, factory);
+  }
 
-  /**
-   * Print the message.
-   *
-   * @param level the level of the message.
-   * @param exception the exception.
-   */
-  void print(LoggerLevel level, Throwable exception);
+  void print(@NonNull LoggerLevel level, @NonNull String message);
 
-  /**
-   * Print a build message.
-   *
-   * @param level the level of the message.
-   * @param arg the arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <T> the argument's type.
-   */
-  default <T> void print(LoggerLevel level, T arg, Logger.SinFactory<T> messageFactory) {
-    if (isEnabled(level)) {
-      print(level, messageFactory.make(arg));
+  void print(@NonNull LoggerLevel level, @NonNull Throwable exception);
+
+  default <T> void print(@NonNull LoggerLevel level, T arg1, @NonNull N1Factory<T> factory) {
+    if (enabled(level)) {
+      print(level, factory.make(arg1));
     }
   }
 
-  /**
-   * Print a build message.
-   *
-   * @param level the level of the message.
-   * @param arg the arg for the message factory.
-   * @param messageFactory the message factory.
-   */
-  default void print(LoggerLevel level, int arg, Logger.IntSinFactory messageFactory) {
-    if (isEnabled(level)) {
-      print(level, messageFactory.make(arg));
+  default void print(@NonNull LoggerLevel level, int arg1, @NonNull IntN1Factory factory) {
+    if (enabled(level)) {
+      print(level, factory.make(arg1));
     }
   }
 
-  /**
-   * Print a build message.
-   *
-   * @param level the level of the message.
-   * @param first the first arg for the message factory.
-   * @param second the second arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <F> the first argument's type.
-   * @param <S> the second argument's type.
-   */
   default <F, S> void print(
-      LoggerLevel level,
-      F first,
-      S second,
-      Logger.BiFactory<F, S> messageFactory) {
-    if (isEnabled(level)) {
-      print(level, messageFactory.make(first, second));
+      @NonNull LoggerLevel level,
+      F arg1,
+      S arg2,
+      @NonNull N2Factory<F, S> factory) {
+    if (enabled(level)) {
+      print(level, factory.make(arg1, arg2));
     }
   }
 
-  /**
-   * Print a build message.
-   *
-   * @param level the level of the message.
-   * @param first the first arg for the message factory.
-   * @param second the second arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <F> the first argument's type.
-   * @param <S> the second argument's type.
-   */
-  default <F, S> void print(
-      LoggerLevel level,
-      @Nullable F first,
-      @Nullable S second,
-      Logger.NullableBiFactory<F, S> messageFactory) {
-    if (isEnabled(level)) {
-      print(level, messageFactory.make(first, second));
-    }
-  }
-
-  /**
-   * Print a build message.
-   *
-   * @param level the level of the message.
-   * @param first the first arg for the message factory.
-   * @param second the second arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <F> the first argument's type.
-   */
   default <F> void print(
-      LoggerLevel level,
-      F first,
-      int second,
-      Logger.ObjIntFactory<F> messageFactory) {
-    if (isEnabled(level)) {
-      print(level, messageFactory.make(first, second));
+      @NonNull LoggerLevel level,
+      F arg1,
+      int arg2,
+      @NonNull N1IntFactory<F> factory) {
+    if (enabled(level)) {
+      print(level, factory.make(arg1, arg2));
     }
   }
 
-  /**
-   * Print a build message.
-   *
-   * @param level the level of the message.
-   * @param first the first arg for the message factory.
-   * @param second the second arg for the message factory.
-   * @param messageFactory the message factory.
-   */
-  default void print(LoggerLevel level, int first, int second, Logger.IntBiFactory messageFactory) {
-    if (isEnabled(level)) {
-      print(level, messageFactory.make(first, second));
+  default void print(
+      @NonNull LoggerLevel level,
+      int arg1,
+      int arg2,
+      @NonNull Int2Factory factory) {
+    if (enabled(level)) {
+      print(level, factory.make(arg1, arg2));
     }
   }
 
-  /**
-   * Print a build message.
-   *
-   * @param level the level of the message.
-   * @param first the first arg for the message factory.
-   * @param second the second arg for the message factory.
-   * @param third the third arg for the message factory.
-   * @param messageFactory the message factory.
-   * @param <F> the first argument's type.
-   * @param <S> the second argument's type.
-   * @param <T> the third argument's type.
-   */
   default <F, S, T> void print(
-      LoggerLevel level,
-      F first,
-      S second,
-      T third,
-      Logger.TriFactory<F, S, T> messageFactory) {
+      @NonNull LoggerLevel level,
+      F arg1,
+      S arg2,
+      T arg3,
+      @NonNull N3Factory<F, S, T> factory) {
+    if (enabled(level)) {
+      print(level, factory.make(arg1, arg2, arg3));
+    }
+  }
 
-    if (isEnabled(level)) {
-      print(level, messageFactory.make(first, second, third));
+  default <F, S, T, FO> void print(
+      @NonNull LoggerLevel level,
+      F arg1,
+      S arg2,
+      T arg3,
+      FO arg4,
+      @NonNull N4Factory<F, S, T, FO> factory) {
+    if (enabled(level)) {
+      print(level, factory.make(arg1, arg2, arg3, arg4));
     }
   }
 }

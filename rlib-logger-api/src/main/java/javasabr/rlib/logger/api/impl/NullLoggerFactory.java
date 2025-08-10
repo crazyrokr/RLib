@@ -4,9 +4,7 @@ import java.io.Writer;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerFactory;
 import javasabr.rlib.logger.api.LoggerListener;
-import org.jspecify.annotations.NullMarked;
 
-@NullMarked
 public class NullLoggerFactory implements LoggerFactory {
 
   private static final NullLogger NULL_LOGGER = new NullLogger();

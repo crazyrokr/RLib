@@ -3,6 +3,7 @@ package javasabr.rlib.common.util.array;
 import java.util.Collection;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import javasabr.rlib.common.util.array.impl.ReadOnlyFastArray;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -13,6 +14,10 @@ import org.jspecify.annotations.NullMarked;
  */
 @NullMarked
 public interface ReadOnlyArray<E> extends Array<E> {
+
+  static <E> ReadOnlyArray<E> wrap(Array<E> array) {
+    return new ReadOnlyFastArray<>(array.toArray());
+  }
 
   @Override
   @Deprecated
