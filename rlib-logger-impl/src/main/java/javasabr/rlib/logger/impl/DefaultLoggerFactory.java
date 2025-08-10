@@ -5,65 +5,49 @@ import static javasabr.rlib.common.util.ObjectUtils.notNull;
 import java.io.IOException;
 import java.io.Writer;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.ConcurrentArray;
+import javasabr.rlib.common.util.array.ArrayFactory;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerFactory;
 import javasabr.rlib.logger.api.LoggerLevel;
 import javasabr.rlib.logger.api.LoggerListener;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 /**
  * The class for managing loggers.
  *
  * @author JavaSaBr
  */
+@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class DefaultLoggerFactory implements LoggerFactory {
 
-  /**
-   * The dictionary of all created loggers.
-   */
-  private final ConcurrentMap<String, Logger> loggers;
+  ConcurrentMap<String, Logger> loggers;
+  Array<LoggerListener> listeners;
+  Array<Writer> writers;
 
-  /**
-   * The main logger.
-   */
-  private final Logger logger;
-
-  /**
-   * The list of listeners.
-   */
-  private final ConcurrentArray<LoggerListener> listeners;
-
-  /**
-   * The list of writers.
-   */
-  private final ConcurrentArray<Writer> writers;
-
-  /**
-   * The date time formatter.
-   */
-  private final DateTimeFormatter timeFormatter;
+  Logger logger;
+  DateTimeFormatter timeFormatter;
 
   public DefaultLoggerFactory() {
     this.loggers = new ConcurrentHashMap<>();
     this.logger = new DefaultLogger("", this);
     this.timeFormatter = DateTimeFormatter.ofPattern("d.MM.yyyy HH:mm:ss:SSS");
-    this.listeners = ConcurrentArray.ofType(LoggerListener.class);
-    this.writers = ConcurrentArray.ofType(Writer.class);
+    this.listeners = ArrayFactory.newCopyOnModifyArray(LoggerListener.class);
+    this.writers = ArrayFactory.newCopyOnModifyArray(Writer.class);
   }
 
   @Override
   public void addListener(LoggerListener listener) {
-    listeners.runInWriteLock(listener, Array::add);
+    listeners.add(listener);
   }
 
   @Override
   public void addWriter(Writer writer) {
-    writers.runInWriteLock(writer, Array::add);
+    writers.add(writer);
   }
 
   @Override
@@ -73,77 +57,71 @@ public class DefaultLoggerFactory implements LoggerFactory {
 
   @Override
   public Logger make(Class<?> type) {
-    return notNull(loggers.computeIfAbsent(type.getSimpleName(), name -> new DefaultLogger(name, this)));
+    String simpleName = type.getSimpleName();
+    Logger logger = loggers
+        .computeIfAbsent(simpleName, name -> new DefaultLogger(name, this));
+    return notNull(logger);
   }
 
   @Override
   public Logger make(String name) {
-    return notNull(loggers.computeIfAbsent(name, str -> new DefaultLogger(str, this)));
+    Logger logger = loggers
+        .computeIfAbsent(name, str -> new DefaultLogger(str, this));
+    return notNull(logger);
   }
 
   @Override
   public void removeListener(LoggerListener listener) {
-    listeners.runInWriteLock(listener, Array::remove);
+    listeners.remove(listener);
   }
 
   @Override
   public void removeWriter(Writer writer) {
-    writers.runInWriteLock(writer, Array::remove);
+    writers.remove(writer);
   }
 
-  /**
-   * Process of writing message to a console and writers.
-   *
-   * @param level the level of the message.
-   * @param name the name of owner.
-   * @param message the message.
-   */
   void write(LoggerLevel level, String name, String message) {
 
-    var timeStump = timeFormatter.format(LocalDateTime.now());
-    var result = level.getTitle() + ' ' + timeStump + ' ' + name + ": " + message;
+    var timeStamp = timeFormatter.format(LocalDateTime.now());
+    var result = level.title() + level.offset() + ' ' + timeStamp + ' ' + name + ": " + message;
 
     write(level, result);
   }
 
-  /**
-   * Process of writing the result message.
-   *
-   * @param level the level of the result message.
-   * @param resultMessage the result message.
-   */
   private void write(LoggerLevel level, String resultMessage) {
 
-    listeners.forEachInReadLockR(resultMessage, LoggerListener::println);
-    writers.forEachInReadLockR(resultMessage, DefaultLoggerFactory::append);
+    listeners.forEachR(resultMessage, LoggerListener::println);
+    writers.forEachR(resultMessage, DefaultLoggerFactory::append);
 
     switch (level) {
       case INFO, DEBUG -> System.out.println(resultMessage);
       case ERROR, WARNING -> System.err.println(resultMessage);
     }
 
-    if (!level.isForceFlush()) {
+    if (!level.forceFlush()) {
       return;
     }
 
-    listeners.forEachInReadLock(LoggerListener::flush);
-    writers.forEachInReadLock(DefaultLoggerFactory::flush);
+    listeners.forEach(LoggerListener::flush);
+    writers.forEach(DefaultLoggerFactory::flush);
   }
 
   private static void append(Writer writer, String toWrite) {
     try {
       writer.append(toWrite);
       writer.append('\n');
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException exception) {
+      //noinspection CallToPrintStackTrace
+      exception.printStackTrace();
     }
   }
 
   private static void flush(Writer writer) {
     try {
       writer.flush();
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException exception) {
+      //noinspection CallToPrintStackTrace
+      exception.printStackTrace();
     }
   }
 }

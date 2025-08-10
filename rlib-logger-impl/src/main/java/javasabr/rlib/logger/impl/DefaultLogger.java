@@ -4,31 +4,21 @@ import java.util.Objects;
 import javasabr.rlib.common.util.StringUtils;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerLevel;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The base implementation of the logger.
- *
  * @author JavaSaBr
  */
+@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public final class DefaultLogger implements Logger {
 
   private static final LoggerLevel[] VALUES = LoggerLevel.values();
 
-  /**
-   * The table of override enabled statuses.
-   */
-  private final @Nullable Boolean[] override;
-
-  /**
-   * The logger name.
-   */
-  private final String name;
-
-  /**
-   * The default logger factory.
-   */
-  private final DefaultLoggerFactory loggerFactory;
+  @Nullable Boolean[] override;
+  String name;
+  DefaultLoggerFactory loggerFactory;
 
   public DefaultLogger(String name, DefaultLoggerFactory loggerFactory) {
     this.name = name;
@@ -39,7 +29,7 @@ public final class DefaultLogger implements Logger {
   @Override
   public boolean enabled(LoggerLevel level) {
     var value = override[level.ordinal()];
-    return Objects.requireNonNullElse(value, level.isEnabled());
+    return Objects.requireNonNullElse(value, level.enabled());
   }
 
   @Override

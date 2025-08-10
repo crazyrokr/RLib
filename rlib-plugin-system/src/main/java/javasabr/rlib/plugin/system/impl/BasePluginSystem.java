@@ -6,11 +6,14 @@ import static javasabr.rlib.common.util.ObjectUtils.notNull;
 import static javasabr.rlib.common.util.array.ArrayCollectors.toArray;
 import static javasabr.rlib.common.util.dictionary.DictionaryCollectors.toObjectDictionary;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,6 +35,7 @@ import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.plugin.system.ConfigurablePluginSystem;
 import javasabr.rlib.plugin.system.Plugin;
 import javasabr.rlib.plugin.system.PluginContainer;
+import javasabr.rlib.plugin.system.PluginSystem;
 import javasabr.rlib.plugin.system.Version;
 import javasabr.rlib.plugin.system.annotation.PluginDescription;
 import javasabr.rlib.plugin.system.exception.InitializePluginException;
@@ -49,7 +53,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public class BasePluginSystem implements ConfigurablePluginSystem {
 
-  protected static final Logger LOGGER = LoggerManager.getLogger(BasePluginSystem.class);
+  protected static final Logger LOGGER = LoggerManager.getLogger(PluginSystem.class);
 
     protected record State(
       Array<PluginContainer> containers,
@@ -102,7 +106,7 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
   public CompletionStage<ConfigurablePluginSystem> preLoad(Executor executor) {
 
     if (!preLoaded.compareAndSet(false, true)) {
-      throw new PluginException("This system was already pre-loaded.");
+      throw new PluginException("This system was already pre-loaded");
     }
 
     return supplyAsync(() -> preLoadImpl(executor), executor);
@@ -231,10 +235,18 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
       Path path,
       Executor executor,
       boolean embedded) {
-    LOGGER.debug(path, "Try to pre-load plugins from the folder:[%s]"::formatted);
+
+    Path realPath;
+    try {
+      realPath = path.toRealPath(LinkOption.NOFOLLOW_LINKS);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+
+    LOGGER.debug(realPath, "Try to pre-load plugins from the folder:[%s]"::formatted);
     return supplyAsync(
         () -> FileUtils
-            .stream(path)
+            .stream(realPath)
             .filter(Files::isDirectory)
             .map(directory -> loadPlugin(directory, baseLoader, executor, embedded))
             .map(CompletionStage::toCompletableFuture)

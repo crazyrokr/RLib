@@ -126,7 +126,7 @@ public interface Logger {
    * Check of enabling the logger level.
    */
   default boolean enabled(@NonNull LoggerLevel level) {
-    return level.isEnabled();
+    return level.enabled();
   }
 
   /**
