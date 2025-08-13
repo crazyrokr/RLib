@@ -630,6 +630,27 @@ public final class ArrayUtils {
     return toString(array, Object::toString);
   }
 
+  public static <T> String toString(T[] array, int size, Function<T, String> toString) {
+
+    if (array.length < 1) {
+      return "[]";
+    }
+
+    var builder = new StringBuilder();
+
+    for (int i = 0, last = size - 1; i < size; i++) {
+      builder.append(toString.apply(array[i]));
+      if (i == last) {
+        break;
+      }
+      builder.append(", ");
+    }
+
+    builder.append("]");
+
+    return builder.toString();
+  }
+
   /**
    * Convert the array to a string presentation.
    *
