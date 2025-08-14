@@ -1,7 +1,7 @@
 package javasabr.rlib.compiler.impl;
 
+import javasabr.rlib.collections.array.MutableArray;
 import javasabr.rlib.common.util.Utils;
-import javasabr.rlib.common.util.array.Array;
 import javasabr.rlib.compiler.CompiledClassData;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
@@ -17,10 +17,10 @@ public class CompiledClassesClassLoader extends ClassLoader {
 
   private static final Logger LOGGER = LoggerManager.getLogger(CompiledClassesClassLoader.class);
   
-  Array<CompiledClassData> compiledClassData;
+  MutableArray<CompiledClassData> compiledClassData;
 
   public CompiledClassesClassLoader() {
-    this.compiledClassData = Array.ofType(CompiledClassData.class);
+    this.compiledClassData = MutableArray.ofType(CompiledClassData.class);
   }
 
   /**

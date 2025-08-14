@@ -3,7 +3,6 @@ package javasabr.rlib.plugin.system.impl;
 import static java.lang.StackWalker.Option.RETAIN_CLASS_REFERENCE;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static javasabr.rlib.common.util.ObjectUtils.notNull;
-import static javasabr.rlib.common.util.array.ArrayCollectors.toArray;
 import static javasabr.rlib.common.util.dictionary.DictionaryCollectors.toObjectDictionary;
 
 import java.io.IOException;
@@ -24,10 +23,10 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javasabr.rlib.classpath.ClassPathScannerFactory;
+import javasabr.rlib.collections.array.Array;
+import javasabr.rlib.collections.array.ArrayCollectors;
 import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.common.util.Utils;
-import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.ReadOnlyArray;
 import javasabr.rlib.common.util.dictionary.ObjectDictionary;
 import javasabr.rlib.io.util.FileUtils;
 import javasabr.rlib.logger.api.Logger;
@@ -62,8 +61,8 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
       ObjectDictionary<String, Plugin> idToPlugin) {
 
       static final State EMPTY = new State(
-          Array.empty(),
-          Array.empty(),
+          Array.empty(PluginContainer.class),
+          Array.empty(Plugin.class),
           ObjectDictionary.empty(),
           ObjectDictionary.empty());
   }
@@ -116,24 +115,25 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
     LOGGER.debug("Start pre-loading all plugins...");
 
     State current = state.get();
-    ReadOnlyArray<CompletionStage<Array<PluginContainer>>> futures = Array.optionals(
+    Array<CompletionStage<Array<PluginContainer>>> futures = Array.optionals(
         CompletionStage.class,
         embeddedPluginsPathOptional().map(path -> loadPlugins(path, executor, true)),
         installationPluginsPathOptional().map(path -> loadPlugins(path, executor, false)));
+
     Array<PluginContainer> containers = futures
         .stream()
         .map(CompletionStage::toCompletableFuture)
         .map(CompletableFuture::join)
         .flatMap(Array::stream)
-        .collect(toArray(PluginContainer.class));
+        .collect(ArrayCollectors.toArray(PluginContainer.class));
 
     var idToContainer = containers
         .stream()
         .collect(toObjectDictionary(PluginContainer::id, container -> container));
 
     State newState = new State(
-        ReadOnlyArray.wrap(containers),
-        Array.empty(),
+        containers,
+        Array.empty(Plugin.class),
         idToContainer,
         ObjectDictionary.empty());
 
@@ -175,7 +175,7 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
 
     State newState = new State(
         current.containers,
-        ReadOnlyArray.wrap(plugins.values(Plugin.class)),
+        Array.of(Plugin.class, plugins.values(Plugin.class).toArray()),
         current.idToContainer,
         plugins);
 
@@ -252,7 +252,7 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
             .map(CompletionStage::toCompletableFuture)
             .map(CompletableFuture::join)
             .filter(Objects::nonNull)
-            .collect(toArray(PluginContainer.class)), executor);
+            .collect(ArrayCollectors.toArray(PluginContainer.class)), executor);
   }
 
   protected CompletionStage<@Nullable PluginContainer> loadPlugin(
@@ -383,7 +383,7 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
 
   @Override
   public Array<Plugin> plugins() {
-    return state.get().idToPlugin.values(Plugin.class);
+    return state.get().plugins;
   }
 
   @Nullable
@@ -466,8 +466,8 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
     idToPlugin.put(plugin.id(), plugin);
 
     State newState = new State(
-        ReadOnlyArray.wrap(idToContainer.values(PluginContainer.class)),
-        ReadOnlyArray.wrap(idToPlugin.values(Plugin.class)),
+        Array.of(PluginContainer.class, idToContainer.values(PluginContainer.class).toArray()),
+        Array.of(Plugin.class, idToPlugin.values(Plugin.class).toArray()),
         idToContainer,
         idToPlugin);
 
@@ -499,8 +499,8 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
     idToPlugin.remove(pluginId);
 
     State newState = new State(
-        ReadOnlyArray.wrap(idToContainer.values(PluginContainer.class)),
-        ReadOnlyArray.wrap(idToPlugin.values(Plugin.class)),
+        Array.of(PluginContainer.class, idToContainer.values(PluginContainer.class).toArray()),
+        Array.of(Plugin.class, idToPlugin.values(Plugin.class).toArray()),
         idToContainer,
         idToPlugin);
 

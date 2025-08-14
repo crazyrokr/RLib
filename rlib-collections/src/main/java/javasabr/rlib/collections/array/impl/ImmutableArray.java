@@ -8,7 +8,8 @@ public class ImmutableArray<E> extends AbstractArray<E> implements UnsafeArray<E
 
   final E[] wrapped;
 
-  public ImmutableArray(Class<E> type, E... elements) {
+  @SafeVarargs
+  public ImmutableArray(Class<? super E> type, E... elements) {
     super(type);
     this.wrapped = elements;
   }

@@ -1,7 +1,7 @@
 package javasabr.rlib.plugin.system;
 
 import java.util.Optional;
-import javasabr.rlib.common.util.array.Array;
+import javasabr.rlib.collections.array.Array;
 import org.jspecify.annotations.Nullable;
 
 /**

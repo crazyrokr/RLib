@@ -3,11 +3,13 @@ package javasabr.rlib.collections.array;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.RandomAccess;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javasabr.rlib.collections.array.impl.DefaultArrayIterator;
 import javasabr.rlib.collections.array.impl.ImmutableArray;
+import javasabr.rlib.common.util.ClassUtils;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -15,24 +17,42 @@ import org.jspecify.annotations.Nullable;
  */
 public interface Array<E> extends Iterable<E>, Serializable, Cloneable, RandomAccess {
 
+  static <E> Array<E> empty(Class<? super E> type) {
+    return new ImmutableArray<>(ClassUtils.unsafeCast(type));
+  }
+
   static <E> Array<E> of(E e1) {
-    return new ImmutableArray<>((Class<E>) e1.getClass(), e1);
+    return new ImmutableArray<>(ClassUtils.unsafeCast(e1.getClass()), e1);
   }
 
   static <E> Array<E> of(E e1, E e2) {
-    return new ImmutableArray<>((Class<E>) e1.getClass(), e1, e2);
+    return new ImmutableArray<>(ClassUtils.unsafeCast(e1.getClass()), e1, e2);
   }
 
   static <E> Array<E> of(E e1, E e2, E e3) {
-    return new ImmutableArray<>((Class<E>) e1.getClass(), e1, e2, e3);
+    return new ImmutableArray<>(ClassUtils.unsafeCast(e1.getClass()), e1, e2, e3);
   }
 
   static <E> Array<E> of(E e1, E e2, E e3, E e4) {
-    return new ImmutableArray<>((Class<E>) e1.getClass(), e1, e2, e3, e4);
+    return new ImmutableArray<>(ClassUtils.unsafeCast(e1.getClass()), e1, e2, e3, e4);
   }
 
-  static <E> Array<E> of(Class<E> type, E... elements) {
+  @SafeVarargs
+  static <E> Array<E> of(Class<? super E> type, E... elements) {
     return new ImmutableArray<>(type, elements);
+  }
+
+  @SafeVarargs
+  static <E> Array<E> optionals(Class<? super E> type, Optional<E>... elements) {
+    return Stream
+        .of(elements)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(ArrayCollectors.toArray(type));
+  }
+
+  static <E> Array<E> copyOf(MutableArray<E> array) {
+    return new ImmutableArray<>(array.type(), array.toArray());
   }
 
   Class<E> type();
@@ -175,6 +195,10 @@ public interface Array<E> extends Iterable<E>, Serializable, Cloneable, RandomAc
    * @return a sequential {@code Stream} over the elements in this array
    */
   Stream<E> stream();
+
+  ReversedArrayIterationFunctions<E> reversedIterations();
+
+  ArrayIterationFunctions<E> iterations();
 
   UnsafeArray<E> asUnsafe();
 }

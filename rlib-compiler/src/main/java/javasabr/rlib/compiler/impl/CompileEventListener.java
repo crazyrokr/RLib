@@ -1,6 +1,6 @@
 package javasabr.rlib.compiler.impl;
 
-import javasabr.rlib.common.util.array.Array;
+import javasabr.rlib.collections.array.MutableArray;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
@@ -17,10 +17,10 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class CompileEventListener implements DiagnosticListener<JavaFileObject> {
 
-  Array<Diagnostic<? extends JavaFileObject>> diagnostics;
+  MutableArray<Diagnostic<? extends JavaFileObject>> diagnostics;
 
   public CompileEventListener() {
-    this.diagnostics = Array.ofType(Diagnostic.class);
+    this.diagnostics = MutableArray.ofType(Diagnostic.class);
   }
 
   public void clear() {
@@ -28,7 +28,7 @@ public class CompileEventListener implements DiagnosticListener<JavaFileObject> 
   }
 
   @Override
-  public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
+  public synchronized void report(Diagnostic<? extends JavaFileObject> diagnostic) {
     diagnostics.add(diagnostic);
   }
 }

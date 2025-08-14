@@ -20,10 +20,10 @@ public abstract class AbstractMutableArray<E> extends AbstractArray<E> implement
 
   protected static final int DEFAULT_CAPACITY = 10;
 
-  public AbstractMutableArray(Class<E> type) {
+  public AbstractMutableArray(Class<? super E> type) {
     this(type, DEFAULT_CAPACITY);
   }
-  public AbstractMutableArray(Class<E> type, int capacity) {
+  public AbstractMutableArray(Class<? super E> type, int capacity) {
     super(type);
     if (capacity < 0) {
       throw new IllegalArgumentException("Negative capacity");
@@ -46,6 +46,18 @@ public abstract class AbstractMutableArray<E> extends AbstractArray<E> implement
     }
     int size = size();
     int elementsToAdd = array.size();
+    prepareForSize(size + elementsToAdd);
+    processAdd(array, size, elementsToAdd);
+    return true;
+  }
+
+  @Override
+  public boolean addAll(E[] array) {
+    if (array.length < 1) {
+      return false;
+    }
+    int size = size();
+    int elementsToAdd = array.length;
     prepareForSize(size + elementsToAdd);
     processAdd(array, size, elementsToAdd);
     return true;

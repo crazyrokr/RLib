@@ -1,6 +1,5 @@
 package javasabr.rlib.collections.array;
 
-import javasabr.rlib.common.util.array.ArrayFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

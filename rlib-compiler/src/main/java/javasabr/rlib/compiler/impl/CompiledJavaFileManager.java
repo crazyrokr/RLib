@@ -1,6 +1,6 @@
 package javasabr.rlib.compiler.impl;
 
-import javasabr.rlib.common.util.array.Array;
+import javasabr.rlib.collections.array.MutableArray;
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileObject;
@@ -15,7 +15,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class CompiledJavaFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
 
-  Array<String> classNames;
+  MutableArray<String> classNames;
   CompiledClassesClassLoader classLoader;
 
   public CompiledJavaFileManager(
@@ -23,7 +23,7 @@ public class CompiledJavaFileManager extends ForwardingJavaFileManager<StandardJ
       CompiledClassesClassLoader classLoader) {
     super(fileManager);
     this.classLoader = classLoader;
-    this.classNames = Array.ofType(String.class);
+    this.classNames = MutableArray.ofType(String.class);
   }
 
   /**
@@ -38,7 +38,7 @@ public class CompiledJavaFileManager extends ForwardingJavaFileManager<StandardJ
   }
 
   @Override
-  public JavaFileObject getJavaFileForOutput(
+  public synchronized JavaFileObject getJavaFileForOutput(
       Location location,
       String name,
       Kind kind,

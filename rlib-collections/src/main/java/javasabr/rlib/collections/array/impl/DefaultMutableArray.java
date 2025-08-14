@@ -14,8 +14,12 @@ public class DefaultMutableArray<E> extends AbstractMutableArray<E> {
   @Nullable E[] wrapped;
   int size;
 
-  public DefaultMutableArray(Class<E> type) {
+  public DefaultMutableArray(Class<? super E> type) {
     super(type);
+  }
+
+  public DefaultMutableArray(Class<? super E> type, int capacity) {
+    super(type, capacity);
   }
 
   @Override

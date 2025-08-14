@@ -7,8 +7,11 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javasabr.rlib.collections.array.Array;
+import javasabr.rlib.collections.array.ArrayIterationFunctions;
+import javasabr.rlib.collections.array.ReversedArrayIterationFunctions;
 import javasabr.rlib.collections.array.UnsafeArray;
 import javasabr.rlib.common.util.ArrayUtils;
+import javasabr.rlib.common.util.ClassUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -22,8 +25,8 @@ public abstract class AbstractArray<E> implements UnsafeArray<E> {
   @Getter
   final Class<E> type;
 
-  protected AbstractArray(Class<E> type) {
-    this.type = type;
+  protected AbstractArray(Class<? super E> type) {
+    this.type = ClassUtils.unsafeCast(type);
   }
 
   @Override
@@ -143,6 +146,16 @@ public abstract class AbstractArray<E> implements UnsafeArray<E> {
     for (int i = size() - 1; i >= 0; i--) {
       action.accept(wrapped[i]);
     }
+  }
+
+  @Override
+  public ReversedArrayIterationFunctions<E> reversedIterations() {
+    return new DefaultReversedArrayIterationFunctions<>(this);
+  }
+
+  @Override
+  public ArrayIterationFunctions<E> iterations() {
+    return new DefaultArrayIterationFunctions<>(this);
   }
 
   @Override

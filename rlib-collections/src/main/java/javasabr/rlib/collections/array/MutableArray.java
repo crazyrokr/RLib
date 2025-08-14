@@ -5,10 +5,21 @@ import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
+import javasabr.rlib.collections.array.impl.DefaultMutableArray;
 
 public interface MutableArray<E> extends Array<E>, Collection<E> {
 
+  static <E> MutableArray<E> ofType(Class<? super E> type) {
+    return new DefaultMutableArray<>(type);
+  }
+
   boolean addAll(Array<? extends E> array);
+
+  default boolean addAll(MutableArray<? extends E> array) {
+    return addAll((Array<? extends E>) array);
+  }
+
+  boolean addAll(E[] array);
 
   /**
    * @return the element previously at the specified position
