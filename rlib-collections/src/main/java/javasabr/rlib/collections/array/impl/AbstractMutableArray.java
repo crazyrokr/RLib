@@ -170,7 +170,7 @@ public abstract class AbstractMutableArray<E> extends AbstractArray<E> implement
   protected abstract void wrapped(@Nullable E[] wrapped);
 
   @Override
-  public UnsafeArray<E> asUnsafe() {
+  public UnsafeMutableArray<E> asUnsafe() {
     return this;
   }
 }

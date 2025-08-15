@@ -14,6 +14,7 @@ import org.jspecify.annotations.NullMarked;
  * @author JavaSaBr
  */
 @NullMarked
+@Deprecated
 public interface Dictionary<K, V> extends Iterable<V>, Reusable {
 
   /**

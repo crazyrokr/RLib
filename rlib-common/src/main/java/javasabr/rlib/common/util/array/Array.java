@@ -43,6 +43,7 @@ import org.jspecify.annotations.Nullable;
  * @author JavaSaBr
  */
 @NullMarked
+@Deprecated
 public interface Array<E> extends Collection<E>, Serializable, Reusable, Cloneable, RandomAccess {
 
   /**

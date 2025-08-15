@@ -45,4 +45,7 @@ public interface MutableArray<E> extends Array<E>, Collection<E> {
   default void forEach(Consumer<? super E> action) {
     Array.super.forEach(action);
   }
+
+  @Override
+  UnsafeMutableArray<E> asUnsafe();
 }
