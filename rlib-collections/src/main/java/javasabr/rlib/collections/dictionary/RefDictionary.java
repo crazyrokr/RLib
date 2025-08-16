@@ -10,7 +10,7 @@ public interface RefDictionary<K, V> extends Dictionary<K, V> {
     return new SimpleEntry<>(key, value);
   }
 
-  static <K, V> RefDictionary<K, V> of() {
+  static <K, V> RefDictionary<K, V> empty() {
     return ImmutableHashBasedRefDictionary.empty();
   }
 
