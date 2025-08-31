@@ -4,6 +4,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javasabr.rlib.collections.dictionary.LinkedHashEntry;
+import javasabr.rlib.collections.dictionary.MutableRefDictionary;
+import javasabr.rlib.collections.dictionary.RefDictionary;
 import javasabr.rlib.collections.dictionary.UnsafeMutableRefDictionary;
 import org.jspecify.annotations.Nullable;
 
@@ -77,6 +79,27 @@ public abstract class AbstractMutableHashBasedRefDictionary<K, V, E extends Link
   @Override
   public Optional<V> putOptional(K key, V value) {
     return Optional.ofNullable(put(key, value));
+  }
+
+  @Override
+  public void putAll(RefDictionary<? extends K, ? extends V> dictionary) {
+    if (dictionary instanceof AbstractHashBasedRefDictionary<?, ?, ?> hashBased) {
+      for (var entry : hashBased.entries()) {
+        while (entry != null) {
+          //noinspection DataFlowIssue,unchecked
+          put((K) entry.key(), (V) entry.value());
+          entry = entry.next();
+        }
+      }
+    } else {
+      dictionary.forEach(this::put);
+    }
+  }
+
+  @Override
+  public MutableRefDictionary<K, V> append(RefDictionary<? extends K, ? extends V> dictionary) {
+    putAll(dictionary);
+    return this;
   }
 
   @Nullable

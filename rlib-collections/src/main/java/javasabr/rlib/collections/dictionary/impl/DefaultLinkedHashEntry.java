@@ -3,12 +3,14 @@ package javasabr.rlib.collections.dictionary.impl;
 import javasabr.rlib.collections.dictionary.LinkedHashEntry;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 @Getter
-@Accessors(fluent = true)
+@Setter
+@Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DefaultLinkedHashEntry<K, V> implements
     LinkedHashEntry<K, V, DefaultLinkedHashEntry<K, V>> {
@@ -31,20 +33,5 @@ public class DefaultLinkedHashEntry<K, V> implements
     this.key = key;
     this.value = value;
     this.hash = hash;
-  }
-
-  @Override
-  public void next(@Nullable DefaultLinkedHashEntry<K, V> next) {
-    this.next = next;
-  }
-
-  @Override
-  public void key(K key) {
-    this.key = key;
-  }
-
-  @Override
-  public void value(@Nullable V value) {
-    this.value = value;
   }
 }

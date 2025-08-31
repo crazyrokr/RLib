@@ -10,7 +10,7 @@ import org.jspecify.annotations.Nullable;
 
 @Data
 @AllArgsConstructor
-@Accessors(fluent = true)
+@Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SimpleEntry<K, V> implements Entry<K, V> {
   K key;

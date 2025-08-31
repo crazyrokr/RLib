@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import javasabr.rlib.collections.array.Array;
 import javasabr.rlib.collections.array.ArrayFactory;
 import javasabr.rlib.collections.array.MutableArray;
@@ -59,7 +60,7 @@ public abstract class AbstractHashBasedRefDictionary<K, V, E extends LinkedHashE
     if (isEmpty()) {
       return Collections.emptyIterator();
     }
-    return new EntryIterator<>(entries());
+    return new LinkedEntryIterator<>(entries());
   }
 
   @Nullable
@@ -76,6 +77,17 @@ public abstract class AbstractHashBasedRefDictionary<K, V, E extends LinkedHashE
     }
 
     return null;
+  }
+
+  @Override
+  public void forEach(BiConsumer<K, V> consumer) {
+    for (E entry : entries()) {
+      while (entry != null) {
+        //noinspection DataFlowIssue
+        consumer.accept(entry.key(), entry.value());
+        entry = entry.next();
+      }
+    }
   }
 
   @Override

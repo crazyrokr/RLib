@@ -7,13 +7,16 @@ import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class EntryIterator<K, V, E extends LinkedEntry<K, V, E>> implements Iterator<@Nullable V> {
+public class LinkedEntryIterator<K, V, E extends LinkedEntry<K, V, E>> implements Iterator<@Nullable V> {
 
   final @Nullable E[] entries;
-  @Nullable E next;
+
+  @Nullable
+  E next;
+
   int index;
 
-  public EntryIterator(@Nullable E[] entries) {
+  public LinkedEntryIterator(@Nullable E[] entries) {
     this.entries = entries;
     findNext();
   }

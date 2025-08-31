@@ -1,5 +1,6 @@
 package javasabr.rlib.collections.dictionary;
 
+import java.util.function.BiConsumer;
 import javasabr.rlib.collections.dictionary.impl.ImmutableHashBasedRefDictionary;
 import javasabr.rlib.collections.dictionary.impl.SimpleEntry;
 import org.jspecify.annotations.Nullable;
@@ -30,4 +31,6 @@ public interface RefDictionary<K, V> extends Dictionary<K, V> {
     }
     return mutable.toReadOnly();
   }
+
+  void forEach(BiConsumer<K, V> consumer);
 }
