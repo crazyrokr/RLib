@@ -9,8 +9,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.ArrayFactory;
+import javasabr.rlib.collections.array.ArrayFactory;
+import javasabr.rlib.collections.array.MutableArray;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerFactory;
 import javasabr.rlib.logger.api.LoggerLevel;
@@ -30,8 +30,8 @@ public class DefaultLoggerService implements LoggerFactory, LoggerService {
   static final LoggerLevel[] LOGGER_LEVELS = LoggerLevel.values();
 
   ConcurrentMap<String, Logger> loggers;
-  Array<LoggerListener> listeners;
-  Array<Writer> writers;
+  MutableArray<LoggerListener> listeners;
+  MutableArray<Writer> writers;
 
   Logger logger;
   DateTimeFormatter timeFormatter;
@@ -123,8 +123,12 @@ public class DefaultLoggerService implements LoggerFactory, LoggerService {
 
   private void write(LoggerLevel level, String resultMessage) {
 
-    listeners.forEachR(resultMessage, LoggerListener::println);
-    writers.forEachR(resultMessage, DefaultLoggerService::append);
+    listeners
+        .iterations()
+        .forEach(resultMessage, LoggerListener::println);
+    writers
+        .iterations()
+        .forEach(resultMessage, DefaultLoggerService::append);
 
     switch (level) {
       case INFO, DEBUG -> System.out.println(resultMessage);

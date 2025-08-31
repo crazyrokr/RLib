@@ -4,7 +4,7 @@ public interface UnsafeMutableArray<E> extends UnsafeArray<E>, MutableArray<E> {
 
   UnsafeMutableArray<E> prepareForSize(int expectedSize);
 
-  UnsafeMutableArray<E> unsafeAdd(E object);
+  UnsafeMutableArray<E> unsafeAdd(E element);
 
   E unsafeRemove(int index);
 

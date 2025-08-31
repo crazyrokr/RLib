@@ -151,7 +151,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
     return Array.of(String.class, resources);
   }
 
-  protected String[] calculatePathsToScan() {
+  protected Array<String> calculatePathsToScan() {
 
     var systemClasspath = useSystemClassPath() ? classpathPaths() : ArrayUtils.EMPTY_STRING_ARRAY;
     var capacity = additionalPaths.size() + systemClasspath.length;
@@ -160,7 +160,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
     result.addAll(systemClasspath);
     result.addAll(additionalPaths);
 
-    return result.toArray(String.class);
+    return result;
   }
 
   protected String[] classpathPaths() {

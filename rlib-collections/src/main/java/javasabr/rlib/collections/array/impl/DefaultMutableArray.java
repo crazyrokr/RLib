@@ -2,7 +2,6 @@ package javasabr.rlib.collections.array.impl;
 
 import java.util.Arrays;
 import javasabr.rlib.collections.array.UnsafeMutableArray;
-import javasabr.rlib.common.util.ArrayUtils;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.jspecify.annotations.Nullable;
@@ -11,7 +10,12 @@ import org.jspecify.annotations.Nullable;
 @Accessors(fluent = true)
 public class DefaultMutableArray<E> extends AbstractMutableArray<E> {
 
-  @Nullable E[] wrapped;
+  /*
+    It's initialized during object construction by setter #wrapped
+   */
+  @SuppressWarnings("NotNullFieldNotInitialized")
+  @Nullable
+  E[] wrapped;
   int size;
 
   public DefaultMutableArray(Class<? super E> type) {
@@ -38,8 +42,8 @@ public class DefaultMutableArray<E> extends AbstractMutableArray<E> {
   }
 
   @Override
-  public UnsafeMutableArray<E> unsafeAdd(E object) {
-    wrapped[size++] = object;
+  public UnsafeMutableArray<E> unsafeAdd(E element) {
+    wrapped[size++] = element;
     return this;
   }
 
@@ -86,7 +90,7 @@ public class DefaultMutableArray<E> extends AbstractMutableArray<E> {
     if (size == wrapped.length) {
       return this;
     }
-    wrapped = ArrayUtils.copyOfRange(wrapped, 0, size);
+    wrapped = Arrays.copyOfRange(wrapped, 0, size);
     return this;
   }
 }

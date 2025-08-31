@@ -155,14 +155,14 @@ public abstract class AbstractMutableArray<E> extends AbstractArray<E> implement
     return Spliterators.spliterator(wrapped(), 0, size(), Spliterator.NONNULL);
   }
 
-  protected void processAdd(Array<? extends E> array, int size, int elementsToAdd) {
-    System.arraycopy(array.asUnsafe().wrapped(), 0, wrapped(), size, elementsToAdd);
-    size(size + elementsToAdd);
+  protected void processAdd(Array<? extends E> array, int currentSize, int elementsToAdd) {
+    System.arraycopy(array.asUnsafe().wrapped(), 0, wrapped(), currentSize, elementsToAdd);
+    size(currentSize + elementsToAdd);
   }
 
-  protected void processAdd(E[] array, int selfSize, int targetSize) {
-    System.arraycopy(array, 0, wrapped(), selfSize, targetSize);
-    size(selfSize + targetSize);
+  protected void processAdd(E[] array, int currentSize, int elementsToAdd) {
+    System.arraycopy(array, 0, wrapped(), currentSize, elementsToAdd);
+    size(currentSize + elementsToAdd);
   }
 
   protected abstract void size(int size);

@@ -1,5 +1,6 @@
 package javasabr.rlib.collections.array.impl;
 
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import javasabr.rlib.collections.array.ArrayIterationFunctions;
 import javasabr.rlib.collections.array.UnsafeArray;
@@ -20,6 +21,16 @@ public record DefaultArrayIterationFunctions<E>(UnsafeArray<E> array) implements
       }
     }
     return null;
+  }
+
+  @Override
+  public <T> ArrayIterationFunctions<E> forEach(T arg1, BiConsumer<? super E, T> consumer) {
+    @Nullable E[] wrapped = array.wrapped();
+    int size = array.size();
+    for (int i = 0; i < size; i++) {
+      consumer.accept(wrapped[i], arg1);
+    }
+    return this;
   }
 
   @Override

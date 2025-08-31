@@ -8,9 +8,11 @@ import java.util.Enumeration;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.stream.Stream;
+import javasabr.rlib.collections.array.Array;
+import javasabr.rlib.collections.array.ArrayCollectors;
+import javasabr.rlib.collections.array.MutableArray;
 import javasabr.rlib.common.util.Utils;
-import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.ArrayFactory;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
@@ -32,9 +34,9 @@ public class ManifestClassPathScannerImpl extends ClassPathScannerImpl {
     this.classPathKey = classPathKey;
   }
 
-  protected String[] calculateManifestClassPath() {
+  protected Array<String> calculateManifestClassPath() {
 
-    var result = Array.ofType(String.class);
+    var result = MutableArray.ofType(String.class);
     var currentThread = Thread.currentThread();
 
     Path root = Utils.getRootFolderFromClass(rootClass);
@@ -74,16 +76,21 @@ public class ManifestClassPathScannerImpl extends ClassPathScannerImpl {
       }
     }
 
-    return result.toArray(String.class);
+    return result;
   }
 
   @Override
-  protected String[] calculatePathsToScan() {
+  protected Array<String> calculatePathsToScan() {
 
-    var result = ArrayFactory.newArraySet(String.class);
-    result.addAll(super.calculatePathsToScan());
-    result.addAll(calculateManifestClassPath());
+    Stream<String> originalStream = super
+        .calculatePathsToScan()
+        .stream();
+    Stream<String> extraStream = calculateManifestClassPath()
+        .stream();
 
-    return result.toArray(String.class);
+    return Stream
+        .concat(originalStream, extraStream)
+        .distinct()
+        .collect(ArrayCollectors.toArray(String.class));
   }
 }
