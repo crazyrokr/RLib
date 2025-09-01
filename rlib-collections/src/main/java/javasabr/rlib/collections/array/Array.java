@@ -22,23 +22,23 @@ public interface Array<E> extends Iterable<E>, Serializable, Cloneable, RandomAc
   }
 
   static <E> Array<E> of(E e1) {
-    return new ImmutableArray<>(ClassUtils.unsafeCast(e1.getClass()), e1);
+    return new ImmutableArray<>(Object.class, e1);
   }
 
   static <E> Array<E> of(E e1, E e2) {
-    return new ImmutableArray<>(ClassUtils.unsafeCast(e1.getClass()), e1, e2);
+    return new ImmutableArray<>(Object.class, e1, e2);
   }
 
   static <E> Array<E> of(E e1, E e2, E e3) {
-    return new ImmutableArray<>(ClassUtils.unsafeCast(e1.getClass()), e1, e2, e3);
+    return new ImmutableArray<>(Object.class, e1, e2, e3);
   }
 
   static <E> Array<E> of(E e1, E e2, E e3, E e4) {
-    return new ImmutableArray<>(ClassUtils.unsafeCast(e1.getClass()), e1, e2, e3, e4);
+    return new ImmutableArray<>(Object.class, e1, e2, e3, e4);
   }
 
   @SafeVarargs
-  static <E> Array<E> of(Class<? super E> type, E... elements) {
+  static <E> Array<E> typed(Class<? super E> type, E... elements) {
     return new ImmutableArray<>(type, elements);
   }
 
@@ -82,7 +82,7 @@ public interface Array<E> extends Iterable<E>, Serializable, Cloneable, RandomAc
    *         array does not permit null elements
    *         ({@linkplain Collection##optional-restrictions optional})
    */
-  boolean contains(Object object);
+  boolean contains(@Nullable Object object);
 
   /**
    * Returns {@code true} if this array contains all of the elements
@@ -149,7 +149,8 @@ public interface Array<E> extends Iterable<E>, Serializable, Cloneable, RandomAc
 
    * @return the retrieved element or null
    */
-  @Nullable E first();
+  @Nullable
+  E first();
 
   E get(int index);
 
@@ -158,7 +159,8 @@ public interface Array<E> extends Iterable<E>, Serializable, Cloneable, RandomAc
 
    * @return the retrieved element or null
    */
-  @Nullable E last();
+  @Nullable
+  E last();
 
   @Override
   default Iterator<E> iterator() {
@@ -168,9 +170,9 @@ public interface Array<E> extends Iterable<E>, Serializable, Cloneable, RandomAc
   /**
    * @return the index of the object or -1.
    */
-  int indexOf(Object object);
+  int indexOf(@Nullable Object object);
 
-  int lastIndexOf(Object object);
+  int lastIndexOf(@Nullable Object object);
 
   <T > T[] toArray(T[] newArray);
 

@@ -29,13 +29,15 @@ public abstract class AbstractArray<E> implements UnsafeArray<E> {
     this.type = ClassUtils.unsafeCast(type);
   }
 
+  @Nullable
   @Override
-  public @Nullable E first() {
+  public E first() {
     return isEmpty() ? null : get(0);
   }
 
+  @Nullable
   @Override
-  public @Nullable E last() {
+  public E last() {
     int size = size();
     if (size < 1) {
       return null;
@@ -56,10 +58,13 @@ public abstract class AbstractArray<E> implements UnsafeArray<E> {
   }
 
   @Override
-  public boolean contains(Object object) {
-    var wrapped = wrapped();
+  public boolean contains(@Nullable Object object) {
+    if (object == null) {
+      return false;
+    }
+    @Nullable E[] wrapped = wrapped();
     for (int i = 0, length = size(); i < length; i++) {
-      if (wrapped[i].equals(object)) {
+      if (object.equals(wrapped[i])) {
         return true;
       }
     }
@@ -68,12 +73,11 @@ public abstract class AbstractArray<E> implements UnsafeArray<E> {
 
   @Override
   public boolean containsAll(Array<?> array) {
-
     if (array.isEmpty()) {
       return false;
     }
 
-    Object[] wrapped = array
+    @Nullable Object[] wrapped = array
         .asUnsafe()
         .wrapped();
 
@@ -88,41 +92,38 @@ public abstract class AbstractArray<E> implements UnsafeArray<E> {
 
   @Override
   public boolean containsAll(Collection<?> collection) {
-
     if (collection.isEmpty()) {
       return false;
     }
-
     for (var element : collection) {
       if (!contains(element)) {
         return false;
       }
     }
-
     return true;
   }
 
   @Override
   public boolean containsAll(Object[] array) {
-
     if (array.length < 1) {
       return false;
     }
-
     for (Object element : array) {
       if (!contains(element)) {
         return false;
       }
     }
-
     return true;
   }
 
   @Override
-  public int indexOf(Object object) {
-    var wrapped = wrapped();
+  public int indexOf(@Nullable Object object) {
+    if (object == null) {
+      return -1;
+    }
+    @Nullable E[] wrapped = wrapped();
     for (int i = 0, length = size(); i < length; i++) {
-      if (wrapped[i].equals(object)) {
+      if (object.equals(wrapped[i])) {
         return i;
       }
     }
@@ -130,10 +131,13 @@ public abstract class AbstractArray<E> implements UnsafeArray<E> {
   }
 
   @Override
-  public int lastIndexOf(Object object) {
-    var wrapped = wrapped();
+  public int lastIndexOf(@Nullable Object object) {
+    if (object == null) {
+      return -1;
+    }
+    @Nullable E[] wrapped = wrapped();
     for (int i = size() - 1; i >= 0; i--) {
-      if (wrapped[i].equals(object)) {
+      if (object.equals(wrapped[i])) {
         return i;
       }
     }
@@ -142,8 +146,8 @@ public abstract class AbstractArray<E> implements UnsafeArray<E> {
 
   @Override
   public void forEach(Consumer<? super E> action) {
-    var wrapped = wrapped();
-    for (int i = size() - 1; i >= 0; i--) {
+    @Nullable E[] wrapped = wrapped();
+    for (int i = 0, limit = size(); i < limit; i++) {
       action.accept(wrapped[i]);
     }
   }
@@ -164,11 +168,9 @@ public abstract class AbstractArray<E> implements UnsafeArray<E> {
     @Nullable E[] array = wrapped();
 
     if (newArray.length >= size()) {
-
       for (int i = 0, j = 0, length = size(), newLength = newArray.length; i < length && j < newLength; i++) {
         newArray[j++] = (T) array[i];
       }
-
       return newArray;
     }
 

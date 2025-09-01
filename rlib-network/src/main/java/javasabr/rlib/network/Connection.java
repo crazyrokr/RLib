@@ -1,6 +1,7 @@
 package javasabr.rlib.network;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import javasabr.rlib.common.function.NotNullBiConsumer;
 import javasabr.rlib.network.packet.ReadablePacket;
 import javasabr.rlib.network.packet.WritablePacket;
@@ -67,7 +68,7 @@ public interface Connection<R extends ReadablePacket, W extends WritablePacket> 
    *
    * @param consumer the consumer.
    */
-  void onReceive(NotNullBiConsumer<? super Connection<R, W>, ? super R> consumer);
+  void onReceive(BiConsumer<? super Connection<R, W>, ? super R> consumer);
 
   /**
    * Get a stream of received packet events.

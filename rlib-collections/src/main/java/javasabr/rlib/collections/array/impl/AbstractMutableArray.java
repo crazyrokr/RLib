@@ -18,17 +18,8 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public abstract class AbstractMutableArray<E> extends AbstractArray<E> implements UnsafeMutableArray<E> {
 
-  protected static final int DEFAULT_CAPACITY = 10;
-
-  public AbstractMutableArray(Class<? super E> type) {
-    this(type, DEFAULT_CAPACITY);
-  }
-  public AbstractMutableArray(Class<? super E> type, int capacity) {
+  protected AbstractMutableArray(Class<? super E> type) {
     super(type);
-    if (capacity < 0) {
-      throw new IllegalArgumentException("Negative capacity");
-    }
-    wrapped(ArrayUtils.create(type, capacity));
   }
 
   @Override
@@ -72,6 +63,7 @@ public abstract class AbstractMutableArray<E> extends AbstractArray<E> implement
     int elementsToAdd = collection.size();
     prepareForSize(size + elementsToAdd);
     for (E element : collection) {
+      Objects.requireNonNull(element);
       unsafeAdd(element);
     }
     return true;
@@ -123,7 +115,7 @@ public abstract class AbstractMutableArray<E> extends AbstractArray<E> implement
     }
 
     int removed = 0;
-    var wrapped = wrapped();
+    @Nullable E[] wrapped = wrapped();
 
     for (int i = 0, length = size(); i < length; i++) {
       if (!collection.contains(wrapped[i])) {

@@ -2,11 +2,14 @@ package javasabr.rlib.collections.array.impl;
 
 import java.util.stream.Stream;
 import javasabr.rlib.collections.array.UnsafeArray;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
+@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class ImmutableArray<E> extends AbstractArray<E> implements UnsafeArray<E> {
 
-  final E[] wrapped;
+  E[] wrapped;
 
   @SafeVarargs
   public ImmutableArray(Class<? super E> type, E... elements) {

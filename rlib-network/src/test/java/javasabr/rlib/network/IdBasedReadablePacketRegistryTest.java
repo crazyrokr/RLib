@@ -1,8 +1,7 @@
 package javasabr.rlib.network;
 
+import javasabr.rlib.collections.array.Array;
 import javasabr.rlib.common.util.ClassUtils;
-import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.ArrayFactory;
 import javasabr.rlib.network.annotation.PacketDescription;
 import javasabr.rlib.network.impl.DefaultConnection;
 import javasabr.rlib.network.packet.IdBasedReadablePacket;
@@ -60,7 +59,8 @@ public class IdBasedReadablePacketRegistryTest {
   @Test
   void shouldRegister3PacketsByArray() {
 
-    var registry = new IdBasedReadablePacketRegistry<>(IdBasedReadablePacket.class).register(ArrayFactory.asArray(
+    var registry = new IdBasedReadablePacketRegistry<>(IdBasedReadablePacket.class).register(Array.typed(
+        Class.class,
         Impl1.class,
         Impl2.class,
         Impl3.class));
@@ -110,11 +110,10 @@ public class IdBasedReadablePacketRegistryTest {
   @Test
   void shouldNotAcceptWrongTypes() {
 
-    var array = ArrayFactory.asArray(PrivateImpl1.class, PrivateImpl2.class, PublicImpl1.class, PublicImpl2.class);
+    var array = Array.typed(Class.class, PrivateImpl1.class, PrivateImpl2.class, PublicImpl1.class, PublicImpl2.class);
 
-    var registry = new IdBasedReadablePacketRegistry<>(PublicBase.class).register(ClassUtils.<Array<Class<?
-        extends PublicBase>>>unsafeNNCast(
-        array));
+    var registry = new IdBasedReadablePacketRegistry<>(PublicBase.class)
+        .register(ClassUtils.<Array<Class<? extends PublicBase>>>unsafeNNCast(array));
 
     Assertions.assertTrue(registry.findById(1) instanceof PublicImpl1);
     Assertions.assertThrows(IllegalArgumentException.class, () -> registry.findById(2));

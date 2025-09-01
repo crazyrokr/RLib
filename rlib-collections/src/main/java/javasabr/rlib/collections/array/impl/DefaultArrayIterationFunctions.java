@@ -4,6 +4,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import javasabr.rlib.collections.array.ArrayIterationFunctions;
 import javasabr.rlib.collections.array.UnsafeArray;
+import javasabr.rlib.functions.TriConsumer;
 import org.jspecify.annotations.Nullable;
 
 public record DefaultArrayIterationFunctions<E>(UnsafeArray<E> array) implements ArrayIterationFunctions<E> {
@@ -29,6 +30,16 @@ public record DefaultArrayIterationFunctions<E>(UnsafeArray<E> array) implements
     int size = array.size();
     for (int i = 0; i < size; i++) {
       consumer.accept(wrapped[i], arg1);
+    }
+    return this;
+  }
+
+  @Override
+  public <F, S> ArrayIterationFunctions<E> forEach(F arg1, S arg2, TriConsumer<? super E, F, S> consumer) {
+    @Nullable E[] wrapped = array.wrapped();
+    int size = array.size();
+    for (int i = 0; i < size; i++) {
+      consumer.accept(wrapped[i], arg1, arg2);
     }
     return this;
   }

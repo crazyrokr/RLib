@@ -179,7 +179,7 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
 
     State newState = new State(
         current.containers,
-        Array.of(Plugin.class, plugins.values(Plugin.class).toArray()),
+        Array.typed(Plugin.class, plugins.values(Plugin.class).toArray()),
         current.idToContainer,
         plugins);
 

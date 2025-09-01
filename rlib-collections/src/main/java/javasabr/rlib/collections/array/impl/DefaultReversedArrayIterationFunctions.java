@@ -4,6 +4,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import javasabr.rlib.collections.array.ReversedArrayIterationFunctions;
 import javasabr.rlib.collections.array.UnsafeArray;
+import javasabr.rlib.functions.TriConsumer;
 import org.jspecify.annotations.Nullable;
 
 public record DefaultReversedArrayIterationFunctions<E>(UnsafeArray<E> array) implements
@@ -30,6 +31,16 @@ public record DefaultReversedArrayIterationFunctions<E>(UnsafeArray<E> array) im
     int size = array.size();
     for (int i = 0; i < size; i++) {
       consumer.accept(arg1, wrapped[i]);
+    }
+    return this;
+  }
+
+  @Override
+  public <F, S> ReversedArrayIterationFunctions<E> forEach(F arg1, S arg2, TriConsumer<F, S, ? super E> consumer) {
+    @Nullable E[] wrapped = array.wrapped();
+    int size = array.size();
+    for (int i = 0; i < size; i++) {
+      consumer.accept(arg1, arg2, wrapped[i]);
     }
     return this;
   }

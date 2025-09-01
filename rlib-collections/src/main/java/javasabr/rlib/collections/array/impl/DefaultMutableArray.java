@@ -2,13 +2,19 @@ package javasabr.rlib.collections.array.impl;
 
 import java.util.Arrays;
 import javasabr.rlib.collections.array.UnsafeMutableArray;
+import javasabr.rlib.common.util.ArrayUtils;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 @Getter
 @Accessors(fluent = true)
+@FieldDefaults(level = AccessLevel.PROTECTED)
 public class DefaultMutableArray<E> extends AbstractMutableArray<E> {
+
+  protected static final int DEFAULT_CAPACITY = 10;
 
   /*
     It's initialized during object construction by setter #wrapped
@@ -19,11 +25,12 @@ public class DefaultMutableArray<E> extends AbstractMutableArray<E> {
   int size;
 
   public DefaultMutableArray(Class<? super E> type) {
-    super(type);
+    this(type, DEFAULT_CAPACITY);
   }
 
   public DefaultMutableArray(Class<? super E> type, int capacity) {
-    super(type, capacity);
+    super(type);
+    this.wrapped = ArrayUtils.create(type, capacity);
   }
 
   @Override

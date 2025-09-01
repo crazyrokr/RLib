@@ -1,22 +1,28 @@
 package javasabr.rlib.collections.array.impl;
 
+import java.lang.invoke.VarHandle;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.concurrent.atomic.AtomicReference;
 import javasabr.rlib.collections.array.Array;
 import javasabr.rlib.collections.array.UnsafeMutableArray;
+import javasabr.rlib.common.util.ArrayUtils;
 import javasabr.rlib.common.util.ThreadSafe;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
+@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class CopyOnWriteMutableArray<E> extends AbstractMutableArray<E> implements ThreadSafe {
 
   protected static final int LIMIT_ATTEMPTS = 1000;
 
-  AtomicReference<@Nullable E[]> wrapped = new AtomicReference<>();
+  AtomicReference<@Nullable E[]> wrapped;
 
   public CopyOnWriteMutableArray(Class<? super E> type) {
-    super(type, 0);
+    super(type);
+    this.wrapped = new AtomicReference<>(ArrayUtils.create(type, 0));
   }
 
   @Override
@@ -152,6 +158,29 @@ public class CopyOnWriteMutableArray<E> extends AbstractMutableArray<E> implemen
       }
     }
     throw new ConcurrentModificationException("Cannot successfully remove element");
+  }
+
+  @Override
+  public void clear() {
+    if (isEmpty()) {
+      return;
+    }
+
+    @Nullable E[] emptyArray = null;
+
+    for (int i = 0; i < LIMIT_ATTEMPTS; i++) {
+      @Nullable E[] currentArray = wrapped.get();
+      if (currentArray.length < 1) {
+        return;
+      }
+      if (emptyArray == null) {
+        emptyArray = ArrayUtils.create(type, 0);
+      }
+      if (wrapped.compareAndSet(currentArray, emptyArray)) {
+        return;
+      }
+    }
+    throw new ConcurrentModificationException("Cannot successfully clear this array");
   }
 
   @Override

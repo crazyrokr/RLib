@@ -143,12 +143,12 @@ public class ClassPathScannerImpl implements ClassPathScanner {
 
   @Override
   public Array<Class<?>> foundClasses() {
-    return Array.of(Class.class, classes);
+    return Array.typed(Class.class, classes);
   }
 
   @Override
   public Array<String> foundResources() {
-    return Array.of(String.class, resources);
+    return Array.typed(String.class, resources);
   }
 
   protected Array<String> calculatePathsToScan() {
