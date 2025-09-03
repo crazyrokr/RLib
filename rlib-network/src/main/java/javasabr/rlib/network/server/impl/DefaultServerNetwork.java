@@ -17,11 +17,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import javasabr.rlib.collections.array.ArrayFactory;
+import javasabr.rlib.collections.array.MutableArray;
 import javasabr.rlib.common.concurrent.GroupThreadFactory;
 import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.common.util.Utils;
-import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.ArrayFactory;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.Network;
@@ -73,7 +73,7 @@ public final class DefaultServerNetwork<C extends UnsafeConnection<?, ?>> extend
 
   protected final AsynchronousChannelGroup group;
   protected final AsynchronousServerSocketChannel channel;
-  protected final Array<Consumer<? super C>> subscribers;
+  protected final MutableArray<Consumer<? super C>> subscribers;
 
   public DefaultServerNetwork(
       ServerNetworkConfig config,
@@ -111,7 +111,7 @@ public final class DefaultServerNetwork<C extends UnsafeConnection<?, ?>> extend
 
     this.group = uncheckedGet(executor, AsynchronousChannelGroup::withThreadPool);
     this.channel = uncheckedGet(group, AsynchronousServerSocketChannel::open);
-    this.subscribers = ArrayFactory.newCopyOnModifyArray(Consumer.class);
+    this.subscribers = ArrayFactory.copyOnModifyArray(Consumer.class);
   }
 
   @Override
@@ -164,7 +164,9 @@ public final class DefaultServerNetwork<C extends UnsafeConnection<?, ?>> extend
 
   protected void onAccept(C connection) {
     connection.onConnected();
-    subscribers.forEachR(connection, Consumer::accept);
+    subscribers
+        .iterations()
+        .forEach(connection, Consumer::accept);
   }
 
   @Override

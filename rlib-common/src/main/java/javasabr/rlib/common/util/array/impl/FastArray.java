@@ -155,7 +155,7 @@ public class FastArray<E> extends AbstractArray<E> implements UnsafeArray<E> {
   public final E get(int index) {
 
     if (index < 0 || index >= size()) {
-      throw new NoSuchElementException();
+      throw new IndexOutOfBoundsException();
     }
 
     return array[index];

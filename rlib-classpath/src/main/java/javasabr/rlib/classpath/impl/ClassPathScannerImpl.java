@@ -15,11 +15,12 @@ import java.util.function.Predicate;
 import java.util.jar.JarInputStream;
 import java.util.zip.ZipException;
 import javasabr.rlib.classpath.ClassPathScanner;
+import javasabr.rlib.collections.array.Array;
+import javasabr.rlib.collections.array.ArrayFactory;
+import javasabr.rlib.collections.array.MutableArray;
 import javasabr.rlib.io.impl.ReuseBytesInputStream;
 import javasabr.rlib.io.impl.ReuseBytesOutputStream;
 import javasabr.rlib.common.util.ArrayUtils;
-import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.ArrayFactory;
 import javasabr.rlib.io.util.IoUtils;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
@@ -45,7 +46,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
   private static final String MODULE_INFO_CLASS = "module-info.class";
   private static final String META_INF_PREFIX = "META-INF";
 
-  final Array<String> additionalPaths;
+  final MutableArray<String> additionalPaths;
   final ClassLoader loader;
 
   Class<?>[] classes;
@@ -55,7 +56,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
   boolean useSystemClassPath;
 
   public ClassPathScannerImpl(ClassLoader classLoader) {
-    this.additionalPaths = ArrayFactory.newArray(String.class);
+    this.additionalPaths = MutableArray.ofType(String.class);
     this.loader = classLoader;
     this.classes = new Class[0];
     this.resources = new String[0];
@@ -70,7 +71,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
   public void addClasses(Array<Class<?>> classes) {
     this.classes = ArrayUtils.combine(
         this.classes,
-        classes.toArray(ArrayUtils.EMPTY_CLASS_ARRAY),
+        classes.toArray(),
         Class.class);
   }
 
@@ -78,12 +79,12 @@ public class ClassPathScannerImpl implements ClassPathScanner {
   public void addResources(Array<String> resources) {
     this.resources = ArrayUtils.combine(
         this.resources,
-        resources.toArray(ArrayUtils.EMPTY_STRING_ARRAY),
+        resources.toArray(),
         String.class);
   }
 
   @Override
-  public <T> void findImplementationsTo(Array<Class<T>> container, Class<T> interfaceClass) {
+  public <T> void findImplementationsTo(MutableArray<Class<T>> container, Class<T> interfaceClass) {
 
     if (!interfaceClass.isInterface()) {
       throw new IllegalArgumentException("Class " + interfaceClass + " is not interface.");
@@ -100,7 +101,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
   }
 
   @Override
-  public <T> void findInheritedTo(Array<Class<T>> container, Class<T> parentClass) {
+  public <T> void findInheritedTo(MutableArray<Class<T>> container, Class<T> parentClass) {
 
     if (Modifier.isFinal(parentClass.getModifiers())) {
       throw new IllegalArgumentException("Class " + parentClass + " is final class.");
@@ -118,7 +119,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
   }
 
   @Override
-  public void findAnnotatedTo(Array<Class<?>> container, Class<? extends Annotation> annotationClass) {
+  public void findAnnotatedTo(MutableArray<Class<?>> container, Class<? extends Annotation> annotationClass) {
     for (Class<?> klass : classes) {
       if (klass.isInterface() ||
           isAbstract(klass.getModifiers()) ||
@@ -131,35 +132,35 @@ public class ClassPathScannerImpl implements ClassPathScanner {
   }
 
   @Override
-  public void foundClassesTo(Array<Class<?>> container) {
+  public void foundClassesTo(MutableArray<Class<?>> container) {
     container.addAll(classes);
   }
 
   @Override
-  public void foundResourcesTo(Array<String> container) {
+  public void foundResourcesTo(MutableArray<String> container) {
     container.addAll(resources);
   }
 
   @Override
   public Array<Class<?>> foundClasses() {
-    return Array.of(classes);
+    return Array.typed(Class.class, classes);
   }
 
   @Override
   public Array<String> foundResources() {
-    return Array.of(resources);
+    return Array.typed(String.class, resources);
   }
 
-  protected String[] calculatePathsToScan() {
+  protected Array<String> calculatePathsToScan() {
 
     var systemClasspath = useSystemClassPath() ? classpathPaths() : ArrayUtils.EMPTY_STRING_ARRAY;
     var capacity = additionalPaths.size() + systemClasspath.length;
 
-    var result = Array.ofType(String.class, capacity);
+    var result = ArrayFactory.mutableArray(String.class, capacity);
     result.addAll(systemClasspath);
     result.addAll(additionalPaths);
 
-    return result.toArray(String.class);
+    return result;
   }
 
   protected String[] classpathPaths() {
@@ -170,7 +171,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
       @Nullable Path rootPath,
       @Nullable Path file,
       String name,
-      Array<Class<?>> container) {
+      MutableArray<Class<?>> container) {
 
     if (!name.endsWith(CLASS_EXTENSION)) {
       return;
@@ -216,8 +217,8 @@ public class ClassPathScannerImpl implements ClassPathScanner {
 
   private void scanDirectory(
       Path rootPath,
-      Array<Class<?>> classes,
-      Array<String> resources,
+      MutableArray<Class<?>> classes,
+      MutableArray<String> resources,
       Path directory) {
     LOGGER.debug(directory, "Scanning directory:[%s]"::formatted);
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
@@ -264,7 +265,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
     }
   }
 
-  private void scanJar(Array<Class<?>> classes, Array<String> resources, Path jarFile) {
+  private void scanJar(MutableArray<Class<?>> classes, MutableArray<String> resources, Path jarFile) {
     LOGGER.debug(jarFile, "Scanning jar:[%s]"::formatted);
 
     if (!Files.exists(jarFile)) {
@@ -287,8 +288,8 @@ public class ClassPathScannerImpl implements ClassPathScanner {
   }
 
   private void scanJarInputStream(
-      Array<Class<?>> classes,
-      Array<String> resources,
+      MutableArray<Class<?>> classes,
+      MutableArray<String> resources,
       ReuseBytesOutputStream rout,
       ReuseBytesInputStream rin,
       byte[] buffer,
@@ -315,7 +316,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
     }
   }
 
-  private void scanJar(Array<Class<?>> classes, Array<String> resources, InputStream jarFile) {
+  private void scanJar(MutableArray<Class<?>> classes, MutableArray<String> resources, InputStream jarFile) {
     LOGGER.debug(jarFile, "Scanning jar:[%s]"::formatted);
 
     var rout = new ReuseBytesOutputStream();
@@ -337,8 +338,8 @@ public class ClassPathScannerImpl implements ClassPathScanner {
 
     var paths = calculatePathsToScan();
 
-    Array<Class<?>> classes = Array.ofType(Class.class);
-    Array<String> resources = Array.ofType(String.class);
+    MutableArray<Class<?>> classes = MutableArray.ofType(Class.class);
+    MutableArray<String> resources = MutableArray.ofType(String.class);
 
     for (String path : paths) {
       var file = Path.of(path);

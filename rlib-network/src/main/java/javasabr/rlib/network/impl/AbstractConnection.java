@@ -8,9 +8,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.BiConsumer;
-import javasabr.rlib.common.function.NotNullBiConsumer;
-import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.ArrayFactory;
+import javasabr.rlib.collections.array.ArrayFactory;
+import javasabr.rlib.collections.array.MutableArray;
 import javasabr.rlib.common.util.linkedlist.LinkedList;
 import javasabr.rlib.common.util.linkedlist.LinkedListFactory;
 import javasabr.rlib.logger.api.Logger;
@@ -60,7 +59,7 @@ public abstract class AbstractConnection<R extends ReadablePacket, W extends Wri
   protected final AtomicBoolean isWriting;
   protected final AtomicBoolean closed;
 
-  protected final Array<NotNullBiConsumer<? super Connection<R, W>, ? super R>> subscribers;
+  protected final MutableArray<BiConsumer<? super Connection<R, W>, ? super R>> subscribers;
 
   protected final int maxPacketsByRead;
 
@@ -79,7 +78,7 @@ public abstract class AbstractConnection<R extends ReadablePacket, W extends Wri
     this.network = network;
     this.isWriting = new AtomicBoolean(false);
     this.closed = new AtomicBoolean(false);
-    this.subscribers = ArrayFactory.newCopyOnModifyArray(NotNullBiConsumer.class);
+    this.subscribers = ArrayFactory.copyOnModifyArray(BiConsumer.class);
     this.remoteAddress = String.valueOf(NetworkUtils.getRemoteAddress(channel));
   }
 
@@ -95,12 +94,15 @@ public abstract class AbstractConnection<R extends ReadablePacket, W extends Wri
     LOGGER.debug(
         channel,
         packet,
-        (ch, pck) -> "Handle received packet: " + pck + " from: " + NetworkUtils.getRemoteAddress(ch));
-    subscribers.forEachR(this, packet, BiConsumer::accept);
+        (ch, pck) -> "Handle received packet: %s from: %s".formatted(pck, NetworkUtils.getRemoteAddress(ch)));
+
+    subscribers
+        .iterations()
+        .forEach(this, packet, BiConsumer::accept);
   }
 
   @Override
-  public void onReceive(NotNullBiConsumer<? super Connection<R, W>, ? super R> consumer) {
+  public void onReceive(BiConsumer<? super Connection<R, W>, ? super R> consumer) {
     subscribers.add(consumer);
     getPacketReader().startRead();
   }
@@ -118,7 +120,7 @@ public abstract class AbstractConnection<R extends ReadablePacket, W extends Wri
   protected void registerFluxOnReceivedEvents(
       FluxSink<ReceivedPacketEvent<? extends Connection<R, W>, ? extends R>> sink) {
 
-    NotNullBiConsumer<Connection<R, W>, R> listener =
+    BiConsumer<Connection<R, W>, R> listener =
       (connection, packet) -> sink.next(new ReceivedPacketEvent<>(connection,
         packet));
 
@@ -129,7 +131,7 @@ public abstract class AbstractConnection<R extends ReadablePacket, W extends Wri
 
   protected void registerFluxOnReceivedPackets(FluxSink<? super R> sink) {
 
-    NotNullBiConsumer<Connection<R, W>, R> listener = (connection, packet) -> sink.next(packet);
+    BiConsumer<Connection<R, W>, R> listener = (connection, packet) -> sink.next(packet);
 
     onReceive(listener);
 

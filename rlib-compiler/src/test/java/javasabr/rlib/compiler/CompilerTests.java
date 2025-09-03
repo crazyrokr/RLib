@@ -3,8 +3,10 @@ package javasabr.rlib.compiler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
 import java.net.URISyntaxException;
+import java.util.Comparator;
+import javasabr.rlib.collections.array.Array;
+import javasabr.rlib.collections.array.ArrayCollectors;
 import javasabr.rlib.common.util.ClassUtils;
-import javasabr.rlib.common.util.array.Array;
 import javasabr.rlib.logger.api.LoggerLevel;
 import javasabr.rlib.logger.api.LoggerManager;
 import org.junit.jupiter.api.Assertions;
@@ -32,12 +34,13 @@ public class CompilerTests {
 
     // when:
     var compiler = CompilerFactory.newDefaultCompiler();
-    var compiledClasses = compiler.compileByUrls(javaSources);
+    var compiledClasses = compiler.compileByUrls(javaSources)
+        .stream()
+        .sorted(Comparator.comparing(Class::getName))
+        .collect(ArrayCollectors.toArray(Class.class));
 
     // then:
     Assertions.assertEquals(3, compiledClasses.size());
-
-    compiledClasses.sort((left, right) -> left.getName().compareTo(right.getName()));
 
     Assertions.assertEquals("TestCompileDependency", compiledClasses.get(0).getName());
     Assertions.assertEquals("TestCompileJavaSource", compiledClasses.get(1).getName());

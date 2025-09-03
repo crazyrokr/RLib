@@ -32,6 +32,7 @@ subprojects {
     annotationProcessor libs.lombok
 
     testImplementation libs.junit.api
+    testImplementation libs.junit.jupiter.params
     testCompileOnly libs.lombok
     testCompileOnly libs.jspecify
     testRuntimeOnly libs.junit.engine

@@ -1,14 +1,15 @@
 package javasabr.rlib.plugin.system.exception;
 
 import java.nio.file.Path;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * The exception about problems with initializing plugins.
- *
  * @author JavaSaBr
  */
-@NullMarked
+@Getter
+@Accessors(fluent = true)
 public class InitializePluginException extends PluginException {
 
   private final Path path;
@@ -21,14 +22,5 @@ public class InitializePluginException extends PluginException {
   public InitializePluginException(String message, Path path, Throwable e) {
     super(message, e);
     this.path = path;
-  }
-
-  /**
-   * Get the path of the plugin.
-   *
-   * @return the path of the plugin.
-   */
-  public Path getPath() {
-    return path;
   }
 }

@@ -2,7 +2,7 @@ package javasabr.rlib.compiler;
 
 import java.net.URI;
 import java.nio.file.Path;
-import javasabr.rlib.common.util.array.Array;
+import javasabr.rlib.collections.array.Array;
 
 /**
  * @author JavaSaBr

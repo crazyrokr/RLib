@@ -1,10 +1,9 @@
 package javasabr.rlib.network.impl;
 
 import java.nio.ByteBuffer;
-import java.util.Collection;
 import java.util.function.Function;
-import javasabr.rlib.common.util.array.ArrayFactory;
-import javasabr.rlib.common.util.array.ConcurrentArray;
+import javasabr.rlib.collections.array.ArrayFactory;
+import javasabr.rlib.collections.array.LockableMutableArray;
 import javasabr.rlib.common.util.pools.Pool;
 import javasabr.rlib.common.util.pools.PoolFactory;
 import javasabr.rlib.logger.api.Logger;
@@ -24,7 +23,7 @@ public class ReuseBufferAllocator implements BufferAllocator {
   protected final Pool<ByteBuffer> readBufferPool;
   protected final Pool<ByteBuffer> pendingBufferPool;
   protected final Pool<ByteBuffer> writeBufferPool;
-  protected final ConcurrentArray<ByteBuffer> byteBuffers;
+  protected final LockableMutableArray<ByteBuffer> byteBuffers;
 
   protected final NetworkConfig config;
 
@@ -33,7 +32,7 @@ public class ReuseBufferAllocator implements BufferAllocator {
     this.readBufferPool = PoolFactory.newConcurrentStampedLockPool(ByteBuffer.class);
     this.pendingBufferPool = PoolFactory.newConcurrentStampedLockPool(ByteBuffer.class);
     this.writeBufferPool = PoolFactory.newConcurrentStampedLockPool(ByteBuffer.class);
-    this.byteBuffers = ArrayFactory.newConcurrentStampedLockArray(ByteBuffer.class);
+    this.byteBuffers = ArrayFactory.stampedLockBasedArray(ByteBuffer.class);
   }
 
   @Override
@@ -100,18 +99,29 @@ public class ReuseBufferAllocator implements BufferAllocator {
   public ByteBuffer takeBuffer(int bufferSize) {
 
     // check of existing enough buffer for the size under read lock
-    var exist = byteBuffers.findAnyInReadLock(bufferSize, (required, buffer) -> required < buffer.capacity());
+    ByteBuffer exist;
+
+    long stamp = byteBuffers.readLock();
+    try {
+      exist = byteBuffers
+          .iterations()
+          .findAny(bufferSize, (buffer, require) -> buffer.capacity() >= require);
+    } finally {
+      byteBuffers.readUnlock(stamp);
+    }
 
     // if we already possible have this buffer we need to take it under write lock
     if (exist != null) {
-      long stamp = byteBuffers.writeLock();
+      stamp = byteBuffers.writeLock();
       try {
 
         // re-find enough buffer again
-        exist = byteBuffers.findAny(bufferSize, (required, buffer) -> required < buffer.capacity());
+        exist = byteBuffers
+            .iterations()
+            .findAny(bufferSize, (buffer, require) -> buffer.capacity() >= require);
 
         // take it from pool if exist
-        if (exist != null && byteBuffers.fastRemove(exist)) {
+        if (exist != null && byteBuffers.remove(exist)) {
           LOGGER.debug(exist, buffer -> "Reuse old buffer: " + buffer + " - (" + buffer.hashCode() + ")");
           return exist;
         }
@@ -151,7 +161,12 @@ public class ReuseBufferAllocator implements BufferAllocator {
   @Override
   public BufferAllocator putBuffer(ByteBuffer buffer) {
     LOGGER.debug(buffer, buf -> "Save used temp buffer: " + buf + " - (" + buf.hashCode() + ")");
-    byteBuffers.runInWriteLock(buffer.clear(), Collection::add);
+    long stamp = byteBuffers.writeLock();
+    try {
+      byteBuffers.add(buffer.clear());
+    } finally {
+      byteBuffers.writeUnlock(stamp);
+    }
     return this;
   }
 }

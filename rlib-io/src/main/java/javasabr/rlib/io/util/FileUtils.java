@@ -22,16 +22,16 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileTime;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.zip.ZipInputStream;
+import javasabr.rlib.collections.array.Array;
+import javasabr.rlib.collections.array.MutableArray;
 import javasabr.rlib.common.util.ArrayUtils;
 import javasabr.rlib.common.util.StringUtils;
 import javasabr.rlib.common.util.Utils;
-import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.ArrayComparator;
-import javasabr.rlib.common.util.array.ArrayFactory;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import org.jspecify.annotations.Nullable;
@@ -43,7 +43,7 @@ public class FileUtils {
 
   private static final Logger LOGGER = LoggerManager.getLogger(FileUtils.class);
 
-  public static final ArrayComparator<Path> FILE_PATH_LENGTH_COMPARATOR = (first, second) -> {
+  public static final Comparator<Path> FILE_PATH_LENGTH_COMPARATOR = (first, second) -> {
 
     int firstLength = first.getNameCount();
     int secondLength = second.getNameCount();
@@ -127,9 +127,9 @@ public class FileUtils {
       Path directory,
       boolean includeDirectoriesToResult,
       String @Nullable ... extensions) {
-    Array<Path> result = ArrayFactory.newArray(Path.class);
+    MutableArray<Path> result = MutableArray.ofType(Path.class);
     collectFilesTo(result, directory, includeDirectoriesToResult, extensions);
-    return result;
+    return Array.copyOf(result);
   }
 
   public static Path[] getFiles(Package pckg, String @Nullable ... extensions) {
@@ -153,7 +153,7 @@ public class FileUtils {
       return EMPTY_PATHS;
     }
 
-    var files = Array.ofType(Path.class);
+    var files = MutableArray.ofType(Path.class);
 
     while (urls.hasMoreElements()) {
 
@@ -177,7 +177,7 @@ public class FileUtils {
   }
 
   public static void collectFilesTo(
-      Array<Path> container,
+      MutableArray<Path> container,
       Path directory,
       boolean includeDirectoriesToResult,
       String @Nullable ... extensions) {
@@ -238,7 +238,9 @@ public class FileUtils {
   }
 
   public static boolean hasExtensions(String path, @Nullable Array<String> extensions) {
-    return extensions != null && extensions.anyMatchR(path, String::endsWith);
+    return extensions != null && extensions
+        .reversedIterations()
+        .anyMatch(path, String::endsWith);
   }
 
   public static boolean hasExtensions(String path, @Nullable Collection<String> extensions) {
@@ -600,11 +602,10 @@ public class FileUtils {
     }
   }
 
-
   public static Stream<Path> stream(Path directory) {
     validateDirectory(directory);
 
-    var files = Array.ofType(Path.class);
+    var files = MutableArray.ofType(Path.class);
 
     try (var stream = Files.newDirectoryStream(directory)) {
       stream.forEach(files::add);

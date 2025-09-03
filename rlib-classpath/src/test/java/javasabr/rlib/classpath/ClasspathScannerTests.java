@@ -1,8 +1,8 @@
 package javasabr.rlib.classpath;
 
 import java.util.Collection;
-import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.impl.AbstractArray;
+import javasabr.rlib.collections.array.Array;
+import javasabr.rlib.collections.array.impl.AbstractArray;
 import javasabr.rlib.logger.api.LoggerLevel;
 import javasabr.rlib.logger.api.LoggerManager;
 import org.junit.jupiter.api.Assertions;

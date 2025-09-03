@@ -2,9 +2,9 @@ package javasabr.rlib.network.packet.registry.impl;
 
 import java.util.Arrays;
 import java.util.function.Supplier;
+import javasabr.rlib.collections.array.Array;
 import javasabr.rlib.common.util.ArrayUtils;
 import javasabr.rlib.common.util.ClassUtils;
-import javasabr.rlib.common.util.array.Array;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.annotation.PacketDescription;
@@ -49,7 +49,7 @@ public class IdBasedReadablePacketRegistry<R extends IdBasedReadablePacket<R>> i
    * id.
    */
   public IdBasedReadablePacketRegistry<R> register(Array<Class<? extends R>> classes) {
-    return register(classes.array(), classes.size());
+    return register(classes.toArray(), classes.size());
   }
 
   /**

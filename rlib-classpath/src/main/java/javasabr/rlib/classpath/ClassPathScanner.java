@@ -5,7 +5,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.function.Predicate;
 import javasabr.rlib.classpath.impl.ClassPathScannerImpl;
-import javasabr.rlib.common.util.array.Array;
+import javasabr.rlib.collections.array.Array;
+import javasabr.rlib.collections.array.MutableArray;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -48,32 +49,32 @@ public interface ClassPathScanner {
   void useSystemClassPath(boolean useSystemClasspath);
 
   default <T> Array<Class<T>> findImplementations(Class<T> interfaceClass) {
-    Array<Class<T>> result = Array.ofType(Class.class);
+    MutableArray<Class<T>> result = MutableArray.ofType(Class.class);
     findImplementationsTo(result, interfaceClass);
     return result;
   }
 
-  <T> void findImplementationsTo(Array<Class<T>> container, Class<T> interfaceClass);
+  <T> void findImplementationsTo(MutableArray<Class<T>> container, Class<T> interfaceClass);
 
   default <T> Array<Class<T>> findInherited(Class<T> parentClass) {
-    Array<Class<T>> result = Array.ofType(Class.class);
+    MutableArray<Class<T>> result = MutableArray.ofType(Class.class);
     findInheritedTo(result, parentClass);
     return result;
   }
 
-  <T> void findInheritedTo(Array<Class<T>> container, Class<T> parentClass);
+  <T> void findInheritedTo(MutableArray<Class<T>> container, Class<T> parentClass);
 
   default Array<Class<?>> findAnnotated(Class<? extends Annotation> annotationClass) {
-    Array<Class<?>> result = Array.ofType(Class.class);
+    MutableArray<Class<?>> result = MutableArray.ofType(Class.class);
     findAnnotatedTo(result, annotationClass);
     return result;
   }
 
-  void findAnnotatedTo(Array<Class<?>> container, Class<? extends Annotation> annotationClass);
+  void findAnnotatedTo(MutableArray<Class<?>> container, Class<? extends Annotation> annotationClass);
 
-  void foundClassesTo(Array<Class<?>> container);
+  void foundClassesTo(MutableArray<Class<?>> container);
 
-  void foundResourcesTo(Array<String> container);
+  void foundResourcesTo(MutableArray<String> container);
 
   Array<Class<?>> foundClasses();
 

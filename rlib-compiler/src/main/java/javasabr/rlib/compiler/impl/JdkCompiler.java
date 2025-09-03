@@ -3,8 +3,9 @@ package javasabr.rlib.compiler.impl;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.ArrayCollectors;
+import javasabr.rlib.collections.array.Array;
+import javasabr.rlib.collections.array.ArrayCollectors;
+import javasabr.rlib.collections.array.MutableArray;
 import javasabr.rlib.compiler.Compiler;
 import javasabr.rlib.io.util.FileUtils;
 import javasabr.rlib.logger.api.Logger;
@@ -31,6 +32,7 @@ public class JdkCompiler implements Compiler {
 
   private static final Logger LOGGER = LoggerManager.getLogger(JdkCompiler.class);
 
+  private static final Array<String> EMPTY_OPTIONS = Array.empty(String.class);
   private static final Class<?>[] EMPTY_CLASSES = new Class[0];
 
   CompileEventListener listener;
@@ -55,7 +57,7 @@ public class JdkCompiler implements Compiler {
   @Override
   public Array<Class<?>> compileByUrls(Array<URI> urls) {
     return compile(
-        Array.empty(),
+        EMPTY_OPTIONS,
         urls
             .stream()
             .map(JavaFileSource::new)
@@ -65,7 +67,7 @@ public class JdkCompiler implements Compiler {
   @Override
   public Array<Class<?>> compileFiles(Array<Path> files) {
     return compile(
-        Array.empty(),
+        EMPTY_OPTIONS,
         files
             .stream()
             .map(JavaFileSource::new)
@@ -75,7 +77,7 @@ public class JdkCompiler implements Compiler {
   @Override
   public Array<Class<?>> compileDirectories(Array<Path> directories) {
 
-    Array<Path> files = Array.ofType(Path.class);
+    MutableArray<Path> files = MutableArray.ofType(Path.class);
 
     for (Path directory : directories) {
       if (!Files.exists(directory) || !Files.isDirectory(directory)) {
@@ -86,11 +88,11 @@ public class JdkCompiler implements Compiler {
     }
 
     if (files.isEmpty()) {
-      return Array.empty();
+      return Array.empty(Class.class);
     }
 
     return compile(
-        Array.empty(),
+        EMPTY_OPTIONS,
         files
             .stream()
             .map(JavaFileSource::new)
@@ -120,7 +122,7 @@ public class JdkCompiler implements Compiler {
         }
       }
 
-      Array<Class<?>> result = Array.ofType(Class.class);
+      MutableArray<Class<?>> result = MutableArray.ofType(Class.class);
       String[] classNames = fileManager.classNames();
 
       LOGGER.debug(classNames.length, "Got [%s] compiled class names"::formatted);
