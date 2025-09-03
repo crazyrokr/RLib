@@ -111,7 +111,7 @@ public final class DefaultServerNetwork<C extends UnsafeConnection<?, ?>> extend
 
     this.group = uncheckedGet(executor, AsynchronousChannelGroup::withThreadPool);
     this.channel = uncheckedGet(group, AsynchronousServerSocketChannel::open);
-    this.subscribers = ArrayFactory.newCopyOnModifyArray(Consumer.class);
+    this.subscribers = ArrayFactory.copyOnModifyArray(Consumer.class);
   }
 
   @Override

@@ -78,7 +78,7 @@ public abstract class AbstractConnection<R extends ReadablePacket, W extends Wri
     this.network = network;
     this.isWriting = new AtomicBoolean(false);
     this.closed = new AtomicBoolean(false);
-    this.subscribers = ArrayFactory.newCopyOnModifyArray(BiConsumer.class);
+    this.subscribers = ArrayFactory.copyOnModifyArray(BiConsumer.class);
     this.remoteAddress = String.valueOf(NetworkUtils.getRemoteAddress(channel));
   }
 

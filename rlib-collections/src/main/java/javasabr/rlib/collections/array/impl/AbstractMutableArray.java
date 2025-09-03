@@ -2,6 +2,7 @@ package javasabr.rlib.collections.array.impl;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -70,9 +71,21 @@ public abstract class AbstractMutableArray<E> extends AbstractArray<E> implement
   }
 
   @Override
+  public UnsafeMutableArray<E> unsafeAdd(E element) {
+    wrapped()[getAndIncrementSize()] = element;
+    return this;
+  }
+
+  @Override
   public void replace(int index, E element) {
     checkIndex(index);
     unsafeSet(index, element);
+  }
+
+  @Override
+  public UnsafeMutableArray<E> unsafeSet(int index, E element) {
+    wrapped()[index] = element;
+    return this;
   }
 
   @Override
@@ -89,6 +102,24 @@ public abstract class AbstractMutableArray<E> extends AbstractArray<E> implement
     }
     remove(index);
     return true;
+  }
+
+  @Override
+  public E unsafeRemove(int index) {
+
+    int numMoved = size() - index - 1;
+
+    @Nullable E[] wrapped = wrapped();
+    E element = wrapped[index];
+
+    if (numMoved > 0) {
+      System.arraycopy(wrapped, index + 1, wrapped, index, numMoved);
+    }
+
+    wrapped[decrementAnGetSize()] = null;
+
+    //noinspection DataFlowIssue
+    return element;
   }
 
   @Override
@@ -130,11 +161,16 @@ public abstract class AbstractMutableArray<E> extends AbstractArray<E> implement
 
   @Override
   public void clear() {
-    if (isEmpty()) {
-      return;
+    int size = size();
+    if (size > 0) {
+      Arrays.fill(wrapped(), 0, size, null);
+      size(0);
     }
-    Arrays.fill(wrapped(), 0, size(), null);
-    size(0);
+  }
+
+  @Override
+  public Iterator<E> iterator() {
+    return new DefaultMutableArrayIterator<>(this);
   }
 
   @Override
@@ -159,10 +195,42 @@ public abstract class AbstractMutableArray<E> extends AbstractArray<E> implement
 
   protected abstract void size(int size);
 
+  protected abstract int getAndIncrementSize();
+  protected abstract int decrementAnGetSize();
+
   protected abstract void wrapped(@Nullable E[] wrapped);
+
+  @Override
+  public UnsafeMutableArray<E> prepareForSize(int expectedSize) {
+    @Nullable E[] wrapped = wrapped();
+    if (expectedSize > wrapped.length) {
+      int newLength = Math.max((wrapped.length * 3) / 2, expectedSize);
+      wrapped(Arrays.copyOf(wrapped, newLength));
+    }
+    return this;
+  }
+
+
+  @Override
+  public UnsafeMutableArray<E> trimToSize() {
+    @Nullable E[] wrapped = wrapped();
+    int size = size();
+
+    if (size == wrapped.length) {
+      return this;
+    }
+    wrapped(Arrays.copyOfRange(wrapped, 0, size));
+    return this;
+  }
 
   @Override
   public UnsafeMutableArray<E> asUnsafe() {
     return this;
+  }
+
+  protected static void validateCapacity(int capacity) {
+    if (capacity < 0) {
+      throw new IllegalArgumentException("Capacity cannot be negative");
+    }
   }
 }

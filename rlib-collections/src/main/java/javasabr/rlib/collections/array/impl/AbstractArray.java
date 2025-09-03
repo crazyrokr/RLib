@@ -4,6 +4,7 @@ import static javasabr.rlib.common.util.ClassUtils.unsafeCast;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javasabr.rlib.collections.array.Array;
@@ -49,6 +50,11 @@ public abstract class AbstractArray<E> implements UnsafeArray<E> {
   public E get(int index) {
     checkIndex(index);
     return unsafeGet(index);
+  }
+
+  @Override
+  public E unsafeGet(int index) {
+    return wrapped()[index];
   }
 
   protected void checkIndex(int index) {
@@ -191,12 +197,50 @@ public abstract class AbstractArray<E> implements UnsafeArray<E> {
   @Override
   public E[] toArray() {
     @Nullable E[] wrapped = wrapped();
+    //noinspection unchecked
     return Arrays.copyOf(wrapped, size(), (Class<E[]>) wrapped.getClass());
   }
 
   @Override
   public String toString(Function<E, String> toString) {
+    //noinspection NullableProblems
     return ArrayUtils.toString(wrapped(), size(), toString);
+  }
+
+  @Override
+  public String toString() {
+    //noinspection NullableProblems
+    return ArrayUtils.toString(wrapped(), size(), String::valueOf);
+  }
+
+  @Override
+  public boolean equals(Object another) {
+
+    if (!(another instanceof Array<?> array)) {
+      return false;
+    }
+
+    //noinspection NullableProblems
+    Object[] wrapped = array
+        .asUnsafe()
+        .wrapped();
+
+    return Arrays.equals(wrapped(), 0, size(), wrapped, 0, array.size());
+  }
+
+  @Override
+  public int hashCode() {
+
+    @Nullable E[] wrapped = wrapped();
+
+    int result = 1;
+
+    for (int i = 0, wrappedLength = size(); i < wrappedLength; i++) {
+      Object element = wrapped[i];
+      result = 31 * result + (element == null ? 0 : element.hashCode());
+    }
+
+    return result;
   }
 
   @Override

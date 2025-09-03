@@ -2,24 +2,23 @@ package javasabr.rlib.collections.array.impl;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import javasabr.rlib.collections.array.Array;
+import javasabr.rlib.collections.array.UnsafeMutableArray;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import org.jspecify.annotations.Nullable;
 
 /**
  * @author JavaSaBr
  */
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class DefaultArrayIterator<E> implements Iterator<E> {
+public class DefaultMutableArrayIterator<E> implements Iterator<E> {
 
-  final @Nullable E[] wrapped;
-  final int size;
+  final UnsafeMutableArray<E> mutableArray;
 
+  int size;
   int position;
 
-  public DefaultArrayIterator(Array<E> array) {
-    this.wrapped = array.asUnsafe().wrapped();
+  public DefaultMutableArrayIterator(UnsafeMutableArray<E> array) {
+    this.mutableArray = array;
     this.size = array.size();
   }
 
@@ -33,12 +32,12 @@ public class DefaultArrayIterator<E> implements Iterator<E> {
     if (position >= size) {
       throw new NoSuchElementException();
     }
-    //noinspection DataFlowIssue
-    return wrapped[position++];
+    return mutableArray.unsafeGet(position++);
   }
 
   @Override
   public void remove() {
-    throw new UnsupportedOperationException();
+    mutableArray.remove(--position);
+    size--;
   }
 }

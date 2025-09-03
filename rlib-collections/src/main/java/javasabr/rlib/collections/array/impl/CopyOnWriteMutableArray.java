@@ -1,6 +1,5 @@
 package javasabr.rlib.collections.array.impl;
 
-import java.lang.invoke.VarHandle;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -188,6 +187,8 @@ public class CopyOnWriteMutableArray<E> extends AbstractMutableArray<E> implemen
     return wrapped.get()[index];
   }
 
+  /* disabled methods */
+
   @Override
   public UnsafeMutableArray<E> prepareForSize(int expectedSize) {
     return this;
@@ -196,5 +197,15 @@ public class CopyOnWriteMutableArray<E> extends AbstractMutableArray<E> implemen
   @Override
   public UnsafeMutableArray<E> trimToSize() {
     return this;
+  }
+
+  @Override
+  protected int getAndIncrementSize() {
+    return 0;
+  }
+
+  @Override
+  protected int decrementAnGetSize() {
+    return 0;
   }
 }

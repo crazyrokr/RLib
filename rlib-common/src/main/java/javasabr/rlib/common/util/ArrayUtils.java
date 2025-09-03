@@ -636,7 +636,8 @@ public final class ArrayUtils {
       return "[]";
     }
 
-    var builder = new StringBuilder();
+    var builder = new StringBuilder(20);
+    builder.append('[');
 
     for (int i = 0, last = size - 1; i < size; i++) {
       builder.append(toString.apply(array[i]));
@@ -646,7 +647,7 @@ public final class ArrayUtils {
       builder.append(", ");
     }
 
-    builder.append("]");
+    builder.append(']');
 
     return builder.toString();
   }

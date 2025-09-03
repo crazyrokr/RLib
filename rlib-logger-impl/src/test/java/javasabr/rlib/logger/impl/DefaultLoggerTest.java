@@ -1,7 +1,7 @@
 package javasabr.rlib.logger.impl;
 
-import java.util.Collection;
-import javasabr.rlib.common.util.array.ConcurrentArray;
+import javasabr.rlib.collections.array.ArrayFactory;
+import javasabr.rlib.collections.array.LockableMutableArray;
 import javasabr.rlib.logger.api.LoggerLevel;
 import javasabr.rlib.logger.api.LoggerListener;
 import javasabr.rlib.logger.api.LoggerManager;
@@ -13,9 +13,17 @@ import org.junit.jupiter.api.Test;
 
 public class DefaultLoggerTest {
 
-  private static final ConcurrentArray<String> WROTE_DATA = ConcurrentArray.ofType(String.class);
+  private static final LockableMutableArray<String> WROTE_DATA = ArrayFactory
+      .stampedLockBasedArray(String.class);
 
-  private static final LoggerListener LOGGER_LISTENER = text -> WROTE_DATA.runInWriteLock(strings -> strings.add(text));
+  private static final LoggerListener LOGGER_LISTENER = text -> {
+    long stamp = WROTE_DATA.writeLock();
+    try {
+      WROTE_DATA.add(text);
+    } finally {
+      WROTE_DATA.writeUnlock(stamp);
+    }
+  };
 
   @BeforeAll
   static void registerListener() {
@@ -29,7 +37,12 @@ public class DefaultLoggerTest {
 
   @BeforeEach
   void clearWroteData() {
-    WROTE_DATA.runInWriteLock(Collection::clear);
+    long stamp = WROTE_DATA.writeLock();
+    try {
+      WROTE_DATA.clear();
+    } finally {
+      WROTE_DATA.writeUnlock(stamp);
+    }
   }
 
   @Test

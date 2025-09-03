@@ -1,16 +1,16 @@
 package javasabr.rlib.collections.array.impl;
 
-import java.util.Arrays;
-import javasabr.rlib.collections.array.UnsafeMutableArray;
 import javasabr.rlib.common.util.ArrayUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 @Getter
-@Accessors(fluent = true)
+@Setter(AccessLevel.PROTECTED)
+@Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public class DefaultMutableArray<E> extends AbstractMutableArray<E> {
 
@@ -19,7 +19,6 @@ public class DefaultMutableArray<E> extends AbstractMutableArray<E> {
   /*
     It's initialized during object construction by setter #wrapped
    */
-  @SuppressWarnings("NotNullFieldNotInitialized")
   @Nullable
   E[] wrapped;
   int size;
@@ -30,12 +29,8 @@ public class DefaultMutableArray<E> extends AbstractMutableArray<E> {
 
   public DefaultMutableArray(Class<? super E> type, int capacity) {
     super(type);
+    validateCapacity(capacity);
     this.wrapped = ArrayUtils.create(type, capacity);
-  }
-
-  @Override
-  protected void size(int size) {
-    this.size = size;
   }
 
   @Override
@@ -44,60 +39,12 @@ public class DefaultMutableArray<E> extends AbstractMutableArray<E> {
   }
 
   @Override
-  protected void wrapped(@Nullable E[] wrapped) {
-    this.wrapped = wrapped;
+  protected int getAndIncrementSize() {
+    return size++;
   }
 
   @Override
-  public UnsafeMutableArray<E> unsafeAdd(E element) {
-    wrapped[size++] = element;
-    return this;
-  }
-
-  @Override
-  public UnsafeMutableArray<E> unsafeSet(int index, E element) {
-    wrapped[index] = element;
-    return this;
-  }
-
-  @Override
-  public E unsafeRemove(int index) {
-
-    int numMoved = size - index - 1;
-    E element = wrapped[index];
-
-    if (numMoved > 0) {
-      System.arraycopy(wrapped, index + 1, wrapped, index, numMoved);
-    }
-
-    size -= 1;
-    wrapped[size] = null;
-
-    //noinspection DataFlowIssue
-    return element;
-  }
-
-  @Override
-  public E unsafeGet(int index) {
-    //noinspection DataFlowIssue
-    return wrapped[index];
-  }
-
-  @Override
-  public UnsafeMutableArray<E> prepareForSize(int expectedSize) {
-    if (expectedSize > wrapped.length) {
-      int newLength = Math.max((wrapped.length * 3) / 2, expectedSize);
-      wrapped = Arrays.copyOf(wrapped, newLength);
-    }
-    return this;
-  }
-
-  @Override
-  public UnsafeMutableArray<E> trimToSize() {
-    if (size == wrapped.length) {
-      return this;
-    }
-    wrapped = Arrays.copyOfRange(wrapped, 0, size);
-    return this;
+  protected int decrementAnGetSize() {
+    return --size;
   }
 }

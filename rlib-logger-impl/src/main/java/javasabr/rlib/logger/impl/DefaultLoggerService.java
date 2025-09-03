@@ -41,8 +41,8 @@ public class DefaultLoggerService implements LoggerFactory, LoggerService {
     this.loggers = new ConcurrentHashMap<>();
     this.logger = new DefaultLogger("", this);
     this.timeFormatter = DateTimeFormatter.ofPattern("d.MM.yyyy HH:mm:ss:SSS");
-    this.listeners = ArrayFactory.newCopyOnModifyArray(LoggerListener.class);
-    this.writers = ArrayFactory.newCopyOnModifyArray(Writer.class);
+    this.listeners = ArrayFactory.copyOnModifyArray(LoggerListener.class);
+    this.writers = ArrayFactory.copyOnModifyArray(Writer.class);
     this.override = new int[LOGGER_LEVELS.length];
     Arrays.fill(override, NOT_CONFIGURE);
   }
