@@ -48,7 +48,7 @@ public abstract class AbstractIntegerDictionary<V> extends AbstractDictionary<In
     var entries = entries();
     var entry = entries[index];
 
-    var newEntry = entryPool.take(IntegerEntry::new);
+    var newEntry = new IntegerEntry<V>();
     newEntry.set(hash, key, value, entry);
 
     entries[index] = newEntry;
@@ -226,8 +226,6 @@ public abstract class AbstractIntegerDictionary<V> extends AbstractDictionary<In
     }
 
     var value = old.getValue();
-
-    entryPool.put(old);
 
     return value;
   }

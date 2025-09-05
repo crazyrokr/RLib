@@ -1,10 +1,10 @@
 package javasabr.rlib.common.concurrent.lock.impl;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import javasabr.rlib.common.concurrent.atomic.ReusableAtomicInteger;
-import javasabr.rlib.common.concurrent.atomic.ReusableAtomicReference;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -18,12 +18,12 @@ public class ReentrantAtomicLock implements Lock {
   /**
    * The status of lock.
    */
-  private final ReusableAtomicReference<Thread> status;
+  private final AtomicReference<Thread> status;
 
   /**
    * The level of locking.
    */
-  private final ReusableAtomicInteger level;
+  private final AtomicInteger level;
 
   /**
    * The field for consuming CPU.
@@ -34,8 +34,8 @@ public class ReentrantAtomicLock implements Lock {
    * Instantiates a new Reentrant atomic lock.
    */
   public ReentrantAtomicLock() {
-    this.status = new ReusableAtomicReference<>();
-    this.level = new ReusableAtomicInteger();
+    this.status = new AtomicReference<>();
+    this.level = new AtomicInteger();
     this.sink = 1;
   }
 

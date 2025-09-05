@@ -1,12 +1,12 @@
 package javasabr.rlib.network.impl;
 
 import java.nio.ByteBuffer;
-import javasabr.rlib.common.util.pools.Pool;
-import javasabr.rlib.common.util.pools.PoolFactory;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.NetworkConfig;
+import javasabr.rlib.reusable.pool.Pool;
+import javasabr.rlib.reusable.pool.PoolFactory;
 import lombok.ToString;
 
 /**
@@ -27,9 +27,9 @@ public class DefaultBufferAllocator implements BufferAllocator {
 
   public DefaultBufferAllocator(NetworkConfig config) {
     this.config = config;
-    this.readBufferPool = PoolFactory.newConcurrentStampedLockPool(ByteBuffer.class);
-    this.pendingBufferPool = PoolFactory.newConcurrentStampedLockPool(ByteBuffer.class);
-    this.writeBufferPool = PoolFactory.newConcurrentStampedLockPool(ByteBuffer.class);
+    this.readBufferPool = PoolFactory.newLockBasePool(ByteBuffer.class);
+    this.pendingBufferPool = PoolFactory.newLockBasePool(ByteBuffer.class);
+    this.writeBufferPool = PoolFactory.newLockBasePool(ByteBuffer.class);
   }
 
   @Override

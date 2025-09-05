@@ -1,6 +1,6 @@
 package javasabr.rlib.common.util.dictionary;
 
-import javasabr.rlib.common.concurrent.atomic.ReusableAtomicInteger;
+import java.util.concurrent.atomic.AtomicInteger;
 import javasabr.rlib.common.util.ArrayUtils;
 import org.jspecify.annotations.NullMarked;
 
@@ -14,7 +14,7 @@ import org.jspecify.annotations.NullMarked;
 public abstract class AbstractConcurrentIntegerDictionary<V> extends AbstractIntegerDictionary<V> implements
     ConcurrentIntegerDictionary<V> {
 
-  private final ReusableAtomicInteger size;
+  private final AtomicInteger size;
 
   private volatile IntegerEntry<V>[] entries;
 
@@ -35,7 +35,7 @@ public abstract class AbstractConcurrentIntegerDictionary<V> extends AbstractInt
   protected AbstractConcurrentIntegerDictionary(float loadFactor, int initCapacity) {
     super(loadFactor, initCapacity);
     this.entries = ArrayUtils.create(getEntryType(), initCapacity);
-    this.size = new ReusableAtomicInteger(0);
+    this.size = new AtomicInteger(0);
   }
 
   @Override

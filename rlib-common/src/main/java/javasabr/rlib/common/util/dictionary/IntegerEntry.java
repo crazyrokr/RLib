@@ -56,12 +56,6 @@ public class IntegerEntry<V> implements Entry<IntegerEntry<V>, V> {
   }
 
   @Override
-  public void free() {
-    value = null;
-    next = null;
-  }
-
-  @Override
   public int getHash() {
     return hash;
   }

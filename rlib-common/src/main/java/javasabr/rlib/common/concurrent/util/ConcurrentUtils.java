@@ -3,7 +3,6 @@ package javasabr.rlib.common.concurrent.util;
 import java.util.function.Function;
 import javasabr.rlib.common.concurrent.lock.Lockable;
 import javasabr.rlib.common.function.ObjectIntFunction;
-import javasabr.rlib.common.function.ObjectLongFunction;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import org.jspecify.annotations.NullMarked;
@@ -140,26 +139,6 @@ public final class ConcurrentUtils {
    */
   @Nullable
   public static <T extends Lockable, R> R get(T sync, int argument, ObjectIntFunction<T, R> function) {
-    sync.lock();
-    try {
-      return function.apply(sync, argument);
-    } finally {
-      sync.unlock();
-    }
-  }
-
-  /**
-   * Apply a function in locked block.
-   *
-   * @param <T> the type parameter
-   * @param <R> the type parameter
-   * @param sync the synchronizer.
-   * @param argument the argument.
-   * @param function the function.
-   * @return the result from the function.
-   */
-  @Nullable
-  public static <T extends Lockable, @Nullable R> R getInL(T sync, long argument, ObjectLongFunction<T, R> function) {
     sync.lock();
     try {
       return function.apply(sync, argument);

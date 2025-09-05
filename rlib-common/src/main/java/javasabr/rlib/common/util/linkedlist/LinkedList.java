@@ -12,7 +12,6 @@ import javasabr.rlib.common.function.LongBiObjectConsumer;
 import javasabr.rlib.common.function.TripleConsumer;
 import javasabr.rlib.common.function.TriplePredicate;
 import javasabr.rlib.common.util.linkedlist.impl.Node;
-import javasabr.rlib.common.util.pools.Reusable;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -30,7 +29,7 @@ import org.jspecify.annotations.Nullable;
  * @author JavaSaBr
  */
 @NullMarked
-public interface LinkedList<E> extends Deque<E>, Cloneable, Serializable, Reusable {
+public interface LinkedList<E> extends Deque<E>, Cloneable, Serializable {
 
   @Override
   default void forEach(Consumer<? super E> consumer) {

@@ -31,7 +31,6 @@ import javasabr.rlib.common.function.NotNullTriplePredicate;
 import javasabr.rlib.common.util.ArrayUtils;
 import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.common.util.array.impl.DefaultArrayIterator;
-import javasabr.rlib.common.util.pools.Reusable;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -44,7 +43,7 @@ import org.jspecify.annotations.Nullable;
  */
 @NullMarked
 @Deprecated
-public interface Array<E> extends Collection<E>, Serializable, Reusable, Cloneable, RandomAccess {
+public interface Array<E> extends Collection<E>, Serializable, Cloneable, RandomAccess {
 
   /**
    * Create an empty read only array.
@@ -288,11 +287,6 @@ public interface Array<E> extends Collection<E>, Serializable, Reusable, Cloneab
     }
 
     return true;
-  }
-
-  @Override
-  default void free() {
-    clear();
   }
 
   /**

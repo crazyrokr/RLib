@@ -68,11 +68,6 @@ public abstract class AbstractLinkedList<E> implements LinkedList<E> {
   }
 
   @Override
-  public void free() {
-    clear();
-  }
-
-  @Override
   public E getFirst() {
 
     Node<E> first = getFirstNode();

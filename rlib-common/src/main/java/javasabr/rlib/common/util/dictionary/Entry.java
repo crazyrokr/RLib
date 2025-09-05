@@ -1,6 +1,6 @@
 package javasabr.rlib.common.util.dictionary;
 
-import javasabr.rlib.common.util.pools.Reusable;
+import javasabr.rlib.common.util.Reusable;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 

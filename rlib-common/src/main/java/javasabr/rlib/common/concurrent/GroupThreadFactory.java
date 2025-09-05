@@ -1,7 +1,7 @@
 package javasabr.rlib.common.concurrent;
 
 import java.util.concurrent.ThreadFactory;
-import javasabr.rlib.common.concurrent.atomic.ReusableAtomicInteger;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -18,7 +18,7 @@ public class GroupThreadFactory implements ThreadFactory {
     Thread create(ThreadGroup group, Runnable runnable, String name);
   }
 
-  private final ReusableAtomicInteger ordinal;
+  private final AtomicInteger ordinal;
   private final String name;
   private final ThreadGroup group;
   private final ThreadConstructor constructor;
@@ -43,7 +43,7 @@ public class GroupThreadFactory implements ThreadFactory {
     this.priority = priority;
     this.name = name;
     this.group = new ThreadGroup(name);
-    this.ordinal = new ReusableAtomicInteger();
+    this.ordinal = new AtomicInteger();
     this.daemon = daemon;
   }
 

@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
   api projects.rlibCommon
+  api projects.rlibReference
 }
 
 javafx {
