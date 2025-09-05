@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import javasabr.rlib.common.BaseTest;
-import javasabr.rlib.common.concurrent.atomic.ReusableAtomicInteger;
 import javasabr.rlib.common.util.NumberUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -286,7 +286,7 @@ public class ConcurrentArrayTest extends BaseTest {
   void forEachInReadLockTest() {
 
     var array = ConcurrentArray.of("First", "Second", "Third", "  ", "Third");
-    var counter = new ReusableAtomicInteger(0);
+    var counter = new AtomicInteger(0);
 
     array.forEachInReadLock(element -> counter.incrementAndGet());
 

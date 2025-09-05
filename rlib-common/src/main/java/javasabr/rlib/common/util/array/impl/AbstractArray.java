@@ -56,11 +56,6 @@ public abstract class AbstractArray<E> implements Array<E> {
   }
 
   @Override
-  public void free() {
-    clear();
-  }
-
-  @Override
   public AbstractArray<E> clone() throws CloneNotSupportedException {
     return ClassUtils.unsafeNNCast(super.clone());
   }

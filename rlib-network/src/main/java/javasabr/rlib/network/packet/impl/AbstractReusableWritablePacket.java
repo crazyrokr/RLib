@@ -5,11 +5,11 @@ import static javasabr.rlib.common.util.ObjectUtils.notNull;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-import javasabr.rlib.common.concurrent.atomic.ReusableAtomicInteger;
+import java.util.concurrent.atomic.AtomicInteger;
 import javasabr.rlib.common.util.ClassUtils;
-import javasabr.rlib.common.util.pools.Pool;
-import javasabr.rlib.common.util.pools.PoolFactory;
 import javasabr.rlib.network.packet.ReusableWritablePacket;
+import javasabr.rlib.reusable.pool.Pool;
+import javasabr.rlib.reusable.pool.PoolFactory;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -23,7 +23,7 @@ public abstract class AbstractReusableWritablePacket extends AbstractWritablePac
   protected static final ThreadLocal<Map<Class<? super ReusableWritablePacket>, Pool<ReusableWritablePacket>>> LOCAL_POOLS = ThreadLocal.withInitial(
       HashMap::new);
 
-  protected final ReusableAtomicInteger counter;
+  protected final AtomicInteger counter;
 
   /**
    * The pool to store this packet after using.
@@ -34,7 +34,7 @@ public abstract class AbstractReusableWritablePacket extends AbstractWritablePac
   protected int barrierSink;
 
   public AbstractReusableWritablePacket() {
-    this.counter = new ReusableAtomicInteger();
+    this.counter = new AtomicInteger();
   }
 
   @Override
@@ -123,12 +123,7 @@ public abstract class AbstractReusableWritablePacket extends AbstractWritablePac
     Class<ReusableWritablePacket> packetClass = ClassUtils.unsafeNNCast(getClass());
     return LOCAL_POOLS
         .get()
-        .computeIfAbsent(packetClass, PoolFactory::newConcurrentStampedLockReusablePool);
-  }
-
-  @Override
-  public void reuse() {
-    this.pool = getThreadLocalPool();
+        .computeIfAbsent(packetClass, PoolFactory::newLockBasePool);
   }
 
   /**
@@ -190,7 +185,7 @@ public abstract class AbstractReusableWritablePacket extends AbstractWritablePac
 
   @Override
   public void decreaseSends(int count) {
-    counter.subAndGet(count);
+    counter.accumulateAndGet(count, (left, right) -> left - right);
   }
 
   @Override

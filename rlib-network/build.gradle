@@ -2,6 +2,7 @@ dependencies {
   api projects.rlibCommon
   api projects.rlibClasspath
   api projects.rlibCollections
+  api projects.rlibReusable
   api libs.project.reactor.core
   testRuntimeOnly projects.rlibLoggerImpl
 }

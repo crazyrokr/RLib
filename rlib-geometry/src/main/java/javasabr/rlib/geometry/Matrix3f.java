@@ -1,6 +1,5 @@
 package javasabr.rlib.geometry;
 
-import javasabr.rlib.common.util.pools.Reusable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -12,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Accessors(fluent = true)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public final class Matrix3f implements Reusable {
+public final class Matrix3f {
 
   public static final Matrix3f ZERO = new Matrix3f(
       0, 0, 0,

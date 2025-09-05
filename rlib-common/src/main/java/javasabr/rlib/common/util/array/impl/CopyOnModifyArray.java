@@ -3,7 +3,7 @@ package javasabr.rlib.common.util.array.impl;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import javasabr.rlib.common.concurrent.atomic.ReusableAtomicReference;
+import java.util.concurrent.atomic.AtomicReference;
 import javasabr.rlib.common.util.ArrayUtils;
 import javasabr.rlib.common.util.array.Array;
 import javasabr.rlib.common.util.array.ArrayComparator;
@@ -22,7 +22,7 @@ public class CopyOnModifyArray<E> extends AbstractArray<E> {
   private static final long serialVersionUID = -8477384427415127978L;
 
   @SuppressWarnings("NullableProblems")
-  protected volatile ReusableAtomicReference<E[]> array;
+  protected volatile AtomicReference<E[]> array;
 
   public CopyOnModifyArray(Class<? super E> type, int size) {
     super(type, size);
@@ -236,7 +236,7 @@ public class CopyOnModifyArray<E> extends AbstractArray<E> {
 
     //noinspection ConstantConditions
     if (this.array == null) {
-      this.array = new ReusableAtomicReference<>();
+      this.array = new AtomicReference<>();
     }
 
     this.array.set(array);
@@ -269,7 +269,7 @@ public class CopyOnModifyArray<E> extends AbstractArray<E> {
   @Override
   public CopyOnModifyArray<E> clone() throws CloneNotSupportedException {
     var clone = (CopyOnModifyArray<E>) super.clone();
-    clone.array = new ReusableAtomicReference<>(ArrayUtils.copyOf(array()));
+    clone.array = new AtomicReference<>(ArrayUtils.copyOf(array()));
     return clone;
   }
 }

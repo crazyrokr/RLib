@@ -1,6 +1,6 @@
 package javasabr.rlib.common.util.linkedlist.impl;
 
-import javasabr.rlib.common.util.pools.Reusable;
+import javasabr.rlib.common.util.Reusable;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -29,7 +29,7 @@ public final class Node<E> implements Reusable {
   private @Nullable Node<E> next;
 
   @Override
-  public void free() {
+  public void cleanup() {
     item = null;
     prev = null;
     next = null;

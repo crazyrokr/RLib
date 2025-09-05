@@ -4,8 +4,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Function;
-import javasabr.rlib.common.util.pools.PoolFactory;
-import javasabr.rlib.common.util.pools.ReusablePool;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -19,11 +17,6 @@ import org.jspecify.annotations.Nullable;
 public class FastLinkedList<E> extends AbstractLinkedList<E> {
 
   private static final long serialVersionUID = 6627882787737291879L;
-
-  /**
-   * The node pool.
-   */
-  private final ReusablePool<Node<E>> pool;
 
   /**
    * The first element.
@@ -49,7 +42,6 @@ public class FastLinkedList<E> extends AbstractLinkedList<E> {
    */
   public FastLinkedList(Class<?> type) {
     super(type);
-    this.pool = PoolFactory.newReusablePool(Node.class);
   }
 
   @Override
@@ -77,16 +69,8 @@ public class FastLinkedList<E> extends AbstractLinkedList<E> {
 
   @Override
   public void clear() {
-
-    ReusablePool<Node<E>> pool = getPool();
-
-    for (Node<E> node = getFirstNode(); node != null; node = node.getNext()) {
-      pool.put(node);
-    }
-
     setFirstNode(null);
     setLastNode(null);
-
     size = 0;
   }
 
@@ -180,21 +164,12 @@ public class FastLinkedList<E> extends AbstractLinkedList<E> {
    */
   protected Node<E> getNewNode(@Nullable Node<E> prev, E item, @Nullable Node<E> next) {
 
-    Node<E> node = getPool().take(Node::new);
+    Node<E> node = new Node<>();
     node.setItem(item);
     node.setNext(next);
     node.setPrev(prev);
 
     return node;
-  }
-
-  /**
-   * Gets pool.
-   *
-   * @return the pool.
-   */
-  protected ReusablePool<Node<E>> getPool() {
-    return pool;
   }
 
   /**
@@ -375,11 +350,6 @@ public class FastLinkedList<E> extends AbstractLinkedList<E> {
   }
 
   @Override
-  public String toString() {
-    return super.toString() + "\n " + pool;
-  }
-
-  @Override
   public final E unlink(Node<E> node) {
 
     E element = node.getItem();
@@ -400,8 +370,6 @@ public class FastLinkedList<E> extends AbstractLinkedList<E> {
     }
 
     size--;
-
-    getPool().put(node);
 
     return element;
   }
@@ -427,8 +395,6 @@ public class FastLinkedList<E> extends AbstractLinkedList<E> {
 
     size--;
 
-    getPool().put(node);
-
     return element;
   }
 
@@ -452,8 +418,6 @@ public class FastLinkedList<E> extends AbstractLinkedList<E> {
     }
 
     size--;
-
-    getPool().put(node);
 
     return element;
   }

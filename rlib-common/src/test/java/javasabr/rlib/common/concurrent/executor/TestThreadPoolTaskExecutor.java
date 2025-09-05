@@ -1,7 +1,7 @@
 package javasabr.rlib.common.concurrent.executor;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import javasabr.rlib.common.concurrent.GroupThreadFactory;
-import javasabr.rlib.common.concurrent.atomic.ReusableAtomicInteger;
 import javasabr.rlib.common.concurrent.executor.impl.ThreadPoolTaskExecutor;
 import javasabr.rlib.common.concurrent.util.ThreadUtils;
 import org.junit.jupiter.api.Assertions;
@@ -30,7 +30,7 @@ public class TestThreadPoolTaskExecutor {
       }
     };
 
-    final ReusableAtomicInteger counter = new ReusableAtomicInteger();
+    final AtomicInteger counter = new AtomicInteger();
 
     for (int i = 0; i < TASK_LIMIT; i++) {
       executor.execute((local, currentTime) -> {

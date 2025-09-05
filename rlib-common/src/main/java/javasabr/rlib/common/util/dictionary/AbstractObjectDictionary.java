@@ -57,7 +57,7 @@ public abstract class AbstractObjectDictionary<K, V> extends AbstractDictionary<
     var entries = entries();
     var entry = entries[index];
 
-    var newEntry = entryPool.take(ObjectEntry::new);
+    var newEntry = new ObjectEntry<K, V>();
     newEntry.set(hash, key, value, entry);
 
     entries[index] = newEntry;
@@ -240,8 +240,6 @@ public abstract class AbstractObjectDictionary<K, V> extends AbstractDictionary<
     }
 
     var value = old.getValue();
-
-    entryPool.put(old);
 
     return value;
   }

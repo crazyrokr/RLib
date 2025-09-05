@@ -55,7 +55,7 @@ public abstract class AbstractLongDictionary<V> extends AbstractDictionary<LongK
     var entries = entries();
     var entry = entries[index];
 
-    var newEntry = entryPool.take(LongEntry::new);
+    var newEntry = new LongEntry<V>();
     newEntry.set(hash, key, value, entry);
 
     entries[index] = newEntry;
@@ -207,15 +207,8 @@ public abstract class AbstractLongDictionary<V> extends AbstractDictionary<LongK
 
   @Override
   public @Nullable V remove(long key) {
-
     var oldEntry = removeEntryForKey(key);
-
     V value = oldEntry == null ? null : oldEntry.getValue();
-
-    if (oldEntry != null) {
-      entryPool.put(oldEntry);
-    }
-
     return value;
   }
 

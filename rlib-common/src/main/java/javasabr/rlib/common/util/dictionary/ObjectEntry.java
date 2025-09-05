@@ -63,14 +63,6 @@ public class ObjectEntry<K, V> implements Entry<ObjectEntry<K, V>, V> {
   }
 
   @Override
-  public void free() {
-    key = null;
-    value = null;
-    next = null;
-    hash = 0;
-  }
-
-  @Override
   public final int hashCode() {
     return Objects.hashCode(key) ^ Objects.hashCode(value);
   }

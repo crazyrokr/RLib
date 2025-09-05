@@ -4,7 +4,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
-import javasabr.rlib.common.util.pools.Reusable;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -152,16 +151,5 @@ public final class ObjectUtils {
    */
   public static int hash(@Nullable Object object) {
     return object == null ? 0 : object.hashCode();
-  }
-
-  /**
-   * Call the method {@link Reusable#release()} if the object is instanceof {@link Reusable}.
-   *
-   * @param object the object.
-   */
-  public static void release(@Nullable Object object) {
-    if (object instanceof Reusable) {
-      ((Reusable) object).release();
-    }
   }
 }

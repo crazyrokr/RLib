@@ -5,7 +5,7 @@ import static java.lang.Math.max;
 import java.io.Serial;
 import java.util.Collection;
 import java.util.NoSuchElementException;
-import javasabr.rlib.common.concurrent.atomic.ReusableAtomicInteger;
+import java.util.concurrent.atomic.AtomicInteger;
 import javasabr.rlib.common.util.ArrayUtils;
 import javasabr.rlib.common.util.array.Array;
 import javasabr.rlib.common.util.array.ArrayIterator;
@@ -30,7 +30,7 @@ public abstract class AbstractConcurrentArray<E> extends AbstractArray<E> implem
   /**
    * The count of elements in this array.
    */
-  private final ReusableAtomicInteger size;
+  private final AtomicInteger size;
 
   /**
    * The unsafe array.
@@ -44,7 +44,7 @@ public abstract class AbstractConcurrentArray<E> extends AbstractArray<E> implem
 
   public AbstractConcurrentArray(Class<? super E> type, int size) {
     super(type, size);
-    this.size = new ReusableAtomicInteger();
+    this.size = new AtomicInteger();
   }
 
   @Override

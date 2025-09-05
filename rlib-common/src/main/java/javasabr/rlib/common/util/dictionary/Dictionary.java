@@ -3,7 +3,6 @@ package javasabr.rlib.common.util.dictionary;
 import javasabr.rlib.common.function.NotNullFunction;
 import javasabr.rlib.common.util.array.Array;
 import javasabr.rlib.common.util.array.ArrayFactory;
-import javasabr.rlib.common.util.pools.Reusable;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -15,7 +14,7 @@ import org.jspecify.annotations.NullMarked;
  */
 @NullMarked
 @Deprecated
-public interface Dictionary<K, V> extends Iterable<V>, Reusable {
+public interface Dictionary<K, V> extends Iterable<V> {
 
   /**
    * Replace the all values using the function.
@@ -41,11 +40,6 @@ public interface Dictionary<K, V> extends Iterable<V>, Reusable {
    */
   default boolean containsValue(V value) {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  default void free() {
-    clear();
   }
 
   /**

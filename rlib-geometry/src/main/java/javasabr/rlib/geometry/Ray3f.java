@@ -1,6 +1,5 @@
 package javasabr.rlib.geometry;
 
-import javasabr.rlib.common.util.pools.Reusable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,7 @@ import lombok.experimental.FieldDefaults;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class Ray3f implements Reusable {
+public class Ray3f {
 
   Vector3f start, direction;
 

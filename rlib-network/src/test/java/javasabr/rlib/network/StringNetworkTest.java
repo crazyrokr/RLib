@@ -12,8 +12,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
-import javasabr.rlib.common.concurrent.atomic.ReusableAtomicInteger;
 import javasabr.rlib.common.util.ObjectUtils;
 import javasabr.rlib.common.util.StringUtils;
 import javasabr.rlib.logger.api.Logger;
@@ -251,9 +251,9 @@ public class StringNetworkTest extends BaseNetworkTest {
     var counter = new CountDownLatch(clientCount * packetsPerClient);
     var minMessageLength = 10;
     var maxMessageLength = (int) (DEFAULT_SERVER.getReadBufferSize() * 1.5);
-    var sentPacketsToServer = new ReusableAtomicInteger();
-    var receivedPacketsOnServer = new ReusableAtomicInteger();
-    var receivedPacketsOnClients = new ReusableAtomicInteger();
+    var sentPacketsToServer = new AtomicInteger();
+    var receivedPacketsOnServer = new AtomicInteger();
+    var receivedPacketsOnClients = new AtomicInteger();
 
     var serverNetwork = newStringDataServerNetwork(serverConfig, serverAllocator);
     var serverAddress = serverNetwork.start();
@@ -310,9 +310,9 @@ public class StringNetworkTest extends BaseNetworkTest {
     var counter = new CountDownLatch(clientCount * packetsPerClient);
     var minMessageLength = 10;
     var maxMessageLength = (int) (DEFAULT_SERVER.getReadBufferSize() * 1.5);
-    var sentPacketsToServer = new ReusableAtomicInteger();
-    var receivedPacketsOnServer = new ReusableAtomicInteger();
-    var receivedPacketsOnClients = new ReusableAtomicInteger();
+    var sentPacketsToServer = new AtomicInteger();
+    var receivedPacketsOnServer = new AtomicInteger();
+    var receivedPacketsOnClients = new AtomicInteger();
     var connectedClients = new CountDownLatch(clientCount);
 
     serverNetwork.onAccept(connection -> {

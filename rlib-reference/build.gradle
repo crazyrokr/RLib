@@ -1,0 +1,6 @@
+
+dependencies {
+  compileOnly projects.rlibReusable
+  testImplementation projects.rlibLoggerImpl
+  testImplementation projects.rlibReusable
+}

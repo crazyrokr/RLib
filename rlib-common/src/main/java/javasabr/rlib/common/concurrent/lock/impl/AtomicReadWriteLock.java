@@ -1,9 +1,9 @@
 package javasabr.rlib.common.concurrent.lock.impl;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import javasabr.rlib.common.concurrent.atomic.ReusableAtomicInteger;
 import javasabr.rlib.common.concurrent.lock.AsyncReadSyncWriteLock;
 import org.jspecify.annotations.NullMarked;
 
@@ -25,17 +25,17 @@ public class AtomicReadWriteLock implements AsyncReadSyncWriteLock, Lock {
   /**
    * The status of write lock.
    */
-  protected final ReusableAtomicInteger writeStatus;
+  protected final AtomicInteger writeStatus;
 
   /**
    * The count of writers.
    */
-  protected final ReusableAtomicInteger writeCount;
+  protected final AtomicInteger writeCount;
 
   /**
    * The count of readers.
    */
-  protected final ReusableAtomicInteger readCount;
+  protected final AtomicInteger readCount;
 
   /**
    * The field for consuming CPU.
@@ -46,9 +46,9 @@ public class AtomicReadWriteLock implements AsyncReadSyncWriteLock, Lock {
    * Instantiates a new Atomic read write lock.
    */
   public AtomicReadWriteLock() {
-    this.writeCount = new ReusableAtomicInteger(0);
-    this.writeStatus = new ReusableAtomicInteger(0);
-    this.readCount = new ReusableAtomicInteger(0);
+    this.writeCount = new AtomicInteger(0);
+    this.writeStatus = new AtomicInteger(0);
+    this.readCount = new AtomicInteger(0);
     this.sink = 1;
   }
 

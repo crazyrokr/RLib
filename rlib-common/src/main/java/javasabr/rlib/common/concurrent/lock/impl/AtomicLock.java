@@ -1,9 +1,9 @@
 package javasabr.rlib.common.concurrent.lock.impl;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import javasabr.rlib.common.concurrent.atomic.ReusableAtomicInteger;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -20,7 +20,7 @@ public class AtomicLock implements Lock {
   /**
    * The status of lock.
    */
-  protected final ReusableAtomicInteger status;
+  protected final AtomicInteger status;
 
   /**
    * The field for consuming CPU.
@@ -31,7 +31,7 @@ public class AtomicLock implements Lock {
    * Instantiates a new Atomic lock.
    */
   public AtomicLock() {
-    this.status = new ReusableAtomicInteger();
+    this.status = new AtomicInteger();
     this.sink = 1;
   }
 

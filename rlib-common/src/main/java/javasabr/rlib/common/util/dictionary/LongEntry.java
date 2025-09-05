@@ -55,12 +55,6 @@ public final class LongEntry<V> implements Entry<LongEntry<V>, V> {
   }
 
   @Override
-  public void free() {
-    value = null;
-    next = null;
-  }
-
-  @Override
   public int getHash() {
     return hash;
   }

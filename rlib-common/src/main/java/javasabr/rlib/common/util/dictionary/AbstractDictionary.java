@@ -5,8 +5,6 @@ import java.util.function.Consumer;
 import javasabr.rlib.common.function.NotNullFunction;
 import javasabr.rlib.common.util.ArrayUtils;
 import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.pools.PoolFactory;
-import javasabr.rlib.common.util.pools.ReusablePool;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -69,10 +67,6 @@ public abstract class AbstractDictionary<K, V, E extends Entry<E, V>> implements
     return hash & length - 1;
   }
 
-  /**
-   * The pool with entries.
-   */
-  protected final ReusablePool<E> entryPool;
 
   /**
    * The load factor.
@@ -81,7 +75,6 @@ public abstract class AbstractDictionary<K, V, E extends Entry<E, V>> implements
 
   protected AbstractDictionary(float loadFactor, int initCapacity) {
     this.loadFactor = loadFactor;
-    this.entryPool = PoolFactory.newReusablePool(getEntryType());
     setThreshold((int) (initCapacity * loadFactor));
   }
 
@@ -105,7 +98,7 @@ public abstract class AbstractDictionary<K, V, E extends Entry<E, V>> implements
     for (E entry : entries) {
       while (entry != null) {
         next = entry.getNext();
-        entryPool.put(entry);
+        //entryPool.put(entry);
         entry = next;
       }
     }

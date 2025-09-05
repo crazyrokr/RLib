@@ -1,7 +1,7 @@
 package javasabr.rlib.network.packet;
 
-import javasabr.rlib.common.util.pools.Pool;
-import javasabr.rlib.common.util.pools.Reusable;
+import javasabr.rlib.reusable.Reusable;
+import javasabr.rlib.reusable.pool.Pool;
 
 /**
  * The interface to implement a reusable writable packet.
