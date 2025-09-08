@@ -7,14 +7,21 @@ import javasabr.rlib.collections.dictionary.LinkedHashEntry;
 import javasabr.rlib.collections.dictionary.MutableRefDictionary;
 import javasabr.rlib.collections.dictionary.RefDictionary;
 import javasabr.rlib.collections.dictionary.UnsafeMutableRefDictionary;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PROTECTED)
 public abstract class AbstractMutableHashBasedRefDictionary<K, V, E extends LinkedHashEntry<K, V, E>>
     extends AbstractHashBasedRefDictionary<K, V, E> implements UnsafeMutableRefDictionary<K, V, E> {
 
   protected static final int DEFAULT_INITIAL_CAPACITY = 16;
   protected static final int DEFAULT_MAXIMUM_CAPACITY = 1 << 30;
   protected static final float DEFAULT_LOAD_FACTOR = 0.75f;
+
+  final float loadFactor;
 
   @Nullable
   @Override
@@ -161,8 +168,6 @@ public abstract class AbstractMutableHashBasedRefDictionary<K, V, E extends Link
   protected abstract int threshold();
   protected abstract void threshold(int threshold);
 
-  protected abstract float loadFactor();
-
   protected abstract int incrementSize();
   protected abstract int decrementSize();
 
@@ -187,7 +192,7 @@ public abstract class AbstractMutableHashBasedRefDictionary<K, V, E extends Link
 
     transfer(currentEntries, newEntries);
     entries(newEntries);
-    threshold((int) (newLength * loadFactor()));
+    threshold((int) (newLength * loadFactor));
   }
 
   protected void transfer(

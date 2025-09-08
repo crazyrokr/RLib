@@ -58,7 +58,8 @@ public class DeadLockDetector implements Runnable {
       throw new IllegalArgumentException("negative interval.");
     }
 
-    this.listeners = ArrayFactory.newConcurrentReentrantRWLockArray(DeadLockListener.class);
+    this.listeners = null;
+   // this.listeners = ArrayFactory.newConcurrentReentrantRWLockArray(DeadLockListener.class);
     this.mxThread = ManagementFactory.getThreadMXBean();
     this.executorService = Executors.newSingleThreadScheduledExecutor();
     this.interval = interval;

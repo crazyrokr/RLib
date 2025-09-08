@@ -1,9 +1,9 @@
 package javasabr.rlib.plugin.system.extension;
 
+import javasabr.rlib.collections.dictionary.Dictionary;
+import javasabr.rlib.collections.dictionary.DictionaryFactory;
+import javasabr.rlib.collections.dictionary.LockableMutableRefDictionary;
 import javasabr.rlib.common.util.ClassUtils;
-import javasabr.rlib.common.util.dictionary.ConcurrentObjectDictionary;
-import javasabr.rlib.common.util.dictionary.DictionaryFactory;
-import javasabr.rlib.common.util.dictionary.ObjectDictionary;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import lombok.AccessLevel;
@@ -27,10 +27,10 @@ public class ExtensionPointManager {
     return getInstance().create(id);
   }
 
-  ConcurrentObjectDictionary<String, ExtensionPoint<?>> extensionPoints;
+  LockableMutableRefDictionary<String, ExtensionPoint<?>> extensionPoints;
 
   public ExtensionPointManager() {
-    this.extensionPoints = DictionaryFactory.newConcurrentAtomicObjectDictionary();
+    this.extensionPoints = DictionaryFactory.lockableRefDictionary();
   }
 
   public <T> ExtensionPoint<T> create(String id) {
@@ -41,7 +41,6 @@ public class ExtensionPointManager {
         LOGGER.warning(id, "Extension point:[%s] is already registered"::formatted);
         return ClassUtils.unsafeNNCast(exists);
       }
-
       var extensionPoint = new ExtensionPoint<T>();
       extensionPoints.put(id, extensionPoint);
       return extensionPoint;
@@ -71,7 +70,10 @@ public class ExtensionPointManager {
 
   public <T> ExtensionPoint<T> getOrCreateExtensionPoint(String id) {
 
-    ExtensionPoint<?> extensionPoint = extensionPoints.getFromReadLock(id, ObjectDictionary::get);
+    ExtensionPoint<?> extensionPoint = extensionPoints
+        .operations()
+        .getInReadLock(id, Dictionary::get);
+
     if (extensionPoint != null) {
       return ClassUtils.unsafeNNCast(extensionPoint);
     }

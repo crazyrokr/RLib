@@ -5,7 +5,6 @@ import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import javasabr.rlib.common.function.IntBiObjectConsumer;
-import javasabr.rlib.common.function.IntObjectConsumer;
 import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.common.util.array.IntegerArray;
 import javasabr.rlib.common.util.array.MutableIntegerArray;
@@ -61,16 +60,6 @@ public abstract class AbstractIntegerDictionary<V> extends AbstractDictionary<In
   @Override
   public final boolean containsKey(int key) {
     return getEntry(key) != null;
-  }
-
-  @Override
-  public void forEach(IntObjectConsumer<? super V> consumer) {
-    for (var entry : entries()) {
-      while (entry != null) {
-        consumer.accept(entry.getKey(), entry.getValue());
-        entry = entry.getNext();
-      }
-    }
   }
 
   @Override

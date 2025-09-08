@@ -1,7 +1,6 @@
 package javasabr.rlib.common.util.array.impl;
 
 import java.util.concurrent.locks.StampedLock;
-import javasabr.rlib.common.concurrent.lock.LockFactory;
 import javasabr.rlib.common.util.array.ConcurrentArray;
 import org.jspecify.annotations.NullMarked;
 
@@ -25,7 +24,7 @@ public class ConcurrentStampedLockArray<E> extends AbstractConcurrentArray<E> {
 
   public ConcurrentStampedLockArray(Class<? super E> type, int size) {
     super(type, size);
-    this.lock = LockFactory.newStampedLock();
+    this.lock = new StampedLock();
   }
 
   @Override

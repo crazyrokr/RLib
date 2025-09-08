@@ -13,36 +13,6 @@ public final class DictionaryFactory {
   public static final ObjectDictionary<?, ?> EMPTY_OD = new ReadOnlyFastObjectDictionary<>();
   public static final LongDictionary<?> EMPTY_LD = new ReadOnlyFastLongDictionary<>();
 
-  public static <V> ConcurrentIntegerDictionary<V> newConcurrentAtomicIntegerDictionary() {
-    return new ConcurrentAtomicARSWLockIntegerDictionary<>();
-  }
-
-  public static <V> ConcurrentIntegerDictionary<V> newConcurrentAtomicIntegerDictionary(
-      float loadFactor,
-      int initCapacity) {
-    return new ConcurrentAtomicARSWLockIntegerDictionary<>(loadFactor, initCapacity);
-  }
-
-  public static <V> ConcurrentLongDictionary<V> newConcurrentAtomicLongDictionary() {
-    return new ConcurrentAtomicARSWLockLongDictionary<>();
-  }
-
-  public static <V> ConcurrentLongDictionary<V> newConcurrentAtomicLongDictionary(
-      float loadFactor,
-      int initCapacity) {
-    return new ConcurrentAtomicARSWLockLongDictionary<>(loadFactor, initCapacity);
-  }
-
-  public static <K, V> ConcurrentObjectDictionary<K, V> newConcurrentAtomicObjectDictionary() {
-    return new ConcurrentAtomicARSWLockObjectDictionary<>();
-  }
-
-  public static <K, V> ConcurrentObjectDictionary<K, V> newConcurrentAtomicObjectDictionary(
-      float loadFactor,
-      int initCapacity) {
-    return new ConcurrentAtomicARSWLockObjectDictionary<>(loadFactor, initCapacity);
-  }
-
   public static <K, V> ConcurrentObjectDictionary<K, V> newConcurrentStampedLockObjectDictionary() {
     return new ConcurrentStampedLockObjectDictionary<>();
   }
