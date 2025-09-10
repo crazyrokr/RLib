@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
-import javasabr.rlib.common.concurrent.util.ThreadUtils;
+import javasabr.rlib.common.util.ThreadUtils;
 import javasabr.rlib.common.util.AsyncUtils;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;

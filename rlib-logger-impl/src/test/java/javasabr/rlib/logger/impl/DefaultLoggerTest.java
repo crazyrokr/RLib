@@ -1,7 +1,7 @@
 package javasabr.rlib.logger.impl;
 
 import javasabr.rlib.collections.array.ArrayFactory;
-import javasabr.rlib.collections.array.LockableMutableArray;
+import javasabr.rlib.collections.array.LockableArray;
 import javasabr.rlib.logger.api.LoggerLevel;
 import javasabr.rlib.logger.api.LoggerListener;
 import javasabr.rlib.logger.api.LoggerManager;
@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 public class DefaultLoggerTest {
 
-  private static final LockableMutableArray<String> WROTE_DATA = ArrayFactory
+  private static final LockableArray<String> WROTE_DATA = ArrayFactory
       .stampedLockBasedArray(String.class);
 
   private static final LoggerListener LOGGER_LISTENER = text -> {

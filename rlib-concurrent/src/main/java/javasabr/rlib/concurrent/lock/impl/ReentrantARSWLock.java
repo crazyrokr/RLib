@@ -2,34 +2,22 @@ package javasabr.rlib.concurrent.lock.impl;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javasabr.rlib.concurrent.lock.AsyncReadSyncWriteLock;
 import javasabr.rlib.concurrent.lock.LockFactory;
-import org.jspecify.annotations.NullMarked;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 /**
- * The wrapper of {@link ReentrantReadWriteLock} for implementing the interface {@link AsyncReadSyncWriteLock}*.
- *
  * @author JavaSaBr
  */
-@NullMarked
+@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public final class ReentrantARSWLock implements AsyncReadSyncWriteLock {
 
-  /**
-   * The locker of writing.
-   */
-  private final Lock readLock;
+  Lock readLock;
+  Lock writeLock;
 
-  /**
-   * The locker of reading.
-   */
-  private final Lock writeLock;
-
-  /**
-   * Instantiates a new Reentrant arsw lock.
-   */
   public ReentrantARSWLock() {
-    ReadWriteLock readWriteLock = LockFactory.newReentrantRWLock();
+    ReadWriteLock readWriteLock = LockFactory.reentrantRWLock();
     readLock = readWriteLock.readLock();
     writeLock = readWriteLock.writeLock();
   }

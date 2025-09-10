@@ -5,16 +5,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import javasabr.rlib.concurrent.lock.AsyncReadSyncWriteLock;
-import org.jspecify.annotations.NullMarked;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 /**
- * The implementation of the {@link AsyncReadSyncWriteLock} using the several {@link ReusableAtomicInteger} without supporting
- * reentrant calls.
- *
  * @author JavaSaBr
  */
-@NullMarked
-public class AtomicReadWriteLock implements AsyncReadSyncWriteLock, Lock {
+@FieldDefaults(level = AccessLevel.PROTECTED)
+public class AtomicAsyncReadSyncWriteLock implements AsyncReadSyncWriteLock, Lock {
 
   private static final int STATUS_WRITE_LOCKED = 1;
   private static final int STATUS_WRITE_UNLOCKED = 0;
@@ -22,30 +20,13 @@ public class AtomicReadWriteLock implements AsyncReadSyncWriteLock, Lock {
   private static final int STATUS_READ_UNLOCKED = 0;
   private static final int STATUS_READ_LOCKED = -200000;
 
-  /**
-   * The status of write lock.
-   */
-  protected final AtomicInteger writeStatus;
+  final AtomicInteger writeStatus;
+  final AtomicInteger writeCount;
+  final AtomicInteger readCount;
 
-  /**
-   * The count of writers.
-   */
-  protected final AtomicInteger writeCount;
+  int sink;
 
-  /**
-   * The count of readers.
-   */
-  protected final AtomicInteger readCount;
-
-  /**
-   * The field for consuming CPU.
-   */
-  protected int sink;
-
-  /**
-   * Instantiates a new Atomic read write lock.
-   */
-  public AtomicReadWriteLock() {
+  public AtomicAsyncReadSyncWriteLock() {
     this.writeCount = new AtomicInteger(0);
     this.writeStatus = new AtomicInteger(0);
     this.readCount = new AtomicInteger(0);

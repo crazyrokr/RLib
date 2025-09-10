@@ -1,25 +1,24 @@
 package javasabr.rlib.concurrent.executor.impl;
 
+import java.util.Deque;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Function;
 import javasabr.rlib.collections.array.ArrayFactory;
 import javasabr.rlib.collections.array.MutableArray;
-import javasabr.rlib.common.concurrent.GroupThreadFactory;
+import javasabr.rlib.collections.deque.DequeFactory;
+import javasabr.rlib.common.util.GroupThreadFactory;
 import javasabr.rlib.concurrent.executor.TaskExecutor;
 import javasabr.rlib.concurrent.lock.LockFactory;
 import javasabr.rlib.concurrent.lock.Lockable;
 import javasabr.rlib.concurrent.task.CallableTask;
 import javasabr.rlib.concurrent.task.SimpleTask;
 import javasabr.rlib.concurrent.util.ConcurrentUtils;
-import javasabr.rlib.common.util.linkedlist.LinkedList;
-import javasabr.rlib.common.util.linkedlist.LinkedListFactory;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import org.jspecify.annotations.Nullable;
 
 /**
  * @author JavaSaBr
@@ -29,7 +28,7 @@ public class ThreadPoolTaskExecutor<L> implements TaskExecutor<L>, Runnable, Loc
 
   protected static final Logger LOGGER = LoggerManager.getLogger(ThreadPoolTaskExecutor.class);
 
-  LinkedList<CallableTask<?, L>> waitTasks;
+  Deque<CallableTask<?, L>> waitTasks;
   MutableArray<Thread> threads;
 
   Function<Thread, L> localObjectsFactory;
@@ -43,9 +42,9 @@ public class ThreadPoolTaskExecutor<L> implements TaskExecutor<L>, Runnable, Loc
       int poolSize,
       int packetSize) {
     this.localObjectsFactory = localObjectsFactory;
-    this.waitTasks = LinkedListFactory.newLinkedList(CallableTask.class);
+    this.waitTasks = DequeFactory.linkedListBased();
     this.wait = new AtomicBoolean();
-    this.lock = LockFactory.newAtomicLock();
+    this.lock = LockFactory.atomicLock();
     this.threads = ArrayFactory.mutableArray(Thread.class);
     this.packetSize = packetSize;
 

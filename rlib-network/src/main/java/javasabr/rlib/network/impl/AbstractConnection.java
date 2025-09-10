@@ -4,14 +4,14 @@ import static javasabr.rlib.common.util.Utils.unchecked;
 
 import java.nio.channels.AsynchronousChannel;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.Deque;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.BiConsumer;
 import javasabr.rlib.collections.array.ArrayFactory;
 import javasabr.rlib.collections.array.MutableArray;
-import javasabr.rlib.common.util.linkedlist.LinkedList;
-import javasabr.rlib.common.util.linkedlist.LinkedListFactory;
+import javasabr.rlib.collections.deque.DequeFactory;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.BufferAllocator;
@@ -53,7 +53,7 @@ public abstract class AbstractConnection<R extends ReadablePacket, W extends Wri
   protected final Network<? extends Connection<R, W>> network;
   protected final BufferAllocator bufferAllocator;
   protected final AsynchronousSocketChannel channel;
-  protected final LinkedList<WritablePacket> pendingPackets;
+  protected final Deque<WritablePacket> pendingPackets;
   protected final StampedLock lock;
 
   protected final AtomicBoolean isWriting;
@@ -74,7 +74,7 @@ public abstract class AbstractConnection<R extends ReadablePacket, W extends Wri
     this.maxPacketsByRead = maxPacketsByRead;
     this.lock = new StampedLock();
     this.channel = channel;
-    this.pendingPackets = LinkedListFactory.newLinkedList(WritablePacket.class);
+    this.pendingPackets = DequeFactory.linkedListBased();
     this.network = network;
     this.isWriting = new AtomicBoolean(false);
     this.closed = new AtomicBoolean(false);

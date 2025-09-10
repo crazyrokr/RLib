@@ -1,8 +1,8 @@
 package javasabr.rlib.concurrent.executor;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import javasabr.rlib.common.concurrent.GroupThreadFactory;
-import javasabr.rlib.common.concurrent.util.ThreadUtils;
+import javasabr.rlib.common.util.GroupThreadFactory;
+import javasabr.rlib.common.util.ThreadUtils;
 import javasabr.rlib.concurrent.executor.impl.ThreadPoolTaskExecutor;
 import org.junit.jupiter.api.Assertions;
 

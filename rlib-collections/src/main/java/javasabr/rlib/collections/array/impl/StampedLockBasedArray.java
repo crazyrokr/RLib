@@ -1,21 +1,20 @@
-package javasabr.rlib.collections.dictionary.impl;
+package javasabr.rlib.collections.array.impl;
 
 import java.util.concurrent.locks.StampedLock;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
-public class StampedLockBasedMutableHashBasedRefDictionary<K, V> extends
-    AbstractLockableMutableHashBasedRefDictionary<K, V> {
+public class StampedLockBasedArray<E> extends AbstractLockableArray<E> {
 
   StampedLock stampedLock;
 
-  public StampedLockBasedMutableHashBasedRefDictionary() {
-    this.stampedLock = new StampedLock();
+  public StampedLockBasedArray(Class<? super E> type) {
+    this(type, DEFAULT_CAPACITY);
   }
 
-  public StampedLockBasedMutableHashBasedRefDictionary(int initCapacity, float loadFactor) {
-    super(initCapacity, loadFactor);
+  public StampedLockBasedArray(Class<? super E> type, int capacity) {
+    super(type, capacity);
     this.stampedLock = new StampedLock();
   }
 

@@ -2,7 +2,6 @@ package javasabr.rlib.collections.array;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
-import javasabr.rlib.functions.ObjLongObjConsumer;
 import javasabr.rlib.functions.ObjObjLongConsumer;
 import javasabr.rlib.functions.TriConsumer;
 import org.jspecify.annotations.Nullable;

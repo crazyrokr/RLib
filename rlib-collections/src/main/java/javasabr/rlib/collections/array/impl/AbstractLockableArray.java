@@ -1,7 +1,7 @@
 package javasabr.rlib.collections.array.impl;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import javasabr.rlib.collections.array.LockableMutableArray;
+import javasabr.rlib.collections.array.LockableArray;
 import javasabr.rlib.common.util.ArrayUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -12,8 +12,7 @@ import org.jspecify.annotations.Nullable;
 
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractLockableMutableArray<E> extends AbstractMutableArray<E> implements
-    LockableMutableArray<E> {
+public abstract class AbstractLockableArray<E> extends AbstractMutableArray<E> implements LockableArray<E> {
 
   protected static final int DEFAULT_CAPACITY = 10;
 
@@ -23,11 +22,11 @@ public abstract class AbstractLockableMutableArray<E> extends AbstractMutableArr
   @Setter(AccessLevel.PROTECTED)
   volatile @Nullable E[] wrapped;
 
-  protected AbstractLockableMutableArray(Class<? super E> type) {
+  protected AbstractLockableArray(Class<? super E> type) {
     this(type, DEFAULT_CAPACITY);
   }
 
-  protected AbstractLockableMutableArray(Class<? super E> type, int capacity) {
+  protected AbstractLockableArray(Class<? super E> type, int capacity) {
     super(type);
     validateCapacity(capacity);
     this.wrapped = ArrayUtils.create(type, capacity);

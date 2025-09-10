@@ -1,7 +1,7 @@
 package javasabr.rlib.network;
 
 import java.nio.ByteOrder;
-import javasabr.rlib.common.concurrent.GroupThreadFactory;
+import javasabr.rlib.common.util.GroupThreadFactory;
 import lombok.Builder;
 import lombok.Getter;
 

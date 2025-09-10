@@ -1,30 +1,28 @@
-package javasabr.rlib.common.concurrent;
+package javasabr.rlib.common.util;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.jspecify.annotations.NullMarked;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 /**
- * The implementation of the {@link ThreadFactory} to create threads in the same thread group.
- *
  * @author JavaSaBr
  */
-@NullMarked
+@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class GroupThreadFactory implements ThreadFactory {
 
-  @NullMarked
   public interface ThreadConstructor {
 
     Thread create(ThreadGroup group, Runnable runnable, String name);
   }
 
-  private final AtomicInteger ordinal;
-  private final String name;
-  private final ThreadGroup group;
-  private final ThreadConstructor constructor;
+  AtomicInteger ordinal;
+  String name;
+  ThreadGroup group;
+  ThreadConstructor constructor;
 
-  private final int priority;
-  private final boolean daemon;
+  int priority;
+  boolean daemon;
 
   public GroupThreadFactory(String name) {
     this(name, Thread::new, Thread.NORM_PRIORITY);

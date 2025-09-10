@@ -14,7 +14,7 @@ import javasabr.rlib.concurrent.lock.LockFactory;
 import javasabr.rlib.concurrent.lock.Lockable;
 import javasabr.rlib.concurrent.task.PeriodicTask;
 import javasabr.rlib.concurrent.util.ConcurrentUtils;
-import javasabr.rlib.common.concurrent.util.ThreadUtils;
+import javasabr.rlib.common.util.ThreadUtils;
 import javasabr.rlib.functions.LongObjConsumer;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
@@ -56,7 +56,7 @@ public class SingleThreadPeriodicTaskExecutor<T extends PeriodicTask<L>, L> impl
     this.executeTasks = ArrayFactory.mutableArray(taskClass);
     this.finishedTasks = ArrayFactory.mutableArray(taskClass);
     this.wait = new AtomicBoolean();
-    this.lock = LockFactory.newAtomicLock();
+    this.lock = LockFactory.atomicLock();
     this.interval = interval;
     this.thread = threadFactory.apply(this, name);
     this.thread.setPriority(priority);

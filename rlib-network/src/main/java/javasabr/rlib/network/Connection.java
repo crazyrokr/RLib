@@ -2,7 +2,6 @@ package javasabr.rlib.network;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
-import javasabr.rlib.common.function.NotNullBiConsumer;
 import javasabr.rlib.network.packet.ReadablePacket;
 import javasabr.rlib.network.packet.WritablePacket;
 import lombok.AllArgsConstructor;

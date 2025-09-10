@@ -2,7 +2,7 @@ package javasabr.rlib.collections.array;
 
 import javasabr.rlib.collections.array.impl.CopyOnWriteMutableArray;
 import javasabr.rlib.collections.array.impl.DefaultMutableArray;
-import javasabr.rlib.collections.array.impl.StampedLockBasedMutableArray;
+import javasabr.rlib.collections.array.impl.StampedLockBasedArray;
 import javasabr.rlib.common.util.ClassUtils;
 import lombok.experimental.UtilityClass;
 
@@ -21,7 +21,7 @@ public class ArrayFactory {
     return new CopyOnWriteMutableArray<>(type);
   }
 
-  public static <E> LockableMutableArray<E> stampedLockBasedArray(Class<? super E> type) {
-    return new StampedLockBasedMutableArray<>(type);
+  public static <E> LockableArray<E> stampedLockBasedArray(Class<? super E> type) {
+    return new StampedLockBasedArray<>(type);
   }
 }

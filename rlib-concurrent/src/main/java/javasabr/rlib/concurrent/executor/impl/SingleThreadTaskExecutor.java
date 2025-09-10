@@ -18,7 +18,6 @@ import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import org.jspecify.annotations.Nullable;
 
 /**
  * @author JavaSaBr
@@ -42,7 +41,7 @@ public class SingleThreadTaskExecutor<L> implements TaskExecutor<L>, Runnable, L
       L local) {
     this.waitTasks = ArrayFactory.mutableArray(CallableTask.class);
     this.wait = new AtomicBoolean();
-    this.lock = LockFactory.newAtomicLock();
+    this.lock = LockFactory.atomicLock();
     this.thread = threadFactory.apply(this, name);
     this.thread.setPriority(priority);
     this.thread.setDaemon(true);

@@ -54,10 +54,6 @@ public class ArrayFactory {
     return new ReadOnlyFastArray<>(elements);
   }
 
-  public static <E> Array<E> newArraySet(Class<? super E> type) {
-    return new FastArraySet<>(type);
-  }
-
   public static <E> ConcurrentArray<E> newConcurrentStampedLockArray(Class<? super E> type) {
     return new ConcurrentStampedLockArray<>(type);
   }
@@ -74,18 +70,6 @@ public class ArrayFactory {
     return result;
   }
 
-  public static <E> ConcurrentArray<E> newConcurrentStampedLockArraySet(Class<? super E> type) {
-    return new ConcurrentStampedLockArraySet<>(type);
-  }
-
-  public static <E extends Comparable<E>> Array<E> newSortedArray(Class<? super E> type) {
-    return new SortedFastArray<>(unsafeNNCast(type));
-  }
-
-  public static <E> Array<E> newSynchronizedArray(Class<? super E> type) {
-    return new SynchronizedArray<>(type);
-  }
-
   public static MutableIntegerArray newMutableIntegerArray() {
     return new DefaultIntegerArray();
   }
@@ -96,10 +80,6 @@ public class ArrayFactory {
 
   public static MutableIntegerArray newMutableIntegerArray(int... numbers) {
     return new DefaultIntegerArray(numbers);
-  }
-
-  public static LongArray newLongArray() {
-    return new FastLongArray();
   }
 
   public static LongArray newLongArray(int capacity) {

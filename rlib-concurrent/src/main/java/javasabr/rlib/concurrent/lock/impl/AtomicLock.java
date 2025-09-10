@@ -4,32 +4,23 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * The implementation of the {@link Lock} based on using {@link ReusableAtomicInteger} without supporting reentrant calls.
- *
  * @author JavaSaBr
  */
-@NullMarked
+@FieldDefaults(level = AccessLevel.PROTECTED)
 public class AtomicLock implements Lock {
 
   private static final int STATUS_LOCKED = 1;
   private static final int STATUS_UNLOCKED = 0;
 
-  /**
-   * The status of lock.
-   */
-  protected final AtomicInteger status;
+  final AtomicInteger status;
 
-  /**
-   * The field for consuming CPU.
-   */
-  protected int sink;
+  int sink;
 
-  /**
-   * Instantiates a new Atomic lock.
-   */
   public AtomicLock() {
     this.status = new AtomicInteger();
     this.sink = 1;

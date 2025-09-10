@@ -3,7 +3,7 @@ package javasabr.rlib.collections.dictionary.impl;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import javasabr.rlib.collections.dictionary.LockableMutableRefDictionary;
+import javasabr.rlib.collections.dictionary.LockableRefDictionary;
 import javasabr.rlib.collections.dictionary.RefDictionary;
 import javasabr.rlib.collections.operation.LockableOperations;
 import javasabr.rlib.collections.operation.impl.DefaultLockableOperations;
@@ -12,20 +12,19 @@ import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractLockableMutableHashBasedRefDictionary<K, V> extends
-    AbstractMutableHashBasedRefDictionary<K, V, DefaultLinkedHashEntry<K, V>> implements
-    LockableMutableRefDictionary<K, V> {
+public abstract class AbstractLockableHashBasedRefDictionary<K, V> extends
+    AbstractMutableHashBasedRefDictionary<K, V, DefaultLinkedHashEntry<K, V>> implements LockableRefDictionary<K, V> {
 
   final AtomicReference<@Nullable DefaultLinkedHashEntry<K, V>[]> entries;
   final AtomicInteger size;
 
   int threshold;
 
-  public AbstractLockableMutableHashBasedRefDictionary() {
+  public AbstractLockableHashBasedRefDictionary() {
     this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
   }
 
-  public AbstractLockableMutableHashBasedRefDictionary(int initCapacity, float loadFactor) {
+  public AbstractLockableHashBasedRefDictionary(int initCapacity, float loadFactor) {
     super(loadFactor);
     //noinspection unchecked,rawtypes
     this.entries = new AtomicReference<>(new DefaultLinkedHashEntry[initCapacity]);
@@ -97,7 +96,7 @@ public abstract class AbstractLockableMutableHashBasedRefDictionary<K, V> extend
   }
 
   @Override
-  public LockableOperations<LockableMutableRefDictionary<K, V>> operations() {
+  public LockableOperations<LockableRefDictionary<K, V>> operations() {
     return new DefaultLockableOperations<>(this);
   }
 }

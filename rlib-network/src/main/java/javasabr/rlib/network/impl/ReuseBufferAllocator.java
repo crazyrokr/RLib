@@ -3,7 +3,7 @@ package javasabr.rlib.network.impl;
 import java.nio.ByteBuffer;
 import java.util.function.Function;
 import javasabr.rlib.collections.array.ArrayFactory;
-import javasabr.rlib.collections.array.LockableMutableArray;
+import javasabr.rlib.collections.array.LockableArray;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.BufferAllocator;
@@ -23,7 +23,7 @@ public class ReuseBufferAllocator implements BufferAllocator {
   protected final Pool<ByteBuffer> readBufferPool;
   protected final Pool<ByteBuffer> pendingBufferPool;
   protected final Pool<ByteBuffer> writeBufferPool;
-  protected final LockableMutableArray<ByteBuffer> byteBuffers;
+  protected final LockableArray<ByteBuffer> byteBuffers;
 
   protected final NetworkConfig config;
 

@@ -5,34 +5,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import org.jspecify.annotations.NullMarked;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
+import org.jspecify.annotations.Nullable;
 
 /**
- * The implementation of the {@link Lock} based on using {@link ReusableAtomicInteger} with supporting reentrant calls.
- *
  * @author JavaSaBr
  */
-@NullMarked
+@FieldDefaults(level = AccessLevel.PROTECTED)
 public class ReentrantAtomicLock implements Lock {
 
-  /**
-   * The status of lock.
-   */
-  private final AtomicReference<Thread> status;
+  final AtomicReference<@Nullable Thread> status;
+  final AtomicInteger level;
 
-  /**
-   * The level of locking.
-   */
-  private final AtomicInteger level;
+  int sink;
 
-  /**
-   * The field for consuming CPU.
-   */
-  private int sink;
-
-  /**
-   * Instantiates a new Reentrant atomic lock.
-   */
   public ReentrantAtomicLock() {
     this.status = new AtomicReference<>();
     this.level = new AtomicInteger();
@@ -46,8 +33,9 @@ public class ReentrantAtomicLock implements Lock {
       if (status.get() == thread) {
         return;
       }
-      while (!status.compareAndSet(null, thread))
+      while (!status.compareAndSet(null, thread)) {
         consumeCPU();
+      }
     } finally {
       level.incrementAndGet();
     }
@@ -105,7 +93,7 @@ public class ReentrantAtomicLock implements Lock {
   @Override
   public void unlock() {
 
-    final Thread thread = Thread.currentThread();
+    Thread thread = Thread.currentThread();
     if (status.get() != thread) {
       return;
     }
