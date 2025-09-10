@@ -5,29 +5,20 @@ import static javasabr.rlib.common.util.ArrayUtils.contains;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import javasabr.rlib.common.util.array.Array;
-import org.jspecify.annotations.NullMarked;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import lombok.experimental.UtilityClass;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The class with utility reflection methods.
- *
  * @author JavaSaBr
  */
-@NullMarked
+@UtilityClass
 public final class ReflectionUtils {
 
-  /**
-   * Get all fields of the class.
-   *
-   * @param container the field container.
-   * @param startClass the class.
-   * @param lastClass the last class.
-   * @param declared the flag to get private fields as well.
-   * @param exceptions exception fields.
-   */
   public static void addAllFields(
-      Array<Field> container,
+      Collection<Field> container,
       Class<?> startClass,
       Class<?> lastClass,
       boolean declared,
@@ -46,53 +37,29 @@ public final class ReflectionUtils {
       }
 
       if (exceptions.length < 1) {
-        container.addAll(fields);
+        container.addAll(Arrays.asList(fields));
       } else {
         ArrayUtils.forEach(fields, toCheck -> !contains(exceptions, toCheck.getName()), container::add);
       }
     }
   }
 
-  /**
-   * Get all fields of a class.
-   *
-   * @param cs the class.
-   * @param exceptions exception fields.
-   * @return the all declared fields.
-   * @since 9.9.0
-   */
-  public static Array<Field> getAllDeclaredFields(Class<?> cs, String... exceptions) {
-    var container = Array.ofType(Field.class);
+  public static Collection<Field> getAllDeclaredFields(Class<?> cs, String... exceptions) {
+    var container = new ArrayList<Field>();
     addAllFields(container, cs, Object.class, true, exceptions);
     return container;
   }
 
-  /**
-   * Get all fields of the class.
-   *
-   * @param cs the class.
-   * @param last the last class.
-   * @param declared the flag of getting private fields.
-   * @param exceptions exception fields.
-   * @return the all fields
-   */
-  public static Array<Field> getAllFields(
+  public static Collection<Field> getAllFields(
       Class<?> cs,
       Class<?> last,
       boolean declared,
       String... exceptions) {
-    var container = Array.ofType(Field.class);
+    var container = new ArrayList<Field>();
     addAllFields(container, cs, last, declared, exceptions);
     return container;
   }
 
-  /**
-   * Get a field by the name from the type.
-   *
-   * @param type the type.
-   * @param fieldName the field name.
-   * @return the field.
-   */
   public static Field getField(Class<?> type, String fieldName) {
     try {
       return type.getDeclaredField(fieldName);
@@ -101,24 +68,11 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Get a field by the name from the type of the object.
-   *
-   * @param object the object.
-   * @param fieldName the field name.
-   * @return the field.
-   */
   public static Field getField(Object object, String fieldName) {
     return getField(object.getClass(), fieldName);
   }
 
-  /**
-   * Get a field by the name with full access from the type.
-   *
-   * @param type the type.
-   * @param fieldName the field name.
-   * @return the field.
-   */
+
   public static Field getUnsafeField(Class<?> type, String fieldName) {
     try {
       Field field = getField(type, fieldName);
@@ -129,26 +83,12 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Get a field by the name with full access.
-   *
-   * @param object the object.
-   * @param fieldName the field name.
-   * @return the field.
-   */
   public static Field getUnsafeField(Object object, String fieldName) {
     return getUnsafeField(object.getClass(), fieldName);
   }
 
-  /**
-   * Get a field value by the field name.
-   *
-   * @param <T> the result value's type.
-   * @param object the object.
-   * @param fieldName the field name.
-   * @return the value.
-   */
-  public static <T> @Nullable T getFiledValue(Object object, String fieldName) {
+  @Nullable
+  public static <T> T getFiledValue(Object object, String fieldName) {
     try {
       Field field = getField(object, fieldName);
       return ClassUtils.unsafeCast(field.get(object));
@@ -157,15 +97,8 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Get a field value by the field name with full access.
-   *
-   * @param <T> the result value's type.
-   * @param object the object.
-   * @param fieldName the field name.
-   * @return the value.
-   */
-  public static <T> @Nullable T getUnsafeFieldValue(final Object object, final String fieldName) {
+  @Nullable
+  public static <T> T getUnsafeFieldValue(final Object object, final String fieldName) {
     try {
       final Field field = getUnsafeField(object, fieldName);
       return ClassUtils.unsafeCast(field.get(object));
@@ -174,15 +107,8 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Get a field value.
-   *
-   * @param <T> the result value's type.
-   * @param object the object.
-   * @param field the field.
-   * @return the value.
-   */
-  public static <T> @Nullable T getFieldValue(Object object, Field field) {
+  @Nullable
+  public static <T> T getFieldValue(Object object, Field field) {
     try {
       return ClassUtils.unsafeCast(field.get(object));
     } catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
@@ -190,13 +116,6 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Set a field value.
-   *
-   * @param object the object.
-   * @param fieldName the field name.
-   * @param value the value.
-   */
   public static void setFieldValue(Object object, String fieldName, Object value) {
     try {
       Field field = getField(object, fieldName);
@@ -206,13 +125,6 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Set a field value using full access.
-   *
-   * @param object the object.
-   * @param fieldName the field name.
-   * @param value the value.
-   */
   public static void setUnsafeFieldValue(Object object, String fieldName, Object value) {
     try {
       Field field = getUnsafeField(object, fieldName);
@@ -222,13 +134,6 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Set a field value.
-   *
-   * @param object the object.
-   * @param field the field.
-   * @param value the value.
-   */
   public static void setFieldValue(Object object, Field field, Object value) {
     try {
       field.set(object, value);
@@ -237,13 +142,6 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Get a static field.
-   *
-   * @param type the class.
-   * @param fieldName the field name.
-   * @return the static field.
-   */
   public static Field getStaticField(Class<?> type, String fieldName) {
     try {
       return type.getDeclaredField(fieldName);
@@ -252,13 +150,6 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Get a static field using full access.
-   *
-   * @param type the class.
-   * @param fieldName the field name.
-   * @return the static field.
-   */
   public static Field getUnsafeStaticField(Class<?> type, String fieldName) {
     try {
       Field field = getStaticField(type, fieldName);
@@ -269,15 +160,8 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Get a static field value.
-   *
-   * @param <T> the type parameter
-   * @param type the class.
-   * @param fieldName the field name.
-   * @return the value.
-   */
-  public static <T> @Nullable T getStaticFieldValue(Class<?> type, String fieldName) {
+  @Nullable
+  public static <T> T getStaticFieldValue(Class<?> type, String fieldName) {
     try {
       Field field = getStaticField(type, fieldName);
       return ClassUtils.unsafeCast(field.get(null));
@@ -286,15 +170,8 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Get a static field value using full access.
-   *
-   * @param <T> the type parameter
-   * @param type the class.
-   * @param fieldName the field name.
-   * @return the value.
-   */
-  public static <T> @Nullable T getUnsafeStaticFieldValue(Class<?> type, String fieldName) {
+  @Nullable
+  public static <T> T getUnsafeStaticFieldValue(Class<?> type, String fieldName) {
     try {
       Field field = getUnsafeStaticField(type, fieldName);
       return ClassUtils.unsafeCast(field.get(null));
@@ -303,14 +180,8 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Get a static field value.
-   *
-   * @param <T> the type parameter
-   * @param field the field.
-   * @return the value.
-   */
-  public static <T> @Nullable T getStaticFieldValue(Field field) {
+  @Nullable
+  public static <T> T getStaticFieldValue(Field field) {
     try {
       return ClassUtils.unsafeCast(field.get(null));
     } catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
@@ -318,13 +189,6 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Set a static field value.
-   *
-   * @param type the class.
-   * @param fieldName the field name.
-   * @param value the new value.
-   */
   public static void setStaticFieldValue(Class<?> type, String fieldName, Object value) {
     try {
       Field field = getStaticField(type, fieldName);
@@ -334,17 +198,7 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Set a static field value.
-   *
-   * @param type the class.
-   * @param fieldName thr field name.
-   * @param value the new value.
-   */
-  public static void setUnsafeStaticFieldValue(
-      Class<?> type,
-      String fieldName,
-      Object value) {
+  public static void setUnsafeStaticFieldValue(Class<?> type, String fieldName, Object value) {
     try {
       Field field = getUnsafeStaticField(type, fieldName);
       field.set(null, value);
@@ -353,12 +207,6 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Change a static field value.
-   *
-   * @param field the field.
-   * @param value the new value.
-   */
   public static void setStaticFieldValue(Field field, Object value) {
     try {
       field.set(null, value);
@@ -367,14 +215,6 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Get a method of the type by the method name and arg types.
-   *
-   * @param type the type.
-   * @param methodName the method name.
-   * @param argTypes the arg types.
-   * @return the found method.
-   */
   public static Method getMethod(Class<?> type, String methodName, Class<?>... argTypes) {
     try {
       return type.getDeclaredMethod(methodName, argTypes);
@@ -383,12 +223,6 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Call a void method of the object by the name.
-   *
-   * @param object the object.
-   * @param methodName the method name.
-   */
   public static void callVoidMethod(Object object, String methodName) {
     try {
       getMethod(object.getClass(), methodName).invoke(object);
@@ -397,12 +231,6 @@ public final class ReflectionUtils {
     }
   }
 
-  /**
-   * Call a void method of the object by the name using full access.
-   *
-   * @param object the object.
-   * @param methodName the method name.
-   */
   public static void callUnsafeVoidMethod(Object object, String methodName) {
     try {
       Method method = getMethod(object.getClass(), methodName);
@@ -411,9 +239,5 @@ public final class ReflectionUtils {
     } catch (IllegalAccessException | InvocationTargetException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private ReflectionUtils() {
-    throw new IllegalArgumentException();
   }
 }

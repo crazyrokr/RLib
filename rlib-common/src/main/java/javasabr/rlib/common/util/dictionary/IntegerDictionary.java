@@ -4,7 +4,6 @@ import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import javasabr.rlib.common.function.IntBiObjectConsumer;
-import javasabr.rlib.common.function.IntObjectConsumer;
 import javasabr.rlib.common.util.array.ArrayFactory;
 import javasabr.rlib.common.util.array.IntegerArray;
 import javasabr.rlib.common.util.array.MutableIntegerArray;
@@ -169,15 +168,6 @@ public interface IntegerDictionary<V> extends Dictionary<IntKey, V> {
    * @return the previous value for the key or null.
    */
   default @Nullable V remove(int key) {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Performs the given action for each key-value pair of this dictionary.
-   *
-   * @param consumer the consumer.
-   */
-  default void forEach(IntObjectConsumer<? super V> consumer) {
     throw new UnsupportedOperationException();
   }
 

@@ -13,7 +13,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import javasabr.rlib.common.function.CharSupplier;
 import javasabr.rlib.common.function.DoubleObjectConsumer;
-import javasabr.rlib.common.function.IntObjectConsumer;
 import javasabr.rlib.common.function.ObjectIntPredicate;
 import javasabr.rlib.common.function.ObjectLongPredicate;
 import javasabr.rlib.common.function.TripleConsumer;
@@ -1001,26 +1000,6 @@ public final class ArrayUtils {
       if (condition.test(element)) {
         function.accept(element);
       }
-    }
-  }
-
-  /**
-   * Apply the consumer for each element of the array.
-   *
-   * @param <F> the type parameter
-   * @param array the array.
-   * @param argument the additional argument.
-   * @param consumer the consumer.
-   */
-  public static <F> void forEach(
-      int @Nullable [] array,
-      @Nullable F argument,
-      IntObjectConsumer<F> consumer) {
-    if (array == null || array.length < 1) {
-      return;
-    }
-    for (int element : array) {
-      consumer.accept(element, argument);
     }
   }
 

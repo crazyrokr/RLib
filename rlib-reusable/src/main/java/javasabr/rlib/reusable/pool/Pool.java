@@ -4,7 +4,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
-import javasabr.rlib.functions.ObjectLongFunction;
+import javasabr.rlib.functions.ObjLongFunction;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -35,7 +35,7 @@ public interface Pool<E> {
   default <F> E take(
       F arg1,
       long arg2,
-      ObjectLongFunction<F, E> factory) {
+      ObjLongFunction<F, E> factory) {
     E take = take();
     return take != null ? take : factory.apply(arg1, arg2);
   }

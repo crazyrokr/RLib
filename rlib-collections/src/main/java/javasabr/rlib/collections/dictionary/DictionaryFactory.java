@@ -1,17 +1,28 @@
 package javasabr.rlib.collections.dictionary;
 
-import javasabr.rlib.collections.dictionary.impl.DefaultMutableRefHashDictionary;
+import javasabr.rlib.collections.dictionary.impl.DefaultMutableHashBasedRefDictionary;
+import javasabr.rlib.collections.dictionary.impl.StampedLockBasedHashBasedRefDictionary;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class DictionaryFactory {
   public static <K, V> MutableRefDictionary<K, V> mutableRefDictionary() {
-    return new DefaultMutableRefHashDictionary<>();
+    return new DefaultMutableHashBasedRefDictionary<>();
   }
 
   public static <K, V> MutableRefDictionary<K, V> mutableRefDictionary(
-      Class<K> keyType,
-      Class<V> valueType) {
-    return new DefaultMutableRefHashDictionary<>();
+      Class<? super K> keyType,
+      Class<? super V> valueType) {
+    return new DefaultMutableHashBasedRefDictionary<>();
+  }
+
+  public static <K, V> LockableRefDictionary<K, V> stampedLockBasedRefDictionary() {
+    return new StampedLockBasedHashBasedRefDictionary<>();
+  }
+
+  public static <K, V> LockableRefDictionary<K, V> stampedLockBasedRefDictionary(
+      Class<? super K> keyType,
+      Class<? super V> valueType) {
+    return new StampedLockBasedHashBasedRefDictionary<>();
   }
 }

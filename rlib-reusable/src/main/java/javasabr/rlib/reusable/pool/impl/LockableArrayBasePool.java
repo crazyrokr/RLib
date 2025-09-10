@@ -1,7 +1,7 @@
 package javasabr.rlib.reusable.pool.impl;
 
 import javasabr.rlib.collections.array.ArrayFactory;
-import javasabr.rlib.collections.array.LockableMutableArray;
+import javasabr.rlib.collections.array.LockableArray;
 import javasabr.rlib.reusable.pool.Pool;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -10,7 +10,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class LockableArrayBasePool<E> implements Pool<E> {
 
-  LockableMutableArray<E> pool;
+  LockableArray<E> pool;
 
   public LockableArrayBasePool(Class<? super E> type) {
     this.pool = ArrayFactory.stampedLockBasedArray(type);

@@ -19,7 +19,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import javasabr.rlib.collections.array.ArrayFactory;
 import javasabr.rlib.collections.array.MutableArray;
-import javasabr.rlib.common.concurrent.GroupThreadFactory;
+import javasabr.rlib.common.util.GroupThreadFactory;
 import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.common.util.Utils;
 import javasabr.rlib.logger.api.Logger;

@@ -3,9 +3,6 @@ package javasabr.rlib.common.util.array;
 import static javasabr.rlib.common.util.ClassUtils.unsafeNNCast;
 
 import javasabr.rlib.common.util.ArrayUtils;
-import javasabr.rlib.common.util.array.impl.ConcurrentAtomicARSWLockArray;
-import javasabr.rlib.common.util.array.impl.ConcurrentReentrantRWLockArray;
-import javasabr.rlib.common.util.array.impl.ConcurrentReentrantRWLockArraySet;
 import javasabr.rlib.common.util.array.impl.ConcurrentStampedLockArray;
 import javasabr.rlib.common.util.array.impl.ConcurrentStampedLockArraySet;
 import javasabr.rlib.common.util.array.impl.CopyOnModifyArray;
@@ -57,22 +54,6 @@ public class ArrayFactory {
     return new ReadOnlyFastArray<>(elements);
   }
 
-  public static <E> Array<E> newArraySet(Class<? super E> type) {
-    return new FastArraySet<>(type);
-  }
-
-  public static <E> ConcurrentArray<E> newConcurrentReentrantRWLockArray(Class<? super E> type) {
-    return new ConcurrentReentrantRWLockArray<>(type);
-  }
-
-  public static <E> ConcurrentArray<E> newConcurrentReentrantRWLockArraySet(Class<? super E> type) {
-    return new ConcurrentReentrantRWLockArraySet<>(type);
-  }
-
-  public static <E> ConcurrentArray<E> newConcurrentAtomicARSWLockArray(Class<? super E> type) {
-    return new ConcurrentAtomicARSWLockArray<>(type);
-  }
-
   public static <E> ConcurrentArray<E> newConcurrentStampedLockArray(Class<? super E> type) {
     return new ConcurrentStampedLockArray<>(type);
   }
@@ -89,18 +70,6 @@ public class ArrayFactory {
     return result;
   }
 
-  public static <E> ConcurrentArray<E> newConcurrentStampedLockArraySet(Class<? super E> type) {
-    return new ConcurrentStampedLockArraySet<>(type);
-  }
-
-  public static <E extends Comparable<E>> Array<E> newSortedArray(Class<? super E> type) {
-    return new SortedFastArray<>(unsafeNNCast(type));
-  }
-
-  public static <E> Array<E> newSynchronizedArray(Class<? super E> type) {
-    return new SynchronizedArray<>(type);
-  }
-
   public static MutableIntegerArray newMutableIntegerArray() {
     return new DefaultIntegerArray();
   }
@@ -111,10 +80,6 @@ public class ArrayFactory {
 
   public static MutableIntegerArray newMutableIntegerArray(int... numbers) {
     return new DefaultIntegerArray(numbers);
-  }
-
-  public static LongArray newLongArray() {
-    return new FastLongArray();
   }
 
   public static LongArray newLongArray(int capacity) {

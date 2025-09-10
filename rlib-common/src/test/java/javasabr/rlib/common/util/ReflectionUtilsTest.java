@@ -33,62 +33,124 @@ public class ReflectionUtilsTest {
 
     var allFields = ReflectionUtils.getAllDeclaredFields(Type1.class);
 
-    assertNotNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field1")));
-    assertNotNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field2")));
-    assertNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field3")));
+    assertNotNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field1"))
+        .findAny()
+        .orElse(null));
+    assertNotNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field2"))
+        .findAny()
+        .orElse(null));
+    assertNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field3"))
+        .findAny()
+        .orElse(null));
 
     allFields = ReflectionUtils.getAllDeclaredFields(Type2.class);
 
-    assertNotNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field1")));
-    assertNotNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field2")));
-    assertNotNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field3")));
-    assertNotNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field4")));
-    assertNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field5")));
+    assertNotNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field1"))
+        .findAny()
+        .orElse(null));
+    assertNotNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field2"))
+        .findAny()
+        .orElse(null));
+    assertNotNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field3"))
+        .findAny()
+        .orElse(null));
+    assertNotNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field4"))
+        .findAny()
+        .orElse(null));
+    assertNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field5"))
+        .findAny()
+        .orElse(null));
 
     allFields = ReflectionUtils.getAllDeclaredFields(Type1.Inner1.class);
 
-    assertNotNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field1")));
-    assertNotNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field2")));
-    assertNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field3")));
+    assertNotNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field1"))
+        .findAny()
+        .orElse(null));
+    assertNotNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field2")));
+    assertNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field3"))
+        .findAny()
+        .orElse(null));
 
     allFields = ReflectionUtils.getAllDeclaredFields(Type1.Inner2.class);
 
-    assertNotNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field1")));
-    assertNotNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field2")));
-    assertNotNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field3")));
-    assertNotNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field4")));
-    assertNull(allFields.findAny(object -> object
-        .getName()
-        .equals("field5")));
+    assertNotNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field1"))
+        .findAny()
+        .orElse(null));
+    assertNotNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field2"))
+        .findAny()
+        .orElse(null));
+    assertNotNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field3"))
+        .findAny()
+        .orElse(null));
+    assertNotNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field4"))
+        .findAny()
+        .orElse(null));
+    assertNull(allFields
+        .stream()
+        .filter(object -> object
+            .getName()
+            .equals("field5"))
+        .findAny()
+        .orElse(null));
   }
 }
