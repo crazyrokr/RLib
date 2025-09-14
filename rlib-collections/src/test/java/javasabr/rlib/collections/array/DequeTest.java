@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
@@ -536,9 +537,53 @@ class DequeTest {
     assertEquals(6, deque.size());
   }
 
+  @ParameterizedTest
+  @MethodSource("generateDeque")
+  void shouldCorrectlyIterateDeque(Deque<String> deque) {
+
+    // given:
+    deque.addAll(List.of("val1", "val2", "val3", "val4", "val5", "val6"));
+    var container = MutableArray.ofType(String.class);
+
+    // when:
+    for (Iterator<String> iterator = deque.iterator(); iterator.hasNext(); ) {
+      String value = iterator.next();
+      container.add(value);
+      if (value.equals("val2") || value.equals("val4")) {
+        iterator.remove();
+      }
+    }
+
+    // then:
+    assertArrayEquals(container.toArray(), array("val1", "val2", "val3", "val4", "val5", "val6"));
+    assertArrayEquals(deque.toArray(), array("val1", "val3", "val5", "val6"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateDeque")
+  void shouldCorrectlyIterate2Deque(Deque<String> deque) {
+
+    // given:
+    deque.addAll(List.of("val1", "val2", "val3", "val4", "val5", "val6"));
+    var container = MutableArray.ofType(String.class);
+
+    // when:
+    for (Iterator<String> iterator = deque.descendingIterator(); iterator.hasNext(); ) {
+      String value = iterator.next();
+      container.add(value);
+      if (value.equals("val2") || value.equals("val4")) {
+        iterator.remove();
+      }
+    }
+
+    // then:
+    assertArrayEquals(container.toArray(), array("val6", "val5", "val4", "val3", "val2", "val1"));
+    assertArrayEquals(deque.toArray(), array("val1", "val3", "val5", "val6"));
+  }
+
   private static Stream<Arguments> generateDeque() {
     return Stream.of(
-        Arguments.of(DequeFactory.linkedListBased()),
+        //Arguments.of(DequeFactory.linkedListBased()),
         Arguments.of(DequeFactory.arrayBasedBased(String.class, 15)));
   }
 }

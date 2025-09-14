@@ -444,7 +444,12 @@ public abstract class AbstractArrayBasedDeque<E> implements Deque<E> {
 
   @Override
   public Iterator<E> iterator() {
-    return null;
+    return new ArrayBasedDequeIterator<>(this);
+  }
+
+  @Override
+  public Iterator<E> descendingIterator() {
+    return new ArrayBasedDequeDescendingIterator<>(this);
   }
 
   @Override
@@ -483,11 +488,6 @@ public abstract class AbstractArrayBasedDeque<E> implements Deque<E> {
     }
 
     return container;
-  }
-
-  @Override
-  public Iterator<E> descendingIterator() {
-    return null;
   }
 
   @Override
