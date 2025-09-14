@@ -6,8 +6,6 @@ import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import javasabr.rlib.common.function.IntBiObjectConsumer;
 import javasabr.rlib.common.util.ClassUtils;
-import javasabr.rlib.common.util.array.IntegerArray;
-import javasabr.rlib.common.util.array.MutableIntegerArray;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -155,19 +153,6 @@ public abstract class AbstractIntegerDictionary<V> extends AbstractDictionary<In
   @Override
   public final Iterator<V> iterator() {
     return new IntegerDictionaryIterator<>(this);
-  }
-
-  @Override
-  public IntegerArray keyArray(MutableIntegerArray container) {
-
-    for (var entry : entries()) {
-      while (entry != null) {
-        container.add(entry.getKey());
-        entry = entry.getNext();
-      }
-    }
-
-    return container;
   }
 
   @Override

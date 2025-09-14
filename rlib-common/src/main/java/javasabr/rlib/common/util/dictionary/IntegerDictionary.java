@@ -5,8 +5,6 @@ import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import javasabr.rlib.common.function.IntBiObjectConsumer;
 import javasabr.rlib.common.util.array.ArrayFactory;
-import javasabr.rlib.common.util.array.IntegerArray;
-import javasabr.rlib.common.util.array.MutableIntegerArray;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -128,25 +126,6 @@ public interface IntegerDictionary<V> extends Dictionary<IntKey, V> {
       int key,
       T argument,
       Function<T, V> factory) {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Create an array with all keys of this dictionary.
-   *
-   * @return the array with all keys of this dictionary.
-   */
-  default IntegerArray keyArray() {
-    return keyArray(ArrayFactory.newMutableIntegerArray(size()));
-  }
-
-  /**
-   * Put to the array all keys of this dictionary.
-   *
-   * @param container the container.
-   * @return the container with all keys.
-   */
-  default IntegerArray keyArray(MutableIntegerArray container) {
     throw new UnsupportedOperationException();
   }
 

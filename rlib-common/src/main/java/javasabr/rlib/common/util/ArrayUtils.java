@@ -19,8 +19,6 @@ import javasabr.rlib.common.function.TripleConsumer;
 import javasabr.rlib.common.function.TripleFunction;
 import javasabr.rlib.common.function.TriplePredicate;
 import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.IntegerArray;
-import javasabr.rlib.common.util.array.LongArray;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -690,58 +688,6 @@ public final class ArrayUtils {
 
     builder.append("]");
 
-    return builder.toString();
-  }
-
-  /**
-   * Convert the array to a string presentation.
-   *
-   * @param array the array.
-   * @return the string presentation.
-   */
-  public static String toString(IntegerArray array) {
-
-    final String className = array
-        .array()
-        .getClass()
-        .getSimpleName();
-    final StringBuilder builder = new StringBuilder(className.substring(0, className.length() - 1));
-
-    for (int i = 0, length = array.size() - 1; i <= length; i++) {
-      builder.append(String.valueOf(array.get(i)));
-      if (i == length) {
-        break;
-      }
-      builder.append(", ");
-    }
-
-    builder.append("]");
-    return builder.toString();
-  }
-
-  /**
-   * Convert the array to a string presentation.
-   *
-   * @param array the array.
-   * @return the string presentation.
-   */
-  public static String toString(LongArray array) {
-
-    final String className = array
-        .array()
-        .getClass()
-        .getSimpleName();
-    final StringBuilder builder = new StringBuilder(className.substring(0, className.length() - 1));
-
-    for (int i = 0, length = array.size() - 1; i <= length; i++) {
-      builder.append(String.valueOf(array.get(i)));
-      if (i == length) {
-        break;
-      }
-      builder.append(", ");
-    }
-
-    builder.append("]");
     return builder.toString();
   }
 

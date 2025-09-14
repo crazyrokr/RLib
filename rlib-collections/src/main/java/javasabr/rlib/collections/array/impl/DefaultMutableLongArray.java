@@ -1,32 +1,29 @@
 package javasabr.rlib.collections.array.impl;
 
-import javasabr.rlib.common.util.ArrayUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
-import org.jspecify.annotations.Nullable;
 
 @Getter
 @Setter(AccessLevel.PROTECTED)
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class DefaultMutableArray<E> extends AbstractMutableArray<E> {
+public class DefaultMutableLongArray extends AbstractMutableLongArray {
 
   protected static final int DEFAULT_CAPACITY = 10;
 
-  @Nullable E[] wrapped;
+  long[] wrapped;
   int size;
 
-  public DefaultMutableArray(Class<? super E> type) {
-    this(type, DEFAULT_CAPACITY);
+  public DefaultMutableLongArray() {
+    this(DEFAULT_CAPACITY);
   }
 
-  public DefaultMutableArray(Class<? super E> type, int capacity) {
-    super(type);
+  public DefaultMutableLongArray(int capacity) {
     validateCapacity(capacity);
-    this.wrapped = ArrayUtils.create(type, capacity);
+    this.wrapped = new long[capacity];
   }
 
   @Override
