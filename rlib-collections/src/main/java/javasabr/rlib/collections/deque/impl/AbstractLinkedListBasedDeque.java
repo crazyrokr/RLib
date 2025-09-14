@@ -1,14 +1,13 @@
 package javasabr.rlib.collections.deque.impl;
 
 import java.util.Collection;
-import java.util.Deque;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import javasabr.rlib.common.util.ArrayUtils;
 import org.jspecify.annotations.Nullable;
 
-public abstract class AbstractLinkedListBasedDeque<E> implements Deque<E> {
+public abstract class AbstractLinkedListBasedDeque<E> extends AbstractDeque<E> {
 
   @Nullable
   protected abstract LinkedNode<E> firstNode();
@@ -26,18 +25,6 @@ public abstract class AbstractLinkedListBasedDeque<E> implements Deque<E> {
   protected abstract void linkLast(E item);
 
   @Override
-  public boolean addAll(Collection<? extends E> collection) {
-
-    for (E object : collection) {
-      if (!add(object)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  @Override
   public boolean contains(@Nullable Object object) {
     if (object == null) {
       return false;
@@ -48,21 +35,6 @@ public abstract class AbstractLinkedListBasedDeque<E> implements Deque<E> {
       }
     }
     return false;
-  }
-
-  @Override
-  public boolean containsAll(Collection<?> collection) {
-    for (Object object : collection) {
-      if (!contains(object)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @Override
-  public E element() {
-    return getFirst();
   }
 
   @Override
@@ -87,11 +59,6 @@ public abstract class AbstractLinkedListBasedDeque<E> implements Deque<E> {
 
     //noinspection DataFlowIssue
     return linkedNode.item;
-  }
-
-  @Override
-  public boolean isEmpty() {
-    return size() < 1;
   }
 
   @Override
@@ -130,11 +97,6 @@ public abstract class AbstractLinkedListBasedDeque<E> implements Deque<E> {
   public E peekLast() {
     LinkedNode<E> last = lastNode();
     return last == null ? null : last.item;
-  }
-
-  @Override
-  public E pop() {
-    return removeFirst();
   }
 
   @Override
@@ -177,11 +139,6 @@ public abstract class AbstractLinkedListBasedDeque<E> implements Deque<E> {
   public E pollLast() {
     LinkedNode<E> last = lastNode();
     return last == null ? null : unlinkLast(last);
-  }
-
-  @Override
-  public E remove() {
-    return removeFirst();
   }
 
   @Override
@@ -311,28 +268,5 @@ public abstract class AbstractLinkedListBasedDeque<E> implements Deque<E> {
     }
 
     return container;
-  }
-
-  @Override
-  public String toString() {
-
-    StringBuilder builder = new StringBuilder("[");
-
-    if (!isEmpty()) {
-
-      for (E element : this) {
-        builder
-            .append(element)
-            .append(", ");
-      }
-
-      if (builder.indexOf(",") != -1) {
-        builder.delete(builder.length() - 2, builder.length());
-      }
-    }
-
-    builder.append("]");
-
-    return builder.toString();
   }
 }
