@@ -1,10 +1,10 @@
 package javasabr.rlib.common.util.dictionary;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import javasabr.rlib.common.function.NotNullFunction;
 import javasabr.rlib.common.util.ArrayUtils;
-import javasabr.rlib.common.util.array.Array;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -184,14 +184,11 @@ public abstract class AbstractDictionary<K, V, E extends Entry<E, V>> implements
   }
 
   @Override
-  public final Array<V> values(Array<V> container) {
-
-    var unsafeArray = container.asUnsafe();
-    unsafeArray.prepareForSize(container.size() + size());
+  public final List<V> values(List<V> container) {
 
     for (var entry : entries()) {
       while (entry != null) {
-        unsafeArray.unsafeAdd(entry.getValue());
+        container.add(entry.getValue());
         entry = entry.getNext();
       }
     }

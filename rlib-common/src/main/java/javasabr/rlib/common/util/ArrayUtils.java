@@ -18,7 +18,6 @@ import javasabr.rlib.common.function.ObjectLongPredicate;
 import javasabr.rlib.common.function.TripleConsumer;
 import javasabr.rlib.common.function.TripleFunction;
 import javasabr.rlib.common.function.TriplePredicate;
-import javasabr.rlib.common.util.array.Array;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -622,16 +621,6 @@ public final class ArrayUtils {
     java.util.Arrays.sort(array, fromIndex, toIndex, comparator);
   }
 
-  /**
-   * Convert the array to a string presentation.
-   *
-   * @param array the array.
-   * @return the string presentation.
-   */
-  public static String toString(Array<?> array) {
-    return toString(array, Object::toString);
-  }
-
   public static <T> String toString(T[] array, int size, Function<T, String> toString) {
 
     if (array.length < 1) {
@@ -650,43 +639,6 @@ public final class ArrayUtils {
     }
 
     builder.append(']');
-
-    return builder.toString();
-  }
-
-  /**
-   * Convert the array to a string presentation.
-   *
-   * @param <T> the element's type.
-   * @param array the array.
-   * @param toString the to string function.
-   * @return the string presentation.
-   */
-  public static <T> String toString(Array<T> array, Function<T, String> toString) {
-
-    if (array.isEmpty()) {
-      return "[]";
-    }
-
-    var className = array
-        .array()
-        .getClass()
-        .getSimpleName();
-
-    var builder = new StringBuilder(className.substring(0, className.length() - 1));
-
-    for (int i = 0, length = array.size() - 1; i <= length; i++) {
-
-      builder.append(toString.apply(array.get(i)));
-
-      if (i == length) {
-        break;
-      }
-
-      builder.append(", ");
-    }
-
-    builder.append("]");
 
     return builder.toString();
   }
@@ -851,70 +803,6 @@ public final class ArrayUtils {
     }
 
     return builder.toString();
-  }
-
-  /**
-   * Move all elements from the source array to the destination array.
-   *
-   * @param <F> the type parameter
-   * @param <S> the type parameter
-   * @param source the source array.
-   * @param destination the destination array.
-   * @param clearSource need clears the source array after moving.
-   */
-  public static <F extends S, S> void move(Array<F> source, Array<S> destination, boolean clearSource) {
-
-    if (source.isEmpty()) {
-      return;
-    }
-
-    destination.addAll(source);
-
-    if (clearSource) {
-      source.clear();
-    }
-  }
-
-  /**
-   * Move all elements from the source array to the destination array.
-   *
-   * @param <F> the type parameter
-   * @param <S> the type parameter
-   * @param source the source array.
-   * @param destination the destination array.
-   */
-  public static <F extends S, S> void move(Array<F> source, Array<S> destination) {
-    move(source, destination, true);
-  }
-
-  /**
-   * Add the object to the array in a synchronize block.
-   *
-   * @param <T> the type parameter
-   * @param <V> the type parameter
-   * @param array the array.
-   * @param object the object.
-   */
-  public static <T, V extends T> void addInSynchronizeTo(Array<T> array, V object) {
-    synchronized (array) {
-      array.add(object);
-    }
-  }
-
-  /**
-   * Fast remove the object from the array in a synchronize block.
-   *
-   * @param <T> the type parameter
-   * @param <V> the type parameter
-   * @param array the array.
-   * @param object the object.
-   */
-  public static <T, V extends T> void fastRemoveInSynchronizeTo(
-      Array<T> array,
-      V object) {
-    synchronized (array) {
-      array.fastRemove(object);
-    }
   }
 
   /**

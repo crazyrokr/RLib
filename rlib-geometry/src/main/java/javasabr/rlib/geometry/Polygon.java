@@ -1,7 +1,5 @@
 package javasabr.rlib.geometry;
 
-import static javasabr.rlib.common.util.array.ArrayFactory.toArray;
-
 import java.util.Arrays;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -81,11 +79,21 @@ public class Polygon {
       Vector3f second,
       Vector3f third,
       Vector3fBuffer buffer) {
-    this(toArray(first, second, third), buffer);
+    this(
+        new Vector3f[]{
+            first,
+            second,
+            third
+        }, buffer);
   }
 
   public Polygon(Vector3f first, Vector3f second, Vector3f third) {
-    this(toArray(first, second, third), Vector3fBuffer.NO_REUSE);
+    this(
+        new Vector3f[]{
+            first,
+            second,
+            third
+        }, Vector3fBuffer.NO_REUSE);
   }
 
   /**

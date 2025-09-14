@@ -1,8 +1,8 @@
 package javasabr.rlib.common.util.dictionary;
 
+import java.util.ArrayList;
+import java.util.List;
 import javasabr.rlib.common.function.NotNullFunction;
-import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.ArrayFactory;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -82,7 +82,7 @@ public interface Dictionary<K, V> extends Iterable<V> {
    * @param container the container to store the values.
    * @return the container with all values from this dictionary.
    */
-  default Array<V> values(Array<V> container) {
+  default List<V> values(List<V> container) {
     throw new UnsupportedOperationException();
   }
 
@@ -92,7 +92,7 @@ public interface Dictionary<K, V> extends Iterable<V> {
    * @param type the value's type.
    * @return the array with all values from this dictionary.
    */
-  default Array<V> values(Class<V> type) {
-    return values(ArrayFactory.newArray(type, size()));
+  default List<V> values(Class<V> type) {
+    return values(new ArrayList<>());
   }
 }

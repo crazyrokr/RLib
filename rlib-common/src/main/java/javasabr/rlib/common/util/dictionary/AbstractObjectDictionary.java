@@ -1,6 +1,7 @@
 package javasabr.rlib.common.util.dictionary;
 
 import java.util.Iterator;
+import java.util.List;
 import javasabr.rlib.common.function.FourObjectConsumer;
 import javasabr.rlib.common.function.NotNullBiConsumer;
 import javasabr.rlib.common.function.NotNullBiFunction;
@@ -8,7 +9,6 @@ import javasabr.rlib.common.function.NotNullFunction;
 import javasabr.rlib.common.function.NotNullSupplier;
 import javasabr.rlib.common.function.NotNullTripleConsumer;
 import javasabr.rlib.common.util.ClassUtils;
-import javasabr.rlib.common.util.array.Array;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -178,15 +178,12 @@ public abstract class AbstractObjectDictionary<K, V> extends AbstractDictionary<
   }
 
   @Override
-  public final Array<K> keyArray(Array<K> container) {
-
-    var unsafeArray = container.asUnsafe();
-    unsafeArray.prepareForSize(container.size() + size());
+  public final List<K> keyArray(List<K> container) {
 
     for (var entry : entries()) {
       while (entry != null) {
         //noinspection ConstantConditions
-        unsafeArray.unsafeAdd(entry.getKey());
+        container.add(entry.getKey());
         entry = entry.getNext();
       }
     }

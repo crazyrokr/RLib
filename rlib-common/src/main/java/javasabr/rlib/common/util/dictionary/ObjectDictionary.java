@@ -1,5 +1,7 @@
 package javasabr.rlib.common.util.dictionary;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import javasabr.rlib.common.function.FourObjectConsumer;
 import javasabr.rlib.common.function.NotNullBiConsumer;
@@ -8,8 +10,6 @@ import javasabr.rlib.common.function.NotNullFunction;
 import javasabr.rlib.common.function.NotNullSupplier;
 import javasabr.rlib.common.function.NotNullTripleConsumer;
 import javasabr.rlib.common.util.ClassUtils;
-import javasabr.rlib.common.util.array.Array;
-import javasabr.rlib.common.util.array.ArrayFactory;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -200,7 +200,7 @@ public interface ObjectDictionary<K, V> extends Dictionary<K, V> {
    * @param container the container.
    * @return the array with all keys.
    */
-  default Array<K> keyArray(Array<K> container) {
+  default List<K> keyArray(List<K> container) {
     throw new UnsupportedOperationException();
   }
 
@@ -210,8 +210,8 @@ public interface ObjectDictionary<K, V> extends Dictionary<K, V> {
    * @param type the key's type.
    * @return the array with all keys of this dictionary.
    */
-  default Array<K> keyArray(Class<K> type) {
-    return keyArray(ArrayFactory.newArray(type, size()));
+  default List<K> keyArray(Class<K> type) {
+    return keyArray(new ArrayList<>());
   }
 
   /**
