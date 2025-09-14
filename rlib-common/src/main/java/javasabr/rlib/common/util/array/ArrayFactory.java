@@ -4,15 +4,9 @@ import static javasabr.rlib.common.util.ClassUtils.unsafeNNCast;
 
 import javasabr.rlib.common.util.ArrayUtils;
 import javasabr.rlib.common.util.array.impl.ConcurrentStampedLockArray;
-import javasabr.rlib.common.util.array.impl.ConcurrentStampedLockArraySet;
 import javasabr.rlib.common.util.array.impl.CopyOnModifyArray;
-import javasabr.rlib.common.util.array.impl.DefaultIntegerArray;
 import javasabr.rlib.common.util.array.impl.FastArray;
-import javasabr.rlib.common.util.array.impl.FastArraySet;
-import javasabr.rlib.common.util.array.impl.FastLongArray;
 import javasabr.rlib.common.util.array.impl.ReadOnlyFastArray;
-import javasabr.rlib.common.util.array.impl.SortedFastArray;
-import javasabr.rlib.common.util.array.impl.SynchronizedArray;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -68,22 +62,6 @@ public class ArrayFactory {
     result.addAll(array);
 
     return result;
-  }
-
-  public static MutableIntegerArray newMutableIntegerArray() {
-    return new DefaultIntegerArray();
-  }
-
-  public static MutableIntegerArray newMutableIntegerArray(int capacity) {
-    return new DefaultIntegerArray(capacity);
-  }
-
-  public static MutableIntegerArray newMutableIntegerArray(int... numbers) {
-    return new DefaultIntegerArray(numbers);
-  }
-
-  public static LongArray newLongArray(int capacity) {
-    return new FastLongArray(capacity);
   }
 
   public static float[] toFloatArray(float... elements) {

@@ -7,7 +7,6 @@ import java.util.function.Supplier;
 import javasabr.rlib.common.function.LongBiObjectConsumer;
 import javasabr.rlib.common.function.LongObjectConsumer;
 import javasabr.rlib.common.util.ClassUtils;
-import javasabr.rlib.common.util.array.LongArray;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -155,19 +154,6 @@ public abstract class AbstractLongDictionary<V> extends AbstractDictionary<LongK
   @Override
   public final Iterator<V> iterator() {
     return new LongDictionaryIterator<>(this);
-  }
-
-  @Override
-  public LongArray keyArray(LongArray container) {
-
-    for (var entry : entries()) {
-      while (entry != null) {
-        container.add(entry.getKey());
-        entry = entry.getNext();
-      }
-    }
-
-    return container;
   }
 
   @Override

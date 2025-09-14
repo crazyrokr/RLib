@@ -7,7 +7,6 @@ import javasabr.rlib.common.function.LongBiObjectConsumer;
 import javasabr.rlib.common.function.LongObjectConsumer;
 import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.common.util.array.ArrayFactory;
-import javasabr.rlib.common.util.array.LongArray;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -128,25 +127,6 @@ public interface LongDictionary<V> extends Dictionary<LongKey, V> {
       long key,
       T argument,
       Function<T, V> factory) {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Create an array with all keys of this dictionary.
-   *
-   * @return the array with all keys of this dictionary.
-   */
-  default LongArray keyArray() {
-    return keyArray(ArrayFactory.newLongArray(size()));
-  }
-
-  /**
-   * Put to the array all keys of this dictionary.
-   *
-   * @param container the container.
-   * @return the container with all keys.
-   */
-  default LongArray keyArray(LongArray container) {
     throw new UnsupportedOperationException();
   }
 
