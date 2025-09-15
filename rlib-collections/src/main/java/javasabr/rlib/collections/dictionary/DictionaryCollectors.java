@@ -44,28 +44,28 @@ public class DictionaryCollectors {
     }
   }
 
-  public static <T, K, U> Collector<T, MutableRefDictionary<K, T>, RefDictionary<K, T>> toRefDictionary(
+  public static <T, K, U> Collector<T, MutableRefToRefDictionary<K, T>, RefToRefDictionary<K, T>> toRefToRefDictionary(
       Function<? super T, ? extends K> keyMapper) {
     return new CollectorImpl<>(
-        DictionaryFactory::mutableRefDictionary,
+        DictionaryFactory::mutableRefToRefDictionary,
         uniqKeysAccumulator(keyMapper, Function.identity()),
-        MutableRefDictionary::append,
-        MutableRefDictionary::toReadOnly,
+        MutableRefToRefDictionary::append,
+        MutableRefToRefDictionary::toReadOnly,
         CH_ID);
   }
 
-  public static <T, K, U> Collector<T, MutableRefDictionary<K, U>, RefDictionary<K, U>> toRefDictionary(
+  public static <T, K, U> Collector<T, MutableRefToRefDictionary<K, U>, RefToRefDictionary<K, U>> toRefToRefDictionary(
       Function<? super T, ? extends K> keyMapper,
       Function<? super T, ? extends U> valueMapper) {
     return new CollectorImpl<>(
-        DictionaryFactory::mutableRefDictionary,
+        DictionaryFactory::mutableRefToRefDictionary,
         uniqKeysAccumulator(keyMapper, valueMapper),
-        MutableRefDictionary::append,
-        MutableRefDictionary::toReadOnly,
+        MutableRefToRefDictionary::append,
+        MutableRefToRefDictionary::toReadOnly,
         CH_ID);
   }
 
-  private static <T, K, V> BiConsumer<MutableRefDictionary<K, V>, T> uniqKeysAccumulator(
+  private static <T, K, V> BiConsumer<MutableRefToRefDictionary<K, V>, T> uniqKeysAccumulator(
       Function<? super T, ? extends K> keyMapper,
       Function<? super T, ? extends V> valueMapper) {
     return (map, element) -> {

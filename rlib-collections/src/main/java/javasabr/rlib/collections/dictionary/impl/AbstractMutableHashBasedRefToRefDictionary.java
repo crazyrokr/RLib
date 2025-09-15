@@ -4,9 +4,9 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javasabr.rlib.collections.dictionary.LinkedHashEntry;
-import javasabr.rlib.collections.dictionary.MutableRefDictionary;
-import javasabr.rlib.collections.dictionary.RefDictionary;
-import javasabr.rlib.collections.dictionary.UnsafeMutableRefDictionary;
+import javasabr.rlib.collections.dictionary.MutableRefToRefDictionary;
+import javasabr.rlib.collections.dictionary.RefToRefDictionary;
+import javasabr.rlib.collections.dictionary.UnsafeMutableRefToRefDictionary;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -14,8 +14,8 @@ import org.jspecify.annotations.Nullable;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractMutableHashBasedRefDictionary<K, V, E extends LinkedHashEntry<K, V, E>>
-    extends AbstractHashBasedRefDictionary<K, V, E> implements UnsafeMutableRefDictionary<K, V, E> {
+public abstract class AbstractMutableHashBasedRefToRefDictionary<K, V, E extends LinkedHashEntry<K, V, E>>
+    extends AbstractHashBasedRefToRefDictionary<K, V, E> implements UnsafeMutableRefToRefDictionary<K, V, E> {
 
   protected static final int DEFAULT_INITIAL_CAPACITY = 16;
   protected static final int DEFAULT_MAXIMUM_CAPACITY = 1 << 30;
@@ -89,8 +89,8 @@ public abstract class AbstractMutableHashBasedRefDictionary<K, V, E extends Link
   }
 
   @Override
-  public void putAll(RefDictionary<? extends K, ? extends V> dictionary) {
-    if (dictionary instanceof AbstractHashBasedRefDictionary<?, ?, ?> hashBased) {
+  public void putAll(RefToRefDictionary<? extends K, ? extends V> dictionary) {
+    if (dictionary instanceof AbstractHashBasedRefToRefDictionary<?, ?, ?> hashBased) {
       for (var entry : hashBased.entries()) {
         while (entry != null) {
           //noinspection DataFlowIssue,unchecked
@@ -104,7 +104,7 @@ public abstract class AbstractMutableHashBasedRefDictionary<K, V, E extends Link
   }
 
   @Override
-  public MutableRefDictionary<K, V> append(RefDictionary<? extends K, ? extends V> dictionary) {
+  public MutableRefToRefDictionary<K, V> append(RefToRefDictionary<? extends K, ? extends V> dictionary) {
     putAll(dictionary);
     return this;
   }

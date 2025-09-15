@@ -1,7 +1,7 @@
 package javasabr.rlib.collections.dictionary.impl;
 
 import java.util.Arrays;
-import javasabr.rlib.collections.dictionary.RefDictionary;
+import javasabr.rlib.collections.dictionary.RefToRefDictionary;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -11,18 +11,18 @@ import org.jspecify.annotations.Nullable;
 @Getter
 @Accessors(fluent = true)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class DefaultMutableHashBasedRefDictionary<K, V> extends
-    AbstractMutableHashBasedRefDictionary<K, V, DefaultLinkedHashEntry<K, V>> {
+public class DefaultMutableHashBasedRefToRefDictionary<K, V> extends
+    AbstractMutableHashBasedRefToRefDictionary<K, V, DefaultLinkedHashEntry<K, V>> {
 
   @Nullable DefaultLinkedHashEntry<K, V>[] entries;
   int size;
   int threshold;
 
-  public DefaultMutableHashBasedRefDictionary() {
+  public DefaultMutableHashBasedRefToRefDictionary() {
     this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
   }
 
-  public DefaultMutableHashBasedRefDictionary(int initCapacity, float loadFactor) {
+  public DefaultMutableHashBasedRefToRefDictionary(int initCapacity, float loadFactor) {
     super(loadFactor);
     //noinspection unchecked
     this.entries = new DefaultLinkedHashEntry[initCapacity];
@@ -71,8 +71,8 @@ public class DefaultMutableHashBasedRefDictionary<K, V> extends
   }
 
   @Override
-  public RefDictionary<K, V> toReadOnly() {
+  public RefToRefDictionary<K, V> toReadOnly() {
     @Nullable DefaultLinkedHashEntry<K, V>[] copied = Arrays.copyOf(entries, entries.length);
-    return new ImmutableHashBasedRefDictionary<>(copied, size);
+    return new ImmutableHashBasedRefToRefDictionary<>(copied, size);
   }
 }

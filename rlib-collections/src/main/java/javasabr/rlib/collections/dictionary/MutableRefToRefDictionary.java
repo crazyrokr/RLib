@@ -3,15 +3,15 @@ package javasabr.rlib.collections.dictionary;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import javasabr.rlib.collections.dictionary.impl.DefaultMutableHashBasedRefDictionary;
+import javasabr.rlib.collections.dictionary.impl.DefaultMutableHashBasedRefToRefDictionary;
 import org.jspecify.annotations.Nullable;
 
-public interface MutableRefDictionary<K, V> extends RefDictionary<K, V> {
+public interface MutableRefToRefDictionary<K, V> extends RefToRefDictionary<K, V> {
 
-  static <K, V> MutableRefDictionary<K, V> ofTypes(
+  static <K, V> MutableRefToRefDictionary<K, V> ofTypes(
       Class<K> keyType,
       Class<V> valueType) {
-    return new DefaultMutableHashBasedRefDictionary<>();
+    return new DefaultMutableHashBasedRefToRefDictionary<>();
   }
 
   @Nullable
@@ -29,9 +29,9 @@ public interface MutableRefDictionary<K, V> extends RefDictionary<K, V> {
   @Nullable
   V put(K key, @Nullable V value);
 
-  void putAll(RefDictionary<? extends K, ? extends V> dictionary);
+  void putAll(RefToRefDictionary<? extends K, ? extends V> dictionary);
 
-  MutableRefDictionary<K, V> append(RefDictionary<? extends K, ? extends V> dictionary);
+  MutableRefToRefDictionary<K, V> append(RefToRefDictionary<? extends K, ? extends V> dictionary);
 
   /**
    * @return the optional value of the previous value for the key.
@@ -49,5 +49,5 @@ public interface MutableRefDictionary<K, V> extends RefDictionary<K, V> {
    */
   Optional<V> removeOptional(K key);
 
-  RefDictionary<K, V> toReadOnly();
+  RefToRefDictionary<K, V> toReadOnly();
 }

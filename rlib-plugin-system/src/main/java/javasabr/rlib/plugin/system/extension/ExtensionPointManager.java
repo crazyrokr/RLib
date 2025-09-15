@@ -2,7 +2,7 @@ package javasabr.rlib.plugin.system.extension;
 
 import javasabr.rlib.collections.dictionary.Dictionary;
 import javasabr.rlib.collections.dictionary.DictionaryFactory;
-import javasabr.rlib.collections.dictionary.LockableRefDictionary;
+import javasabr.rlib.collections.dictionary.LockableRefToRefDictionary;
 import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
@@ -27,10 +27,10 @@ public class ExtensionPointManager {
     return getInstance().create(id);
   }
 
-  LockableRefDictionary<String, ExtensionPoint<?>> extensionPoints;
+  LockableRefToRefDictionary<String, ExtensionPoint<?>> extensionPoints;
 
   public ExtensionPointManager() {
-    this.extensionPoints = DictionaryFactory.stampedLockBasedRefDictionary();
+    this.extensionPoints = DictionaryFactory.stampedLockBasedRefToRefDictionary();
   }
 
   public <T> ExtensionPoint<T> create(String id) {

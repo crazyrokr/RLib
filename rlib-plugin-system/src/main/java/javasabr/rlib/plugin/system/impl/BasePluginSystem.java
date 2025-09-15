@@ -25,8 +25,8 @@ import javasabr.rlib.classpath.ClassPathScannerFactory;
 import javasabr.rlib.collections.array.Array;
 import javasabr.rlib.collections.array.ArrayCollectors;
 import javasabr.rlib.collections.dictionary.DictionaryCollectors;
-import javasabr.rlib.collections.dictionary.MutableRefDictionary;
-import javasabr.rlib.collections.dictionary.RefDictionary;
+import javasabr.rlib.collections.dictionary.MutableRefToRefDictionary;
+import javasabr.rlib.collections.dictionary.RefToRefDictionary;
 import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.common.util.Utils;
 import javasabr.rlib.io.util.FileUtils;
@@ -58,14 +58,14 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
     protected record State(
       Array<PluginContainer> containers,
       Array<Plugin> plugins,
-      RefDictionary<String, PluginContainer> idToContainer,
-      RefDictionary<String, Plugin> idToPlugin) {
+      RefToRefDictionary<String, PluginContainer> idToContainer,
+      RefToRefDictionary<String, Plugin> idToPlugin) {
 
       static final State EMPTY = new State(
           Array.empty(PluginContainer.class),
           Array.empty(Plugin.class),
-          RefDictionary.empty(),
-          RefDictionary.empty());
+          RefToRefDictionary.empty(),
+          RefToRefDictionary.empty());
   }
 
   final ClassLoader baseLoader;
@@ -130,13 +130,13 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
 
     var idToContainer = containers
         .stream()
-        .collect(DictionaryCollectors.toRefDictionary(PluginContainer::id));
+        .collect(DictionaryCollectors.toRefToRefDictionary(PluginContainer::id));
 
     State newState = new State(
         containers,
         Array.empty(Plugin.class),
         idToContainer,
-        RefDictionary.empty());
+        RefToRefDictionary.empty());
 
     if (state.compareAndSet(current, newState)) {
       LOGGER.debug(containers, "Pre-loaded:%s"::formatted);
@@ -172,7 +172,7 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
         .map(future -> future.thenApply(this::initializePlugin))
         .map(CompletionStage::toCompletableFuture)
         .map(CompletableFuture::join)
-        .collect(DictionaryCollectors.toRefDictionary(Plugin::id));
+        .collect(DictionaryCollectors.toRefToRefDictionary(Plugin::id));
 
     State newState = new State(
         current.containers,
@@ -458,11 +458,11 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
       }
     }
 
-    var idToContainer = MutableRefDictionary.ofTypes(String.class, PluginContainer.class);
+    var idToContainer = MutableRefToRefDictionary.ofTypes(String.class, PluginContainer.class);
     idToContainer.putAll(current.idToContainer);
     idToContainer.put(container.id(), container);
 
-    var idToPlugin = MutableRefDictionary.ofTypes(String.class, Plugin.class);
+    var idToPlugin = MutableRefToRefDictionary.ofTypes(String.class, Plugin.class);
     idToPlugin.putAll(current.idToPlugin);
     idToPlugin.put(plugin.id(), plugin);
 
@@ -491,11 +491,11 @@ public class BasePluginSystem implements ConfigurablePluginSystem {
       return false;
     }
 
-    var idToContainer = MutableRefDictionary.ofTypes(String.class, PluginContainer.class);
+    var idToContainer = MutableRefToRefDictionary.ofTypes(String.class, PluginContainer.class);
     idToContainer.putAll(current.idToContainer);
     idToContainer.remove(pluginId);
 
-    var idToPlugin = MutableRefDictionary.ofTypes(String.class, Plugin.class);
+    var idToPlugin = MutableRefToRefDictionary.ofTypes(String.class, Plugin.class);
     idToPlugin.putAll(current.idToPlugin);
     idToPlugin.remove(pluginId);
 

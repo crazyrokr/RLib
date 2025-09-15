@@ -5,15 +5,16 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
-public class StampedLockBasedHashBasedRefDictionary<K, V> extends AbstractLockableHashBasedRefDictionary<K, V> {
+public class StampedLockBasedHashBasedRefToRefDictionary<K, V> extends
+    AbstractLockableHashBasedRefToRefDictionary<K, V> {
 
   StampedLock stampedLock;
 
-  public StampedLockBasedHashBasedRefDictionary() {
+  public StampedLockBasedHashBasedRefToRefDictionary() {
     this.stampedLock = new StampedLock();
   }
 
-  public StampedLockBasedHashBasedRefDictionary(int initCapacity, float loadFactor) {
+  public StampedLockBasedHashBasedRefToRefDictionary(int initCapacity, float loadFactor) {
     super(initCapacity, loadFactor);
     this.stampedLock = new StampedLock();
   }

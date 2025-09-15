@@ -3,8 +3,8 @@ package javasabr.rlib.collections.dictionary.impl;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import javasabr.rlib.collections.dictionary.LockableRefDictionary;
-import javasabr.rlib.collections.dictionary.RefDictionary;
+import javasabr.rlib.collections.dictionary.LockableRefToRefDictionary;
+import javasabr.rlib.collections.dictionary.RefToRefDictionary;
 import javasabr.rlib.collections.operation.LockableOperations;
 import javasabr.rlib.collections.operation.impl.DefaultLockableOperations;
 import lombok.AccessLevel;
@@ -12,19 +12,20 @@ import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractLockableHashBasedRefDictionary<K, V> extends
-    AbstractMutableHashBasedRefDictionary<K, V, DefaultLinkedHashEntry<K, V>> implements LockableRefDictionary<K, V> {
+public abstract class AbstractLockableHashBasedRefToRefDictionary<K, V> extends
+    AbstractMutableHashBasedRefToRefDictionary<K, V, DefaultLinkedHashEntry<K, V>> implements
+    LockableRefToRefDictionary<K, V> {
 
   final AtomicReference<@Nullable DefaultLinkedHashEntry<K, V>[]> entries;
   final AtomicInteger size;
 
   int threshold;
 
-  public AbstractLockableHashBasedRefDictionary() {
+  public AbstractLockableHashBasedRefToRefDictionary() {
     this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
   }
 
-  public AbstractLockableHashBasedRefDictionary(int initCapacity, float loadFactor) {
+  public AbstractLockableHashBasedRefToRefDictionary(int initCapacity, float loadFactor) {
     super(loadFactor);
     //noinspection unchecked,rawtypes
     this.entries = new AtomicReference<>(new DefaultLinkedHashEntry[initCapacity]);
@@ -89,14 +90,14 @@ public abstract class AbstractLockableHashBasedRefDictionary<K, V> extends
   }
 
   @Override
-  public RefDictionary<K, V> toReadOnly() {
+  public RefToRefDictionary<K, V> toReadOnly() {
     @Nullable DefaultLinkedHashEntry<K, V>[] currentEntries = entries.get();
     @Nullable DefaultLinkedHashEntry<K, V>[] copied = Arrays.copyOf(currentEntries, currentEntries.length);
-    return new ImmutableHashBasedRefDictionary<>(copied, size.get());
+    return new ImmutableHashBasedRefToRefDictionary<>(copied, size.get());
   }
 
   @Override
-  public LockableOperations<LockableRefDictionary<K, V>> operations() {
+  public LockableOperations<LockableRefToRefDictionary<K, V>> operations() {
     return new DefaultLockableOperations<>(this);
   }
 }

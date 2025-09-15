@@ -1,7 +1,7 @@
 package javasabr.rlib.collections.dictionary.impl;
 
 import javasabr.rlib.collections.dictionary.LinkedHashEntry;
-import javasabr.rlib.collections.dictionary.RefDictionary;
+import javasabr.rlib.collections.dictionary.RefToRefDictionary;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -13,15 +13,15 @@ import org.jspecify.annotations.Nullable;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class ImmutableHashBasedRefDictionary<K, V, E extends LinkedHashEntry<K, V, E>>
-    extends AbstractHashBasedRefDictionary<K, V, E> {
+public class ImmutableHashBasedRefToRefDictionary<K, V, E extends LinkedHashEntry<K, V, E>>
+    extends AbstractHashBasedRefToRefDictionary<K, V, E> {
 
-  private static final RefDictionary<?, ?> EMPTY =
-      new ImmutableHashBasedRefDictionary<>(new DefaultLinkedHashEntry[0], 0);
+  private static final RefToRefDictionary<?, ?> EMPTY =
+      new ImmutableHashBasedRefToRefDictionary<>(new DefaultLinkedHashEntry[0], 0);
 
-  public static <K, V> RefDictionary<K, V> empty() {
+  public static <K, V> RefToRefDictionary<K, V> empty() {
     //noinspection unchecked
-    return (RefDictionary<K, V>) EMPTY;
+    return (RefToRefDictionary<K, V>) EMPTY;
   }
 
   @Nullable E[] entries;

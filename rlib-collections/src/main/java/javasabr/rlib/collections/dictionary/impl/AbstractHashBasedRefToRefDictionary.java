@@ -10,12 +10,12 @@ import javasabr.rlib.collections.array.ArrayFactory;
 import javasabr.rlib.collections.array.MutableArray;
 import javasabr.rlib.collections.array.UnsafeMutableArray;
 import javasabr.rlib.collections.dictionary.LinkedHashEntry;
-import javasabr.rlib.collections.dictionary.UnsafeRefDictionary;
+import javasabr.rlib.collections.dictionary.UnsafeRefToRefDictionary;
 import org.jspecify.annotations.Nullable;
 
-public abstract class AbstractHashBasedRefDictionary<K, V, E extends LinkedHashEntry<K, V, E>>
+public abstract class AbstractHashBasedRefToRefDictionary<K, V, E extends LinkedHashEntry<K, V, E>>
     extends AbstractHashBasedDictionary<K, V>
-    implements UnsafeRefDictionary<K, V, E> {
+    implements UnsafeRefToRefDictionary<K, V, E> {
 
   @Override
   public boolean containsKey(K key) {

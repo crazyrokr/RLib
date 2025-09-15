@@ -2,14 +2,14 @@ package javasabr.rlib.collections.dictionary;
 
 import javasabr.rlib.collections.dictionary.impl.DefaultMutableHashBasedIntToRefDictionary;
 import javasabr.rlib.collections.dictionary.impl.DefaultMutableHashBasedLongToRefDictionary;
-import javasabr.rlib.collections.dictionary.impl.DefaultMutableHashBasedRefDictionary;
-import javasabr.rlib.collections.dictionary.impl.StampedLockBasedHashBasedRefDictionary;
+import javasabr.rlib.collections.dictionary.impl.DefaultMutableHashBasedRefToRefDictionary;
+import javasabr.rlib.collections.dictionary.impl.StampedLockBasedHashBasedRefToRefDictionary;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class DictionaryFactory {
-  public static <K, V> MutableRefDictionary<K, V> mutableRefDictionary() {
-    return new DefaultMutableHashBasedRefDictionary<>();
+  public static <K, V> MutableRefToRefDictionary<K, V> mutableRefToRefDictionary() {
+    return new DefaultMutableHashBasedRefToRefDictionary<>();
   }
 
   public static <V> MutableIntToRefDictionary<V> mutableIntToRefDictionary() {
@@ -20,19 +20,19 @@ public class DictionaryFactory {
     return new DefaultMutableHashBasedLongToRefDictionary<>();
   }
 
-  public static <K, V> MutableRefDictionary<K, V> mutableRefDictionary(
+  public static <K, V> MutableRefToRefDictionary<K, V> mutableRefToRefDictionary(
       Class<? super K> keyType,
       Class<? super V> valueType) {
-    return new DefaultMutableHashBasedRefDictionary<>();
+    return new DefaultMutableHashBasedRefToRefDictionary<>();
   }
 
-  public static <K, V> LockableRefDictionary<K, V> stampedLockBasedRefDictionary() {
-    return new StampedLockBasedHashBasedRefDictionary<>();
+  public static <K, V> LockableRefToRefDictionary<K, V> stampedLockBasedRefToRefDictionary() {
+    return new StampedLockBasedHashBasedRefToRefDictionary<>();
   }
 
-  public static <K, V> LockableRefDictionary<K, V> stampedLockBasedRefDictionary(
+  public static <K, V> LockableRefToRefDictionary<K, V> stampedLockBasedRefToRefDictionary(
       Class<? super K> keyType,
       Class<? super V> valueType) {
-    return new StampedLockBasedHashBasedRefDictionary<>();
+    return new StampedLockBasedHashBasedRefToRefDictionary<>();
   }
 }

@@ -4,7 +4,8 @@ import javasabr.rlib.collections.operation.LockableOperations;
 import javasabr.rlib.collections.operation.LockableSource;
 import javasabr.rlib.common.util.ThreadSafe;
 
-public interface LockableRefDictionary<K, V> extends MutableRefDictionary<K, V>, LockableSource, ThreadSafe {
+public interface LockableRefToRefDictionary<K, V> extends MutableRefToRefDictionary<K, V>,
+    LockableSource, ThreadSafe {
 
-  LockableOperations<LockableRefDictionary<K, V>> operations();
+  LockableOperations<LockableRefToRefDictionary<K, V>> operations();
 }
