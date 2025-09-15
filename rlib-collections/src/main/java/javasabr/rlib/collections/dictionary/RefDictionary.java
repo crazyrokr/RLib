@@ -2,13 +2,13 @@ package javasabr.rlib.collections.dictionary;
 
 import java.util.function.BiConsumer;
 import javasabr.rlib.collections.dictionary.impl.ImmutableHashBasedRefDictionary;
-import javasabr.rlib.collections.dictionary.impl.SimpleEntry;
+import javasabr.rlib.collections.dictionary.impl.SimpleRefToRefEntry;
 import org.jspecify.annotations.Nullable;
 
 public interface RefDictionary<K, V> extends Dictionary<K, V> {
 
-  static <K, V> Entry<K, V> entry(K key, @Nullable V value) {
-    return new SimpleEntry<>(key, value);
+  static <K, V> RefToRefEntry<K, V> entry(K key, @Nullable V value) {
+    return new SimpleRefToRefEntry<>(key, value);
   }
 
   static <K, V> RefDictionary<K, V> empty() {
@@ -24,9 +24,9 @@ public interface RefDictionary<K, V> extends Dictionary<K, V> {
   }
 
   @SafeVarargs
-  static <K, V> RefDictionary<K, V> ofEntries(Entry<K, V>... entries) {
+  static <K, V> RefDictionary<K, V> ofEntries(RefToRefEntry<K, V>... entries) {
     MutableRefDictionary<K, V> mutable = DictionaryFactory.mutableRefDictionary();
-    for (Entry<K, V> entry : entries) {
+    for (var entry : entries) {
       mutable.put(entry.key(), entry.value());
     }
     return mutable.toReadOnly();

@@ -1,5 +1,5 @@
 package javasabr.rlib.collections.dictionary;
 
-public interface HashEntry<K, V> extends Entry<K, V>  {
+public interface HashEntry {
   int hash();
 }

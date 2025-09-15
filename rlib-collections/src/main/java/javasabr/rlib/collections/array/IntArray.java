@@ -34,6 +34,10 @@ public interface IntArray extends Iterable<Integer>, Serializable, Cloneable, Ra
     return new ImmutableIntArray(elements);
   }
 
+  static IntArray copyOf(IntArray intArray) {
+    return new ImmutableIntArray(intArray.toArray());
+  }
+
   int size();
 
   boolean contains(int value);

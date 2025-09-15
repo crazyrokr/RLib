@@ -4,21 +4,29 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import javasabr.rlib.collections.array.Array;
 import javasabr.rlib.collections.array.ArrayFactory;
+import javasabr.rlib.collections.array.IntArray;
 import javasabr.rlib.collections.array.MutableArray;
+import javasabr.rlib.collections.array.MutableIntArray;
 import javasabr.rlib.collections.array.UnsafeMutableArray;
-import javasabr.rlib.collections.dictionary.LinkedHashEntry;
-import javasabr.rlib.collections.dictionary.UnsafeRefDictionary;
+import javasabr.rlib.collections.array.UnsafeMutableIntArray;
+import javasabr.rlib.collections.dictionary.LinkedHashIntToRefEntry;
+import javasabr.rlib.collections.dictionary.UnsafeIntToRefDictionary;
+import javasabr.rlib.functions.IntObjConsumer;
 import org.jspecify.annotations.Nullable;
 
-public abstract class AbstractHashBasedRefDictionary<K, V, E extends LinkedHashEntry<K, V, E>>
-    extends AbstractHashBasedDictionary<K, V>
-    implements UnsafeRefDictionary<K, V, E> {
+public abstract class AbstractHashBasedIntToRefDictionary<V, E extends LinkedHashIntToRefEntry<V, E>>
+    extends AbstractHashBasedDictionary<Integer, V>
+    implements UnsafeIntToRefDictionary<V, E> {
 
   @Override
-  public boolean containsKey(K key) {
+  public boolean containsKey(Integer key) {
+    return findEntry(key) != null;
+  }
+
+  @Override
+  public boolean containsKey(int key) {
     return findEntry(key) != null;
   }
 
@@ -38,20 +46,37 @@ public abstract class AbstractHashBasedRefDictionary<K, V, E extends LinkedHashE
 
   @Nullable
   @Override
-  public V get(K key) {
+  public V get(Integer key) {
+    return get(key.intValue());
+  }
+
+  @Nullable
+  @Override
+  public V get(int key) {
     E entry = findEntry(key);
     return entry == null ? null : entry.value();
   }
 
   @Nullable
   @Override
-  public V getOrDefault(K key, V def) {
+  public V getOrDefault(Integer key, V def) {
+    return getOrDefault(key.intValue(), def);
+  }
+
+  @Nullable
+  @Override
+  public V getOrDefault(int key, V def) {
     E entry = findEntry(key);
     return entry == null ? def : entry.value();
   }
 
   @Override
-  public Optional<V> getOptional(K key) {
+  public Optional<V> getOptional(Integer key) {
+    return getOptional(key.intValue());
+  }
+
+  @Override
+  public Optional<V> getOptional(int key) {
     return Optional.ofNullable(get(key));
   }
 
@@ -64,14 +89,14 @@ public abstract class AbstractHashBasedRefDictionary<K, V, E extends LinkedHashE
   }
 
   @Nullable
-  protected E findEntry(K key) {
+  protected E findEntry(int key) {
 
     @Nullable E[] entries = entries();
-    int hash = hash(key.hashCode());
+    int hash = hash(key);
     int entryIndex = indexFor(hash, entries.length);
 
     for (E entry = entries[entryIndex]; entry != null; entry = entry.next()) {
-      if (entry.hash() == hash && key.equals(entry.key())) {
+      if (entry.hash() == hash && key == entry.key()) {
         return entry;
       }
     }
@@ -80,7 +105,7 @@ public abstract class AbstractHashBasedRefDictionary<K, V, E extends LinkedHashE
   }
 
   @Override
-  public void forEach(BiConsumer<K, V> consumer) {
+  public void forEach(IntObjConsumer<V> consumer) {
     for (E entry : entries()) {
       while (entry != null) {
         //noinspection DataFlowIssue
@@ -91,14 +116,35 @@ public abstract class AbstractHashBasedRefDictionary<K, V, E extends LinkedHashE
   }
 
   @Override
-  public Array<K> keys(Class<K> type) {
-    return Array.copyOf(keys(ArrayFactory.mutableArray(type, size())));
+  public IntArray keys() {
+    return IntArray.copyOf(keys(ArrayFactory.mutableIntArray()));
   }
 
   @Override
-  public MutableArray<K> keys(MutableArray<K> container) {
+  public MutableIntArray keys(MutableIntArray container) {
 
-    UnsafeMutableArray<K> unsafe = container.asUnsafe();
+    UnsafeMutableIntArray unsafe = container.asUnsafe();
+    unsafe.prepareForSize(container.size() + size());
+
+    for (E entry : entries()) {
+      while (entry != null) {
+        unsafe.unsafeAdd(entry.key());
+        entry = entry.next();
+      }
+    }
+
+    return container;
+  }
+
+  @Override
+  public Array<Integer> keys(Class<Integer> type) {
+    return keys(MutableArray.ofType(Integer.class));
+  }
+
+  @Override
+  public MutableArray<Integer> keys(MutableArray<Integer> container) {
+
+    UnsafeMutableArray<Integer> unsafe = container.asUnsafe();
     unsafe.prepareForSize(container.size() + size());
 
     for (E entry : entries()) {

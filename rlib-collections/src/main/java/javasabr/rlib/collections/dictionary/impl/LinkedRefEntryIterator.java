@@ -1,13 +1,14 @@
 package javasabr.rlib.collections.dictionary.impl;
 
 import java.util.Iterator;
+import javasabr.rlib.collections.dictionary.RefEntry;
 import javasabr.rlib.collections.dictionary.LinkedEntry;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class LinkedEntryIterator<K, V, E extends LinkedEntry<K, V, E>> implements Iterator<@Nullable V> {
+public class LinkedRefEntryIterator<V, E extends LinkedEntry<E> & RefEntry<V>> implements Iterator<@Nullable V> {
 
   final @Nullable E[] entries;
 
@@ -16,7 +17,7 @@ public class LinkedEntryIterator<K, V, E extends LinkedEntry<K, V, E>> implement
 
   int index;
 
-  public LinkedEntryIterator(@Nullable E[] entries) {
+  public LinkedRefEntryIterator(@Nullable E[] entries) {
     this.entries = entries;
     findNext();
   }

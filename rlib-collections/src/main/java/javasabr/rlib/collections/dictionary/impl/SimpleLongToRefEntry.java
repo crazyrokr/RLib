@@ -1,6 +1,6 @@
 package javasabr.rlib.collections.dictionary.impl;
 
-import javasabr.rlib.collections.dictionary.Entry;
+import javasabr.rlib.collections.dictionary.LongToRefEntry;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +12,7 @@ import org.jspecify.annotations.Nullable;
 @AllArgsConstructor
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class SimpleEntry<K, V> implements Entry<K, V> {
-  K key;
+public class SimpleLongToRefEntry<V> implements LongToRefEntry<V> {
+  long key;
   @Nullable V value;
 }

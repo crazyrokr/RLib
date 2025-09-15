@@ -34,6 +34,10 @@ public interface LongArray extends Iterable<Long>, Serializable, Cloneable, Rand
     return new ImmutableLongArray(elements);
   }
 
+  static LongArray copyOf(LongArray intArray) {
+    return new ImmutableLongArray(intArray.toArray());
+  }
+
   int size();
 
   boolean contains(long value);
