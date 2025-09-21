@@ -1,7 +1,6 @@
 package javasabr.rlib.collections.dictionary.impl;
 
 import javasabr.rlib.collections.dictionary.IntToRefDictionary;
-import javasabr.rlib.collections.dictionary.IntToRefEntry;
 import javasabr.rlib.collections.dictionary.LinkedHashIntToRefEntry;
 import lombok.AccessLevel;
 import lombok.Getter;

@@ -2,7 +2,6 @@ package javasabr.rlib.collections.array.impl;
 
 import static javasabr.rlib.common.util.ClassUtils.unsafeCast;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;

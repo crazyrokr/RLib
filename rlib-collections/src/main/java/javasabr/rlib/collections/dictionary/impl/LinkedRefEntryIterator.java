@@ -1,8 +1,8 @@
 package javasabr.rlib.collections.dictionary.impl;
 
 import java.util.Iterator;
-import javasabr.rlib.collections.dictionary.RefEntry;
 import javasabr.rlib.collections.dictionary.LinkedEntry;
+import javasabr.rlib.collections.dictionary.RefEntry;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;

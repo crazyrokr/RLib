@@ -5,8 +5,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.StampedLock;
-import javasabr.rlib.concurrent.lock.impl.AtomicLock;
 import javasabr.rlib.concurrent.lock.impl.AtomicAsyncReadSyncWriteLock;
+import javasabr.rlib.concurrent.lock.impl.AtomicLock;
 import javasabr.rlib.concurrent.lock.impl.ReentrantARSWLock;
 import javasabr.rlib.concurrent.lock.impl.ReentrantAtomicLock;
 
