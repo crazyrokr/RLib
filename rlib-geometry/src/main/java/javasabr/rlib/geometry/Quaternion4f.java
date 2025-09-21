@@ -1,8 +1,8 @@
 package javasabr.rlib.geometry;
 
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import javasabr.rlib.common.util.ExtMath;
-import javasabr.rlib.common.util.random.Random;
-import javasabr.rlib.common.util.random.RandomFactory;
 import javasabr.rlib.geometry.util.AngleUtils;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -23,8 +23,6 @@ import org.jspecify.annotations.Nullable;
 public class Quaternion4f {
 
   public static final Quaternion4f IDENTITY = new Quaternion4f(0, 0, 0, 1);
-
-  private static final ThreadLocal<Random> RANDOM_LOCAL = ThreadLocal.withInitial(RandomFactory::newFastRandom);
 
   private static final ThreadLocal<Quaternion4f> ROTATION_LOCAL = ThreadLocal.withInitial(Quaternion4f::new);
 
@@ -333,7 +331,7 @@ public class Quaternion4f {
   }
 
   public void random() {
-    random(RANDOM_LOCAL.get());
+    random(ThreadLocalRandom.current());
   }
 
   public void random(Random random) {

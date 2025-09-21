@@ -8,13 +8,12 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -30,14 +29,28 @@ jobs:
       - name: Run tests for all modules
         run: ./gradlew test
 
-  dependency-submission:
+      - name: Generate jacoco reports
+        run: ./gradlew jacocoTestReport
 
+      - name: Generate aggregated jacoco report
+        run: ./gradlew test-coverage:testCodeCoverageReport
+
+      - name: Add coverage to PR
+          id: jacoco
+          uses: madrapps/jacoco-report@v1.7.2
+          with:
+            paths: ${{ github.workspace }}/test-coverage/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
+            token: ${{ secrets.GITHUB_TOKEN }}
+            min-coverage-overall: 40
+            min-coverage-changed-files: 60
+
+  dependency-submission:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:

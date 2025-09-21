@@ -1,0 +1,24 @@
+plugins {
+  id 'jacoco-report-aggregation'
+}
+
+dependencies {
+  jacocoAggregation projects.rlibClasspath
+  jacocoAggregation projects.rlibCollections
+  jacocoAggregation projects.rlibCommon
+  jacocoAggregation projects.rlibConcurrent
+  jacocoAggregation projects.rlibFunctions
+  jacocoAggregation projects.rlibGeometry
+  jacocoAggregation projects.rlibIo
+  jacocoAggregation projects.rlibLoggerApi
+  jacocoAggregation projects.rlibLoggerImpl
+  jacocoAggregation projects.rlibLoggerSlf4j
+  jacocoAggregation projects.rlibMail
+  jacocoAggregation projects.rlibNetwork
+  jacocoAggregation projects.rlibPluginSystem
+  jacocoAggregation projects.rlibReference
+  jacocoAggregation projects.rlibReusable
+  jacocoAggregation projects.rlibTestcontainers
+}
+
+publishing.publications.remove(publishing.publications.mavenJava)
