@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javasabr.rlib.collections.array.Array;
 import javasabr.rlib.collections.array.UnsafeMutableArray;
 import javasabr.rlib.common.util.ArrayUtils;
-import javasabr.rlib.common.util.ThreadSafe;
+import javasabr.rlib.common.ThreadSafe;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;

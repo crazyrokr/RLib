@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 import javasabr.rlib.collections.dictionary.DictionaryFactory;
 import javasabr.rlib.collections.dictionary.RefToRefDictionary;
-import javasabr.rlib.common.util.tuple.Tuple;
+import javasabr.rlib.common.tuple.Tuple;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

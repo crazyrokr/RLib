@@ -1,4 +1,4 @@
-package javasabr.rlib.common.util;
+package javasabr.rlib.common;
 
 /**
  * Interface to mark a class that it's a thread safe.
