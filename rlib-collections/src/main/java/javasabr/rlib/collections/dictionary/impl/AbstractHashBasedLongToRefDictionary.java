@@ -1,5 +1,6 @@
 package javasabr.rlib.collections.dictionary.impl;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
@@ -158,8 +159,33 @@ public abstract class AbstractHashBasedLongToRefDictionary<V, E extends LinkedHa
   }
 
   @Override
+  public <C extends Collection<Long>> C keys(C container) {
+    for (E entry : entries()) {
+      while (entry != null) {
+        container.add(entry.key());
+        entry = entry.next();
+      }
+    }
+    return container;
+  }
+
+  @Override
   public Array<V> values(Class<V> type) {
     return Array.copyOf(values(ArrayFactory.mutableArray(type, size())));
+  }
+
+  @Override
+  public <C extends Collection<V>> C values(C container) {
+    for (E entry : entries()) {
+      while (entry != null) {
+        V value = entry.value();
+        if (value != null) {
+          container.add(value);
+        }
+        entry = entry.next();
+      }
+    }
+    return container;
   }
 
   @Override

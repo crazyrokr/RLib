@@ -1,5 +1,6 @@
 package javasabr.rlib.collections.dictionary.impl;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
@@ -96,6 +97,17 @@ public abstract class AbstractHashBasedRefToRefDictionary<K, V, E extends Linked
   }
 
   @Override
+  public <C extends Collection<K>> C keys(C container) {
+    for (E entry : entries()) {
+      while (entry != null) {
+        container.add(entry.key());
+        entry = entry.next();
+      }
+    }
+    return container;
+  }
+
+  @Override
   public MutableArray<K> keys(MutableArray<K> container) {
 
     UnsafeMutableArray<K> unsafe = container.asUnsafe();
@@ -117,6 +129,20 @@ public abstract class AbstractHashBasedRefToRefDictionary<K, V, E extends Linked
   }
 
   @Override
+  public <C extends Collection<V>> C values(C container) {
+    for (E entry : entries()) {
+      while (entry != null) {
+        V value = entry.value();
+        if (value != null) {
+          container.add(value);
+        }
+        entry = entry.next();
+      }
+    }
+    return container;
+  }
+
+  @Override
   public MutableArray<V> values(MutableArray<V> container) {
 
     UnsafeMutableArray<V> unsafe = container.asUnsafe();
@@ -133,5 +159,39 @@ public abstract class AbstractHashBasedRefToRefDictionary<K, V, E extends Linked
     }
 
     return container;
+  }
+
+  @Override
+  public String toString() {
+
+    if (isEmpty()) {
+      return "[]";
+    }
+
+    StringBuilder builder = new StringBuilder("[");
+
+    for (E entry : entries()) {
+      while (entry != null) {
+        builder
+            .append('\'')
+            .append(entry.key())
+            .append('\'')
+            .append(":")
+            .append('\'')
+            .append(entry.value())
+            .append('\'')
+            .append(", ");
+
+        entry = entry.next();
+      }
+    }
+
+    if (builder.length() > 1) {
+      builder.delete(builder.length() - 2, builder.length());
+    }
+
+    builder.append("]");
+
+    return builder.toString();
   }
 }
