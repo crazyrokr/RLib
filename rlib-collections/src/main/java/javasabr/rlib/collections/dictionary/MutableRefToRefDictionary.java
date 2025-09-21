@@ -1,0 +1,53 @@
+package javasabr.rlib.collections.dictionary;
+
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import javasabr.rlib.collections.dictionary.impl.DefaultMutableHashBasedRefToRefDictionary;
+import org.jspecify.annotations.Nullable;
+
+public interface MutableRefToRefDictionary<K, V> extends RefToRefDictionary<K, V> {
+
+  static <K, V> MutableRefToRefDictionary<K, V> ofTypes(
+      Class<K> keyType,
+      Class<V> valueType) {
+    return new DefaultMutableHashBasedRefToRefDictionary<>();
+  }
+
+  @Nullable
+  V getOrCompute(K key, Supplier<V> factory);
+
+  @Nullable
+  V getOrCompute(K key, Function<K, V> factory);
+
+  @Nullable
+  <T> V getOrCompute(K key, T arg1, Function<T, V> factory);
+
+  /**
+   * @return the previous value for the key or null.
+   */
+  @Nullable
+  V put(K key, @Nullable V value);
+
+  void putAll(RefToRefDictionary<? extends K, ? extends V> dictionary);
+
+  MutableRefToRefDictionary<K, V> append(RefToRefDictionary<? extends K, ? extends V> dictionary);
+
+  /**
+   * @return the optional value of the previous value for the key.
+   */
+  Optional<V> putOptional(K key, @Nullable V value);
+
+  /**
+   * @return the previous value for the key or null.
+   */
+  @Nullable
+  V remove(K key);
+
+  /**
+   * @return the optional value of the previous value for the key.
+   */
+  Optional<V> removeOptional(K key);
+
+  RefToRefDictionary<K, V> toReadOnly();
+}

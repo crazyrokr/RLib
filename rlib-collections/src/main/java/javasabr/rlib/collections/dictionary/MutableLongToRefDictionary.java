@@ -1,0 +1,52 @@
+package javasabr.rlib.collections.dictionary;
+
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
+import javasabr.rlib.collections.dictionary.impl.DefaultMutableHashBasedLongToRefDictionary;
+import org.jspecify.annotations.Nullable;
+
+public interface MutableLongToRefDictionary<V> extends LongToRefDictionary<V> {
+
+  static <V> MutableLongToRefDictionary<V> ofTypes(Class<V> valueType) {
+    return new DefaultMutableHashBasedLongToRefDictionary<>();
+  }
+
+  @Nullable
+  V getOrCompute(long key, Supplier<V> factory);
+
+  @Nullable
+  V getOrCompute(long key, LongFunction<V> factory);
+
+  @Nullable
+  <T> V getOrCompute(long key, T arg1, Function<T, V> factory);
+
+  /**
+   * @return the previous value for the key or null.
+   */
+  @Nullable
+  V put(long key, @Nullable V value);
+
+  void putAll(LongToRefDictionary<? extends V> dictionary);
+
+  MutableLongToRefDictionary<V> append(LongToRefDictionary<? extends V> dictionary);
+
+  /**
+   * @return the optional value of the previous value for the key.
+   */
+  Optional<V> putOptional(long key, @Nullable V value);
+
+  /**
+   * @return the previous value for the key or null.
+   */
+  @Nullable
+  V remove(long key);
+
+  /**
+   * @return the optional value of the previous value for the key.
+   */
+  Optional<V> removeOptional(long key);
+
+  LongToRefDictionary<V> toReadOnly();
+}

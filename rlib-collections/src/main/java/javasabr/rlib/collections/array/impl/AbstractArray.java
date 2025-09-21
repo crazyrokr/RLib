@@ -4,6 +4,7 @@ import static javasabr.rlib.common.util.ClassUtils.unsafeCast;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javasabr.rlib.collections.array.Array;
@@ -245,5 +246,13 @@ public abstract class AbstractArray<E> implements UnsafeArray<E> {
   @Override
   public UnsafeArray<E> asUnsafe() {
     return this;
+  }
+
+  @Override
+  public List<E> toList() {
+    if (isEmpty()) {
+      return List.of();
+    }
+    return List.of(Arrays.copyOf(wrapped(), size()));
   }
 }

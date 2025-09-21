@@ -12,7 +12,6 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.stream.IntStream;
 import javasabr.rlib.common.util.Utils;
-import javasabr.rlib.common.util.array.ArrayFactory;
 import javasabr.rlib.network.BufferAllocator;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -101,7 +100,7 @@ public class NetworkUtils {
     try {
 
       var sslContext = SSLContext.getInstance("TLSv1.2");
-      sslContext.init(null, ArrayFactory.toArray(new AllTrustManager()), new SecureRandom());
+      sslContext.init(null, new TrustManager[]{new AllTrustManager()}, new SecureRandom());
 
       return sslContext;
 

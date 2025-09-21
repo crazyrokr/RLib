@@ -9,24 +9,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The property loader using UTF-8 encoding.
- *
  * @author JavaSaBr
  */
-@NullMarked
-public class PropertyLoader extends ResourceBundle.Control {
+public final class PropertyLoader extends ResourceBundle.Control {
 
   private static final PropertyLoader INSTANCE = new PropertyLoader();
 
-  /**
-   * Gets instance.
-   *
-   * @return the instance
-   */
   public static PropertyLoader getInstance() {
     return INSTANCE;
   }

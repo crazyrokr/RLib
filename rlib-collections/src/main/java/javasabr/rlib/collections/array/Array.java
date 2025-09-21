@@ -3,6 +3,7 @@ package javasabr.rlib.collections.array;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.RandomAccess;
 import java.util.function.Function;
@@ -203,4 +204,6 @@ public interface Array<E> extends Iterable<E>, Serializable, Cloneable, RandomAc
   ArrayIterationFunctions<E> iterations();
 
   UnsafeArray<E> asUnsafe();
+
+  List<E> toList();
 }
