@@ -12,7 +12,7 @@ import org.testcontainers.containers.GenericContainer;
 public class FakeSMTPTestContainer extends GenericContainer<FakeSMTPTestContainer> {
 
   public static final String IMAGE = "javasabr/fake-smtp-server";
-  public static final String TAG = "latest";
+  public static final String TAG = "2.0";
 
   private static final int SMTP_PORT = 5025;
   private static final int HTTP_PORT = 5080;
