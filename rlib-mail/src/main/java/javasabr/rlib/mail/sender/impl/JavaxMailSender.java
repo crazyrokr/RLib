@@ -48,8 +48,7 @@ public class JavaxMailSender implements MailSender {
   private final InternetAddress from;
 
   public JavaxMailSender(MailSenderConfig config) {
-    this(
-        config,
+    this(config,
         JavaxMailSenderConfig
             .builder()
             .executorKeepAlive(60)
