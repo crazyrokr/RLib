@@ -137,6 +137,21 @@ public abstract class AbstractArray<E> implements UnsafeArray<E> {
   }
 
   @Override
+  public <T> int indexOf(Function<E, T> getter, @Nullable Object object) {
+    if (object == null) {
+      return -1;
+    }
+    @Nullable E[] wrapped = wrapped();
+    for (int i = 0, length = size(); i < length; i++) {
+      //noinspection DataFlowIssue
+      if (object.equals(getter.apply(wrapped[i]))) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  @Override
   public int lastIndexOf(@Nullable Object object) {
     if (object == null) {
       return -1;

@@ -4,7 +4,7 @@ package javasabr.rlib.functions;
  * @author JavaSaBr
  */
 @FunctionalInterface
-public interface IntObjFunction<T, R> {
+public interface IntObjFunction<B, R> {
 
-  R apply(int arg1, T arg2);
+  R apply(int arg1, B arg2);
 }

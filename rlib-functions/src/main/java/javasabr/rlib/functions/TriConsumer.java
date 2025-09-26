@@ -1,10 +1,10 @@
 package javasabr.rlib.functions;
 
 @FunctionalInterface
-public interface TriConsumer<F, S, T> {
+public interface TriConsumer<A, B, C> {
 
   /**
    * Performs this operation on the given arguments.
    */
-  void accept(F arg1, S arg2, T arg3);
+  void accept(A arg1, B arg2, C arg3);
 }

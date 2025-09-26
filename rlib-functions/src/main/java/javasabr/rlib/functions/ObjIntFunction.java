@@ -4,7 +4,7 @@ package javasabr.rlib.functions;
  * @author JavaSaBr
  */
 @FunctionalInterface
-public interface ObjLongFunction<A, R> {
+public interface ObjIntFunction<A, R> {
 
-  R apply(A arg1, long arg2);
+  R apply(A arg1, int arg2);
 }
