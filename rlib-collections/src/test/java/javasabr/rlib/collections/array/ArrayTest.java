@@ -70,6 +70,24 @@ public class ArrayTest  {
 
   @ParameterizedTest
   @MethodSource("generateArrays")
+  void shouldFindElementIndex(Array<String> array) {
+    // when/then:
+    Assertions.assertEquals(0, array.indexOf("First"));
+    Assertions.assertEquals(3, array.indexOf("  "));
+    Assertions.assertEquals(-1, array.indexOf("notexist"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateArrays")
+  void shouldFindElementIndexWithFunction(Array<String> array) {
+    // when/then:
+    Assertions.assertEquals(0, array.indexOf(s -> s + s, "FirstFirst"));
+    Assertions.assertEquals(3, array.indexOf(s -> s + s, "    "));
+    Assertions.assertEquals(-1, array.indexOf("notexist"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateArrays")
   void shouldCorrectlyTransformToNativeArray(Array<String> array) {
     // then:
     Assertions.assertArrayEquals(

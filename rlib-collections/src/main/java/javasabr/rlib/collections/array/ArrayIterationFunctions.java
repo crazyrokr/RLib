@@ -10,16 +10,16 @@ import org.jspecify.annotations.Nullable;
 public interface ArrayIterationFunctions<E> {
 
   @Nullable
-  <T> E findAny(T arg1, BiPredicate<? super E, T> filter);
+  <A> E findAny(A arg1, BiPredicate<? super E, A> filter);
 
   @Nullable
   E findAny(int arg1, ObjIntPredicate<? super E> filter);
 
-  <T> ArrayIterationFunctions<E> forEach(T arg1, BiConsumer<? super E, T> consumer);
+  <A> ArrayIterationFunctions<E> forEach(A arg1, BiConsumer<? super E, A> consumer);
 
-  <F, S> ArrayIterationFunctions<E> forEach(F arg1, S arg2, TriConsumer<? super E, F, S> consumer);
+  <A, B> ArrayIterationFunctions<E> forEach(A arg1, B arg2, TriConsumer<? super E, A, B> consumer);
 
-  <F> ArrayIterationFunctions<E> forEach(F arg1, long arg2, ObjObjLongConsumer<? super E, F> consumer);
+  <A> ArrayIterationFunctions<E> forEach(A arg1, long arg2, ObjObjLongConsumer<? super E, A> consumer);
 
-  <T> boolean anyMatch(T arg1, BiPredicate<? super E, T> filter);
+  <A> boolean anyMatch(A arg1, BiPredicate<? super E, A> filter);
 }
