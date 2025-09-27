@@ -8,9 +8,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javasabr.rlib.common.function.NotNullBiConsumer;
-import javasabr.rlib.common.function.NotNullConsumer;
-import javasabr.rlib.common.function.NullableSupplier;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.BufferAllocator;
@@ -57,18 +57,18 @@ public abstract class AbstractPacketWriter<W extends WritablePacket, C extends C
   protected volatile ByteBuffer writingBuffer = EMPTY_BUFFER;
 
   protected final Runnable updateActivityFunction;
-  protected final NullableSupplier<WritablePacket> nextWritePacketSupplier;
-  protected final NotNullConsumer<WritablePacket> writtenPacketHandler;
-  protected final NotNullBiConsumer<WritablePacket, Boolean> sentPacketHandler;
+  protected final Supplier<@Nullable WritablePacket> nextWritePacketSupplier;
+  protected final Consumer<WritablePacket> writtenPacketHandler;
+  protected final BiConsumer<WritablePacket, Boolean> sentPacketHandler;
 
   public AbstractPacketWriter(
       C connection,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
-      NullableSupplier<WritablePacket> packetProvider,
-      NotNullConsumer<WritablePacket> writtenPacketHandler,
-      NotNullBiConsumer<WritablePacket, Boolean> sentPacketHandler) {
+      Supplier<@Nullable WritablePacket> packetProvider,
+      Consumer<WritablePacket> writtenPacketHandler,
+      BiConsumer<WritablePacket, Boolean> sentPacketHandler) {
     this.connection = connection;
     this.channel = channel;
     this.bufferAllocator = bufferAllocator;

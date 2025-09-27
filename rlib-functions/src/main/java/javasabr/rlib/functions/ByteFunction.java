@@ -4,7 +4,6 @@ package javasabr.rlib.functions;
  * @author JavaSaBr
  */
 @FunctionalInterface
-public interface ObjLongFunction<A, R> {
-
-  R apply(A arg1, long arg2);
+public interface ByteFunction<R> {
+  R apply(byte value);
 }

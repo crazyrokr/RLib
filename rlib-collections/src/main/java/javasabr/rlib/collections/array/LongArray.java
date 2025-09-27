@@ -10,8 +10,10 @@ import javasabr.rlib.collections.array.impl.ImmutableLongArray;
  */
 public interface LongArray extends Iterable<Long>, Serializable, Cloneable, RandomAccess {
 
+  ImmutableLongArray EMPTY = new ImmutableLongArray();
+
   static LongArray empty() {
-    return new ImmutableLongArray();
+    return EMPTY;
   }
 
   static LongArray of(long e1) {

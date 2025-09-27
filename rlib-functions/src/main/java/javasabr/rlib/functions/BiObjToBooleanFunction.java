@@ -4,7 +4,7 @@ package javasabr.rlib.functions;
  * @author JavaSaBr
  */
 @FunctionalInterface
-public interface ObjLongFunction<A, R> {
+public interface BiObjToBooleanFunction<A, B> {
 
-  R apply(A arg1, long arg2);
+  boolean apply(A arg1, B arg2);
 }

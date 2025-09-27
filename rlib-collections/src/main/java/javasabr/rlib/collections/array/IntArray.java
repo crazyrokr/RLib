@@ -10,8 +10,10 @@ import javasabr.rlib.collections.array.impl.ImmutableIntArray;
  */
 public interface IntArray extends Iterable<Integer>, Serializable, Cloneable, RandomAccess {
 
+  ImmutableIntArray EMPTY = new ImmutableIntArray();
+
   static IntArray empty() {
-    return new ImmutableIntArray();
+    return EMPTY;
   }
 
   static IntArray of(int e1) {

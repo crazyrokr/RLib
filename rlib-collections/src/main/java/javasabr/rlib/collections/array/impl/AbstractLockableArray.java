@@ -2,6 +2,8 @@ package javasabr.rlib.collections.array.impl;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import javasabr.rlib.collections.array.LockableArray;
+import javasabr.rlib.collections.operation.LockableOperations;
+import javasabr.rlib.collections.operation.impl.DefaultLockableOperations;
 import javasabr.rlib.common.util.ArrayUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -56,5 +58,10 @@ public abstract class AbstractLockableArray<E> extends AbstractMutableArray<E> i
   @Override
   protected int decrementAnGetSize() {
     return size.decrementAndGet();
+  }
+
+  @Override
+  public LockableOperations<LockableArray<E>> operations() {
+    return new DefaultLockableOperations<>(this);
   }
 }

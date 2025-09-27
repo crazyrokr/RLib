@@ -9,7 +9,6 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import javasabr.rlib.common.function.NotNullConsumer;
 import javasabr.rlib.common.util.BufferUtils;
 import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerManager;
@@ -69,7 +68,7 @@ public abstract class AbstractPacketReader<R extends ReadablePacket, C extends C
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
-      NotNullConsumer<? super R> readPacketHandler,
+      Consumer<? super R> readPacketHandler,
       int maxPacketsByRead) {
     this.connection = connection;
     this.channel = channel;

@@ -4,7 +4,7 @@ package javasabr.rlib.functions;
  * @author JavaSaBr
  */
 @FunctionalInterface
-public interface ObjLongFunction<A, R> {
+public interface ObjIntPredicate<A> {
 
-  R apply(A arg1, long arg2);
+  boolean test(A arg1, int arg2);
 }

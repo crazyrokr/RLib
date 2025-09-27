@@ -18,20 +18,20 @@ ext {
 }
 
 dependencies {
-  implementation "javasabr:rlib-common:$rlibVersion"
-  implementation "javasabr:rlib-collections:$rlibVersion"
-  implementation "javasabr:rlib-compiler:$rlibVersion"
-  implementation "javasabr:rlib-concurrent:$rlibVersion"
-  implementation "javasabr:rlib-geometry:$rlibVersion"
-  implementation "javasabr:rlib-logger-api:$rlibVersion"
-  implementation "javasabr:rlib-logger-slf4j:$rlibVersion"
-  implementation "javasabr:rlib-plugin-system:$rlibVersion"
-  implementation "javasabr:rlib-reference:$rlibVersion"
-  implementation "javasabr:rlib-reusable:$rlibVersion"
-  implementation "javasabr:rlib-fx:$rlibVersion"
-  implementation "javasabr:rlib-network:$rlibVersion"
-  implementation "javasabr:rlib-mail:$rlibVersion"
-  implementation "javasabr:rlib-testcontainers:$rlibVersion"
+  implementation "javasabr.rlib:rlib-common:$rlibVersion"
+  implementation "javasabr.rlib:rlib-collections:$rlibVersion"
+  implementation "javasabr.rlib:rlib-compiler:$rlibVersion"
+  implementation "javasabr.rlib:rlib-concurrent:$rlibVersion"
+  implementation "javasabr.rlib:rlib-geometry:$rlibVersion"
+  implementation "javasabr.rlib:rlib-logger-api:$rlibVersion"
+  implementation "javasabr.rlib:rlib-logger-slf4j:$rlibVersion"
+  implementation "javasabr.rlib:rlib-plugin-system:$rlibVersion"
+  implementation "javasabr.rlib:rlib-reference:$rlibVersion"
+  implementation "javasabr.rlib:rlib-reusable:$rlibVersion"
+  implementation "javasabr.rlib:rlib-fx:$rlibVersion"
+  implementation "javasabr.rlib:rlib-network:$rlibVersion"
+  implementation "javasabr.rlib:rlib-mail:$rlibVersion"
+  implementation "javasabr.rlib:rlib-testcontainers:$rlibVersion"
 }
 ```
 ## Most interesting parts:

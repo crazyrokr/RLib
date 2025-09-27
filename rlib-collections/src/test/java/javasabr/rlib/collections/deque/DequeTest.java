@@ -1,4 +1,4 @@
-package javasabr.rlib.collections.array;
+package javasabr.rlib.collections.deque;
 
 import static javasabr.rlib.common.util.ArrayUtils.array;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -12,7 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
-import javasabr.rlib.collections.deque.DequeFactory;
+import javasabr.rlib.collections.array.MutableArray;
 import javasabr.rlib.common.util.ReflectionUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

@@ -4,7 +4,7 @@ package javasabr.rlib.functions;
  * @author JavaSaBr
  */
 @FunctionalInterface
-public interface IntObjConsumer<T> {
+public interface IntObjConsumer<B> {
 
-  void accept(int arg1, T arg2);
+  void accept(int arg1, B arg2);
 }

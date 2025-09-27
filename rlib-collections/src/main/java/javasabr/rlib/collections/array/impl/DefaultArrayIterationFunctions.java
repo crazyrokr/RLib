@@ -4,6 +4,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import javasabr.rlib.collections.array.ArrayIterationFunctions;
 import javasabr.rlib.collections.array.UnsafeArray;
+import javasabr.rlib.functions.ObjIntPredicate;
 import javasabr.rlib.functions.ObjObjLongConsumer;
 import javasabr.rlib.functions.TriConsumer;
 import org.jspecify.annotations.Nullable;
@@ -12,7 +13,21 @@ public record DefaultArrayIterationFunctions<E>(UnsafeArray<E> array) implements
 
   @Override
   public <T> @Nullable E findAny(T arg1, BiPredicate<? super E, T> filter) {
+    @Nullable E[] wrapped = array.wrapped();
+    int size = array.size();
 
+    for (int i = 0; i < size; i++) {
+      E element = wrapped[i];
+      if (filter.test(element, arg1)) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public E findAny(int arg1, ObjIntPredicate<? super E> filter) {
     @Nullable E[] wrapped = array.wrapped();
     int size = array.size();
 

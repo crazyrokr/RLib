@@ -1,12 +1,12 @@
-package javasabr.rlib.collections.array;
+package javasabr.rlib.collections.dictionary;
 
 import static javasabr.rlib.collections.dictionary.RefToRefDictionary.entry;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
-import javasabr.rlib.collections.dictionary.DictionaryFactory;
-import javasabr.rlib.collections.dictionary.RefToRefDictionary;
+import javasabr.rlib.collections.array.Array;
+import javasabr.rlib.collections.array.MutableArray;
 import javasabr.rlib.common.tuple.Tuple;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;

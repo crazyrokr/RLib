@@ -2,6 +2,7 @@ package javasabr.rlib.collections.array;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
+import javasabr.rlib.functions.ObjIntPredicate;
 import javasabr.rlib.functions.ObjObjLongConsumer;
 import javasabr.rlib.functions.TriConsumer;
 import org.jspecify.annotations.Nullable;
@@ -9,13 +10,16 @@ import org.jspecify.annotations.Nullable;
 public interface ArrayIterationFunctions<E> {
 
   @Nullable
-  <T> E findAny(T arg1, BiPredicate<? super E, T> filter);
+  <A> E findAny(A arg1, BiPredicate<? super E, A> filter);
 
-  <T> ArrayIterationFunctions<E> forEach(T arg1, BiConsumer<? super E, T> consumer);
+  @Nullable
+  E findAny(int arg1, ObjIntPredicate<? super E> filter);
 
-  <F, S> ArrayIterationFunctions<E> forEach(F arg1, S arg2, TriConsumer<? super E, F, S> consumer);
+  <A> ArrayIterationFunctions<E> forEach(A arg1, BiConsumer<? super E, A> consumer);
 
-  <F> ArrayIterationFunctions<E> forEach(F arg1, long arg2, ObjObjLongConsumer<? super E, F> consumer);
+  <A, B> ArrayIterationFunctions<E> forEach(A arg1, B arg2, TriConsumer<? super E, A, B> consumer);
 
-  <T> boolean anyMatch(T arg1, BiPredicate<? super E, T> filter);
+  <A> ArrayIterationFunctions<E> forEach(A arg1, long arg2, ObjObjLongConsumer<? super E, A> consumer);
+
+  <A> boolean anyMatch(A arg1, BiPredicate<? super E, A> filter);
 }

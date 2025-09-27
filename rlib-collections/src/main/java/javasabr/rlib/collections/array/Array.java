@@ -173,6 +173,11 @@ public interface Array<E> extends Iterable<E>, Serializable, Cloneable, RandomAc
    */
   int indexOf(@Nullable Object object);
 
+  /**
+   * @return the index of the object or -1.
+   */
+  <T> int indexOf(Function<E, T> getter, @Nullable Object object);
+
   int lastIndexOf(@Nullable Object object);
 
   <T > T[] toArray(T[] newArray);
