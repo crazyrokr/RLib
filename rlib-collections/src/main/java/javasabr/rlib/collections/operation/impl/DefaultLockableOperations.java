@@ -2,6 +2,7 @@ package javasabr.rlib.collections.operation.impl;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import javasabr.rlib.collections.operation.LockableOperations;
 import javasabr.rlib.collections.operation.LockableSource;
@@ -88,6 +89,16 @@ public record DefaultLockableOperations<S extends LockableSource>(S source)
     long stamp = source.writeLock();
     try {
       return function.apply(source, arg1, arg2);
+    } finally {
+      source.writeUnlock(stamp);
+    }
+  }
+
+  @Override
+  public void inWriteLock(Consumer<S> function) {
+    long stamp = source.writeLock();
+    try {
+      function.accept(source);
     } finally {
       source.writeUnlock(stamp);
     }

@@ -2,6 +2,7 @@ package javasabr.rlib.collections.operation;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import javasabr.rlib.functions.BiObjToBooleanFunction;
 import javasabr.rlib.functions.ObjIntFunction;
@@ -26,7 +27,10 @@ public interface LockableOperations<S extends LockableSource> {
 
   <R, A, B> R getInWriteLock(A arg1, B arg2, TriFunction<S, A, B, R> function);
 
-  <A, B> void inWriteLock(A arg1, B arg2, TriConsumer<S, A, B> function);
+  void inWriteLock(Consumer<S> function);
 
   <A> void inWriteLock(A arg1, BiConsumer<S, A> function);
+
+  <A, B> void inWriteLock(A arg1, B arg2, TriConsumer<S, A, B> function);
+
 }

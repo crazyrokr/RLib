@@ -13,7 +13,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import javasabr.rlib.common.function.CharSupplier;
 import javasabr.rlib.common.function.DoubleObjectConsumer;
-import javasabr.rlib.common.function.ObjectIntPredicate;
 import javasabr.rlib.common.function.ObjectLongPredicate;
 import javasabr.rlib.common.function.TripleConsumer;
 import javasabr.rlib.common.function.TripleFunction;
@@ -1259,103 +1258,6 @@ public final class ArrayUtils {
       }
 
       R subElement = getElement.apply(element);
-      if (secondCond.test(subElement, argument)) {
-        return subElement;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Find an element in the array using the condition.
-   *
-   * @param <T> the type parameter
-   * @param array the array.
-   * @param argument the argument.
-   * @param condition the condition.
-   * @return the element or null.
-   */
-
-  public static <T> @Nullable T findAny(T @Nullable [] array, int argument, ObjectIntPredicate<T> condition) {
-
-    if (array == null || array.length < 1) {
-      return null;
-    }
-
-    for (T element : array) {
-      if (condition.test(element, argument)) {
-        return element;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Find a sub-element in the array using the function to get a sub-element + the condition.
-   *
-   * @param <T> the type parameter
-   * @param <R> the type parameter
-   * @param array the array.
-   * @param argument the argument.
-   * @param getElement the function to get a sub-element.
-   * @param condition the condition.
-   * @return the element or null.
-   */
-
-  public static <T, R> @Nullable R findAny(
-      T @Nullable [] array,
-      int argument,
-      Function<T, R> getElement,
-      ObjectIntPredicate<R> condition) {
-
-    if (array == null || array.length < 1) {
-      return null;
-    }
-
-    for (T element : array) {
-      R subElement = getElement.apply(element);
-      if (condition.test(subElement, argument)) {
-        return subElement;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Find a sub-element in the array using the function to get a sub-element + conditions.
-   *
-   * @param <T> the type parameter
-   * @param <R> the type parameter
-   * @param array the array.
-   * @param argument the argument.
-   * @param firstCond the first condition.
-   * @param getElement the function to get a sub-element.
-   * @param secondCond the second condition.
-   * @return the element or null.
-   */
-
-  public static <T, R> @Nullable R findAny(
-      T @Nullable [] array,
-      int argument,
-      Predicate<T> firstCond,
-      Function<T, R> getElement,
-      ObjectIntPredicate<R> secondCond) {
-
-    if (array == null || array.length < 1) {
-      return null;
-    }
-
-    for (T element : array) {
-
-      if (!firstCond.test(element)) {
-        continue;
-      }
-
-      R subElement = getElement.apply(element);
-
       if (secondCond.test(subElement, argument)) {
         return subElement;
       }
