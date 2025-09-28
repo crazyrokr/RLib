@@ -1,3 +1,4 @@
+apply from: "$rootDir/gradle/configure-publishing.gradle"
 
 dependencies {
   compileOnly projects.rlibReusable

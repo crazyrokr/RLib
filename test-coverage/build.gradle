@@ -1,6 +1,4 @@
-plugins {
-  id 'jacoco-report-aggregation'
-}
+apply plugin: "jacoco-report-aggregation"
 
 dependencies {
   jacocoAggregation projects.rlibClasspath
@@ -20,5 +18,3 @@ dependencies {
   jacocoAggregation projects.rlibReusable
   jacocoAggregation projects.rlibTestcontainers
 }
-
-publishing.publications.remove(publishing.publications.mavenJava)

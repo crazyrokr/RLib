@@ -1,3 +1,5 @@
+apply from: "$rootDir/gradle/configure-publishing.gradle"
+
 dependencies {
   api projects.rlibCommon
   api libs.bundles.mail

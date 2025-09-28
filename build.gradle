@@ -2,16 +2,13 @@ rootProject.version = "10.0.alpha1"
 group = 'javasabr.rlib'
 
 subprojects {
-
   repositories {
     mavenCentral()
   }
 
   apply plugin: "java-library"
-  apply plugin: "jacoco"
-  apply plugin: "jacoco-report-aggregation"
   apply plugin: "java-test-fixtures"
-  apply plugin: 'maven-publish'
+  apply plugin: "jacoco"
 
   java {
     toolchain {
@@ -42,16 +39,6 @@ subprojects {
     testAnnotationProcessor libs.lombok
   }
 
-  /*compileJava {
-      inputs.property("moduleName", jar.baseName)
-      doFirst {
-          options.compilerArgs = [
-              '--module-path', classpath.asPath,
-          ]
-          classpath = files()
-      }
-  }*/
-
   tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
   }
@@ -74,35 +61,6 @@ subprojects {
     archiveClassifier = "javadoc"
     archiveBaseName = jar.archiveBaseName
     from sourceSets.main.allSource
-  }
-
-  publishing {
-    repositories {
-      maven {
-        name = "GitlabPackages"
-        url = uri("https://gitlab.com/api/v4/projects/37512056/packages/maven")
-        credentials(HttpHeaderCredentials) {
-          name = "Private-Token"
-          value = project.findProperty("gitlab.token") ?: System.getenv("GITLAB_TOKEN")
-        }
-        authentication {
-          header(HttpHeaderAuthentication)
-        }
-      }
-    }
-
-    publications {
-      mavenJava(MavenPublication) {
-        from components.java
-        version = rootProject.version
-        afterEvaluate {
-          artifactId = jar.archiveBaseName.get()
-          groupId = rootProject.group
-        }
-        artifact sourcesJar
-        artifact javadocJar
-      }
-    }
   }
 
   configurations {
