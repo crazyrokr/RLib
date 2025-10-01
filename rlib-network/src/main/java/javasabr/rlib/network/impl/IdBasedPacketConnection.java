@@ -13,20 +13,24 @@ import javasabr.rlib.network.packet.impl.IdBasedNetworkPacketWriter;
 import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldDefaults;
 
 /**
  * @author JavaSaBr
  */
 @Getter(AccessLevel.PROTECTED)
-public class IdBasedPacketConnection<R extends IdBasedReadableNetworkPacket<R>, W extends IdBasedWritableNetworkPacket> extends
-    AbstractConnection<R, W> {
+@Accessors(fluent = true, chain = false)
+@FieldDefaults(level = AccessLevel.PROTECTED)
+public class IdBasedPacketConnection<R extends IdBasedReadableNetworkPacket<R>, W extends IdBasedWritableNetworkPacket>
+    extends AbstractConnection<R, W> {
 
-  private final NetworkPacketReader packetReader;
-  private final NetworkPacketWriter packetWriter;
-  private final ReadableNetworkPacketRegistry<R> packetRegistry;
+  final NetworkPacketReader packetReader;
+  final NetworkPacketWriter packetWriter;
+  final ReadableNetworkPacketRegistry<R> packetRegistry;
 
-  private final int packetLengthHeaderSize;
-  private final int packetIdHeaderSize;
+  final int packetLengthHeaderSize;
+  final int packetIdHeaderSize;
 
   public IdBasedPacketConnection(
       Network<? extends Connection<R, W>> network,
@@ -64,8 +68,8 @@ public class IdBasedPacketConnection<R extends IdBasedReadableNetworkPacket<R>, 
         bufferAllocator,
         this::updateLastActivity,
         this::nextPacketToWrite,
-        this::onWrittenPacket,
-        this::onSentPacket,
+        this::serializedPacket,
+        this::handleSentPacket,
         packetLengthHeaderSize,
         packetIdHeaderSize);
   }

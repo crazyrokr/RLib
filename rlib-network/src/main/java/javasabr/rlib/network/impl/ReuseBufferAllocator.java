@@ -4,21 +4,19 @@ import java.nio.ByteBuffer;
 import java.util.function.Function;
 import javasabr.rlib.collections.array.ArrayFactory;
 import javasabr.rlib.collections.array.LockableArray;
-import javasabr.rlib.logger.api.Logger;
-import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.NetworkConfig;
 import javasabr.rlib.reusable.pool.Pool;
 import javasabr.rlib.reusable.pool.PoolFactory;
+import lombok.CustomLog;
 import lombok.ToString;
 
 /**
  * @author JavaSaBr
  */
 @ToString
+@CustomLog
 public class ReuseBufferAllocator implements BufferAllocator {
-
-  protected static final Logger LOGGER = LoggerManager.getLogger(ReuseBufferAllocator.class);
 
   protected final Pool<ByteBuffer> readBufferPool;
   protected final Pool<ByteBuffer> pendingBufferPool;
@@ -58,39 +56,39 @@ public class ReuseBufferAllocator implements BufferAllocator {
 
   protected Function<NetworkConfig, ByteBuffer> pendingBufferFactory() {
     return config -> {
-      var bufferSize = config.getPendingBufferSize();
-      LOGGER.debug(bufferSize, size -> "Allocate a new pending buffer with size: " + size);
+      var bufferSize = config.pendingBufferSize();
+      log.debug(bufferSize, "Allocate new pending buffer with size:[%s]"::formatted);
       return config.isDirectByteBuffer()
              ? ByteBuffer.allocateDirect(bufferSize)
              : ByteBuffer
                  .allocate(bufferSize)
-                 .order(config.getByteOrder())
+                 .order(config.byteOrder())
                  .clear();
     };
   }
 
   protected Function<NetworkConfig, ByteBuffer> readBufferFactory() {
     return config -> {
-      var bufferSize = config.getReadBufferSize();
-      LOGGER.debug(bufferSize, size -> "Allocate a new read buffer with size: " + size);
+      var bufferSize = config.readBufferSize();
+      log.debug(bufferSize, "Allocate new read buffer with size:[%s]"::formatted);
       return config.isDirectByteBuffer()
              ? ByteBuffer.allocateDirect(bufferSize)
              : ByteBuffer
                  .allocate(bufferSize)
-                 .order(config.getByteOrder())
+                 .order(config.byteOrder())
                  .clear();
     };
   }
 
   protected Function<NetworkConfig, ByteBuffer> writeBufferFactory() {
     return config -> {
-      var bufferSize = config.getWriteBufferSize();
-      LOGGER.debug(bufferSize, size -> "Allocate a new write buffer with size: " + size);
+      var bufferSize = config.writeBufferSize();
+      log.debug(bufferSize, "Allocate new write buffer with size:[%s]"::formatted);
       return config.isDirectByteBuffer()
              ? ByteBuffer.allocateDirect(bufferSize)
              : ByteBuffer
                  .allocate(bufferSize)
-                 .order(config.getByteOrder())
+                 .order(config.byteOrder())
                  .clear();
     };
   }
@@ -122,7 +120,7 @@ public class ReuseBufferAllocator implements BufferAllocator {
 
         // take it from pool if exist
         if (exist != null && byteBuffers.remove(exist)) {
-          LOGGER.debug(exist, buffer -> "Reuse old buffer: " + buffer + " - (" + buffer.hashCode() + ")");
+          log.debug(exist, buffer -> "Reuse old buffer: " + buffer + " - (" + buffer.hashCode() + ")");
           return exist;
         }
 
@@ -131,12 +129,12 @@ public class ReuseBufferAllocator implements BufferAllocator {
       }
     }
 
-    LOGGER.debug(bufferSize, size -> "Allocate a new buffer with size: " + size);
+    log.debug(bufferSize, "Allocate a new buffer with size:[%s]"::formatted);
     return config.isDirectByteBuffer()
            ? ByteBuffer.allocateDirect(bufferSize)
            : ByteBuffer
                .allocate(bufferSize)
-               .order(config.getByteOrder())
+               .order(config.byteOrder())
                .clear();
   }
 
@@ -160,7 +158,7 @@ public class ReuseBufferAllocator implements BufferAllocator {
 
   @Override
   public BufferAllocator putBuffer(ByteBuffer buffer) {
-    LOGGER.debug(buffer, buf -> "Save used temp buffer: " + buf + " - (" + buf.hashCode() + ")");
+    log.debug(buffer, buf -> "Save used temp buffer: " + buf + " - (" + buf.hashCode() + ")");
     long stamp = byteBuffers.writeLock();
     try {
       byteBuffers.add(buffer.clear());

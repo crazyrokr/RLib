@@ -9,13 +9,16 @@ import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
-public abstract class AbstractSSLConnection<R extends ReadableNetworkPacket, W extends WritableNetworkPacket> extends
-    AbstractConnection<R, W> {
+@FieldDefaults(level = AccessLevel.PROTECTED)
+public abstract class AbstractSslConnection<R extends ReadableNetworkPacket, W extends WritableNetworkPacket>
+    extends AbstractConnection<R, W> {
 
-  protected final SSLEngine sslEngine;
+  final SSLEngine sslEngine;
 
-  public AbstractSSLConnection(
+  public AbstractSslConnection(
       Network<? extends Connection<R, W>> network,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
@@ -35,6 +38,6 @@ public abstract class AbstractSSLConnection<R extends ReadableNetworkPacket, W e
   @Override
   protected void sendImpl(WritableNetworkPacket packet) {
     super.sendImpl(packet);
-    getPacketReader().startRead();
+    packetReader().startRead();
   }
 }

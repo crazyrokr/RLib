@@ -1,6 +1,5 @@
 package javasabr.rlib.network;
 
-import static java.util.stream.Collectors.toList;
 import static javasabr.rlib.network.ServerNetworkConfig.DEFAULT_SERVER;
 
 import java.net.InetSocketAddress;
@@ -50,7 +49,7 @@ public class StringNetworkTest extends BaseNetworkTest {
         .accepted()
         .flatMap(Connection::receivedEvents)
         .subscribe(event -> {
-          String message = event.packet().getData();
+          String message = event.packet().data();
           log.info(message, "Received from client:[%s]"::formatted);
           event.connection().send(new StringWritableNetworkPacket("Echo: " + message));
         });
@@ -63,7 +62,7 @@ public class StringNetworkTest extends BaseNetworkTest {
             .forEach(length -> connection.send(new StringWritableNetworkPacket(StringUtils.generate(length)))))
         .flatMapMany(Connection::receivedEvents)
         .subscribe(event -> {
-          log.info(event.packet().getData(), "Received from server:[%s]"::formatted);
+          log.info(event.packet().data(), "Received from server:[%s]"::formatted);
           counter.countDown();
         });
 
@@ -127,7 +126,7 @@ public class StringNetworkTest extends BaseNetworkTest {
           .stream()
           .filter(packet -> messages
               .stream()
-              .noneMatch(message -> message.equals(packet.getData())))
+              .noneMatch(message -> message.equals(packet.data())))
           .findFirst()
           .orElse(null);
 
@@ -172,7 +171,7 @@ public class StringNetworkTest extends BaseNetworkTest {
           .stream()
           .filter(packet -> messages
               .stream()
-              .noneMatch(message -> message.equals(packet.getData())))
+              .noneMatch(message -> message.equals(packet.data())))
           .findFirst()
           .orElse(null);
 
@@ -221,7 +220,7 @@ public class StringNetworkTest extends BaseNetworkTest {
           .stream()
           .filter(packet -> messages
               .stream()
-              .noneMatch(message -> message.equals(packet.getData())))
+              .noneMatch(message -> message.equals(packet.data())))
           .findFirst()
           .orElse(null);
 

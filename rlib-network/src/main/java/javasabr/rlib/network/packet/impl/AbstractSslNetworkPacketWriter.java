@@ -9,6 +9,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import javasabr.rlib.functions.ObjBoolConsumer;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.packet.WritableNetworkPacket;
@@ -32,7 +33,6 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
   };
 
   final SSLEngine sslEngine;
-  final Consumer<WritableNetworkPacket> packetWriter;
   final Consumer<WritableNetworkPacket> queueAtFirst;
 
   protected volatile ByteBuffer sslNetworkBuffer;
@@ -43,10 +43,9 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
       Supplier<WritableNetworkPacket> packetProvider,
-      Consumer<WritableNetworkPacket> writtenPacketHandler,
-      BiConsumer<WritableNetworkPacket, Boolean> sentPacketHandler,
+      Consumer<WritableNetworkPacket> serializedToChannelPacketHandler,
+      ObjBoolConsumer<WritableNetworkPacket> sentPacketHandler,
       SSLEngine sslEngine,
-      Consumer<WritableNetworkPacket> packetWriter,
       Consumer<WritableNetworkPacket> queueAtFirst) {
     super(
         connection,
@@ -54,10 +53,9 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
         bufferAllocator,
         updateActivityFunction,
         packetProvider,
-        writtenPacketHandler,
+        serializedToChannelPacketHandler,
         sentPacketHandler);
     this.sslEngine = sslEngine;
-    this.packetWriter = packetWriter;
     this.queueAtFirst = queueAtFirst;
     this.sslNetworkBuffer = bufferAllocator.takeBuffer(sslEngine
         .getSession()
@@ -65,12 +63,12 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
   }
 
   @Override
-  public void writeNextPacket() {
+  public boolean tryToSendNextPacket() {
     HandshakeStatus status = sslEngine.getHandshakeStatus();
     if (status == HandshakeStatus.NEED_UNWRAP) {
-      return;
+      return false;
     }
-    super.writeNextPacket();
+    return super.tryToSendNextPacket();
   }
 
   @Override

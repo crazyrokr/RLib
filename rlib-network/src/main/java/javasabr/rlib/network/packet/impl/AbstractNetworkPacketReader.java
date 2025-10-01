@@ -23,8 +23,6 @@ import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 /**
- * @param <R> the readable packet's type.
- * @param <C> the connection's type.
  * @author JavaSaBr
  */
 @CustomLog

@@ -7,7 +7,7 @@ import javasabr.rlib.network.client.impl.DefaultClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.DefaultConnection;
 import javasabr.rlib.network.impl.StringDataConnection;
-import javasabr.rlib.network.impl.StringDataSSLConnection;
+import javasabr.rlib.network.impl.StringDataSslConnection;
 import javasabr.rlib.network.packet.impl.DefaultReadableNetworkPacket;
 import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
 import javasabr.rlib.network.server.ServerNetwork;
@@ -88,13 +88,13 @@ public final class NetworkFactory {
    * Create string packet based asynchronous secure client network.
    *
    */
-  public static ClientNetwork<StringDataSSLConnection> stringDataSslClientNetwork(
+  public static ClientNetwork<StringDataSslConnection> stringDataSslClientNetwork(
       NetworkConfig networkConfig,
       BufferAllocator bufferAllocator,
       SSLContext sslContext) {
     return clientNetwork(
         networkConfig,
-        (network, channel) -> new StringDataSSLConnection(network, channel, bufferAllocator, sslContext, true));
+        (network, channel) -> new StringDataSslConnection(network, channel, bufferAllocator, sslContext, true));
   }
 
   /**
@@ -126,13 +126,13 @@ public final class NetworkFactory {
   /**
    * Create string packet based asynchronous secure server network.
    */
-  public static ServerNetwork<StringDataSSLConnection> stringDataSslServerNetwork(
+  public static ServerNetwork<StringDataSslConnection> stringDataSslServerNetwork(
       ServerNetworkConfig networkConfig,
       BufferAllocator bufferAllocator,
       SSLContext sslContext) {
     return serverNetwork(
         networkConfig,
-        (network, channel) -> new StringDataSSLConnection(network, channel, bufferAllocator, sslContext, false));
+        (network, channel) -> new StringDataSslConnection(network, channel, bufferAllocator, sslContext, false));
   }
 
   /**

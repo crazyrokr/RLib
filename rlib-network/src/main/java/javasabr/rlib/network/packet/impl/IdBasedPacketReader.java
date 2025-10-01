@@ -2,36 +2,37 @@ package javasabr.rlib.network.packet.impl;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
-import javasabr.rlib.common.function.NotNullConsumer;
+import java.util.function.Consumer;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.packet.IdBasedReadableNetworkPacket;
 import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 /**
- * @param <R> the readable packet's type.
- * @param <C> the connection's type.
  * @author JavaSaBr
  */
+@FieldDefaults(level = AccessLevel.PROTECTED)
 public class IdBasedPacketReader<R extends IdBasedReadableNetworkPacket<R>, C extends Connection<R, ?>> extends
     AbstractNetworkPacketReader<R, C> {
 
-  private final ReadableNetworkPacketRegistry<R> packetRegistry;
-  private final int packetLengthHeaderSize;
-  private final int packetIdHeaderSize;
+  final ReadableNetworkPacketRegistry<R> packetRegistry;
+  final int packetLengthHeaderSize;
+  final int packetIdHeaderSize;
 
   public IdBasedPacketReader(
       C connection,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
-      NotNullConsumer<R> readPacketHandler,
+      Consumer<R> packetHandler,
       int packetLengthHeaderSize,
       int maxPacketsByRead,
       int packetIdHeaderSize,
       ReadableNetworkPacketRegistry<R> packetRegistry) {
-    super(connection, channel, bufferAllocator, updateActivityFunction, readPacketHandler, maxPacketsByRead);
+    super(connection, channel, bufferAllocator, updateActivityFunction, packetHandler, maxPacketsByRead);
     this.packetLengthHeaderSize = packetLengthHeaderSize;
     this.packetIdHeaderSize = packetIdHeaderSize;
     this.packetRegistry = packetRegistry;
@@ -47,8 +48,9 @@ public class IdBasedPacketReader<R extends IdBasedReadableNetworkPacket<R>, C ex
     return readHeader(buffer, packetLengthHeaderSize);
   }
 
+  @Nullable
   @Override
-  protected @Nullable R createPacketFor(
+  protected R createPacketFor(
       ByteBuffer buffer,
       int startPacketPosition,
       int packetFullLength,

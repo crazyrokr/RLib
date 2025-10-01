@@ -11,9 +11,10 @@ import javax.net.ssl.SSLContext;
 /**
  * @author JavaSaBr
  */
-public class StringDataSSLConnection extends DefaultDataSSLConnection<StringReadablePacket, StringWritableNetworkPacket> {
+public class StringDataSslConnection extends
+    DefaultDataSslConnection<StringReadablePacket, StringWritableNetworkPacket> {
 
-  public StringDataSSLConnection(
+  public StringDataSslConnection(
       Network<? extends Connection<StringReadablePacket, StringWritableNetworkPacket>> network,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,

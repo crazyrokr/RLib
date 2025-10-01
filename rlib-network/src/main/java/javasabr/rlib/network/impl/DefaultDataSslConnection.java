@@ -13,20 +13,24 @@ import javasabr.rlib.network.packet.impl.DefaultSslNetworkPacketWriter;
 import javax.net.ssl.SSLContext;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldDefaults;
 
 /**
  * @author JavaSaBr
  */
 @Getter(AccessLevel.PROTECTED)
-public abstract class DefaultDataSSLConnection<R extends ReadableNetworkPacket, W extends WritableNetworkPacket> extends
-    AbstractSSLConnection<R, W> {
+@Accessors(fluent = true, chain = false)
+@FieldDefaults(level = AccessLevel.PROTECTED)
+public abstract class DefaultDataSslConnection<R extends ReadableNetworkPacket, W extends WritableNetworkPacket>
+    extends AbstractSslConnection<R, W> {
 
-  private final NetworkPacketReader packetReader;
-  private final NetworkPacketWriter packetWriter;
+  final NetworkPacketReader packetReader;
+  final NetworkPacketWriter packetWriter;
 
-  private final int packetLengthHeaderSize;
+  final int packetLengthHeaderSize;
 
-  public DefaultDataSSLConnection(
+  public DefaultDataSslConnection(
       Network<? extends Connection<R, W>> network,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
@@ -61,10 +65,9 @@ public abstract class DefaultDataSSLConnection<R extends ReadableNetworkPacket, 
         bufferAllocator,
         this::updateLastActivity,
         this::nextPacketToWrite,
-        this::onWrittenPacket,
-        this::onSentPacket,
+        this::serializedPacket,
+        this::handleSentPacket,
         sslEngine,
-        this::sendImpl,
         this::queueAtFirst,
         packetLengthHeaderSize);
   }

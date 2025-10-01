@@ -2,35 +2,36 @@ package javasabr.rlib.network.packet.impl;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.function.Consumer;
 import java.util.function.IntFunction;
-import javasabr.rlib.common.function.NotNullConsumer;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javax.net.ssl.SSLEngine;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 /**
- * @param <R> the readable packet's type.
- * @param <C> the connections' type.
  * @author JavaSaBR
  */
+@FieldDefaults(level = AccessLevel.PROTECTED)
 public class DefaultSslNetworkPacketReader<R extends ReadableNetworkPacket, C extends Connection<R, ?>> extends
     AbstractSslNetworkPacketReader<R, C> {
 
-  private final IntFunction<R> readPacketFactory;
-  private final int packetLengthHeaderSize;
+  final IntFunction<R> packetResolver;
+  final int packetLengthHeaderSize;
 
   public DefaultSslNetworkPacketReader(
       C connection,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
-      NotNullConsumer<R> readPacketHandler,
-      IntFunction<R> readPacketFactory,
+      Consumer<R> packetHandler,
+      IntFunction<R> packetResolver,
       SSLEngine sslEngine,
-      NotNullConsumer<WritableNetworkPacket> packetWriter,
+      Consumer<WritableNetworkPacket> packetWriter,
       int packetLengthHeaderSize,
       int maxPacketsByRead) {
     super(
@@ -38,11 +39,11 @@ public class DefaultSslNetworkPacketReader<R extends ReadableNetworkPacket, C ex
         channel,
         bufferAllocator,
         updateActivityFunction,
-        readPacketHandler,
+        packetHandler,
         sslEngine,
         packetWriter,
         maxPacketsByRead);
-    this.readPacketFactory = readPacketFactory;
+    this.packetResolver = packetResolver;
     this.packetLengthHeaderSize = packetLengthHeaderSize;
   }
 
@@ -56,12 +57,13 @@ public class DefaultSslNetworkPacketReader<R extends ReadableNetworkPacket, C ex
     return readHeader(buffer, packetLengthHeaderSize);
   }
 
+  @Nullable
   @Override
-  protected @Nullable R createPacketFor(
+  protected R createPacketFor(
       ByteBuffer buffer,
       int startPacketPosition,
       int packetFullLength,
       int packetDataLength) {
-    return readPacketFactory.apply(packetDataLength);
+    return packetResolver.apply(packetDataLength);
   }
 }

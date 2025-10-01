@@ -5,7 +5,7 @@ import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.DefaultConnection;
 import javasabr.rlib.network.impl.StringDataConnection;
-import javasabr.rlib.network.impl.StringDataSSLConnection;
+import javasabr.rlib.network.impl.StringDataSslConnection;
 import javasabr.rlib.network.packet.impl.DefaultReadableNetworkPacket;
 import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
 import javasabr.rlib.network.server.ServerNetwork;
@@ -48,7 +48,7 @@ public class BaseNetworkTest {
         new DefaultBufferAllocator(NetworkConfig.DEFAULT_CLIENT));
   }
 
-  protected TestNetwork<StringDataSSLConnection> buildStringSSLNetwork(
+  protected TestNetwork<StringDataSslConnection> buildStringSSLNetwork(
       SSLContext serverSSLContext,
       SSLContext clientSSLContext) {
     return buildStringSSLNetwork(
@@ -108,7 +108,7 @@ public class BaseNetworkTest {
         clientNetwork);
   }
 
-  protected TestNetwork<StringDataSSLConnection> buildStringSSLNetwork(
+  protected TestNetwork<StringDataSslConnection> buildStringSSLNetwork(
       ServerNetworkConfig serverNetworkConfig,
       BufferAllocator serverBufferAllocator,
       SSLContext serverSSLContext,
@@ -116,8 +116,8 @@ public class BaseNetworkTest {
       BufferAllocator clientBufferAllocator,
       SSLContext clientSSLContext) {
 
-    var asyncClientToServer = new CompletableFuture<StringDataSSLConnection>();
-    var asyncServerToClient = new CompletableFuture<StringDataSSLConnection>();
+    var asyncClientToServer = new CompletableFuture<StringDataSslConnection>();
+    var asyncServerToClient = new CompletableFuture<StringDataSslConnection>();
 
     var serverNetwork = NetworkFactory.stringDataSslServerNetwork(
         serverNetworkConfig,

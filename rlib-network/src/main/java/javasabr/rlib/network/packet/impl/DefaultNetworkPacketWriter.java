@@ -2,14 +2,15 @@ package javasabr.rlib.network.packet.impl;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import javasabr.rlib.functions.ObjBoolConsumer;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.packet.WritableNetworkPacket;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author JavaSaBr
@@ -25,17 +26,17 @@ public class DefaultNetworkPacketWriter<W extends WritableNetworkPacket, C exten
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
-      Supplier<WritableNetworkPacket> nextWritePacketSupplier,
-      Consumer<WritableNetworkPacket> writtenPacketHandler,
-      BiConsumer<WritableNetworkPacket, Boolean> sentPacketHandler,
+      Supplier<@Nullable WritableNetworkPacket> packetProvider,
+      Consumer<WritableNetworkPacket> serializedToChannelPacketHandler,
+      ObjBoolConsumer<WritableNetworkPacket> sentPacketHandler,
       int packetLengthHeaderSize) {
     super(
         connection,
         channel,
         bufferAllocator,
         updateActivityFunction,
-        nextWritePacketSupplier,
-        writtenPacketHandler,
+        packetProvider,
+        serializedToChannelPacketHandler,
         sentPacketHandler);
     this.packetLengthHeaderSize = packetLengthHeaderSize;
   }
@@ -46,7 +47,7 @@ public class DefaultNetworkPacketWriter<W extends WritableNetworkPacket, C exten
   }
 
   @Override
-  protected boolean onBeforeWrite(
+  protected boolean onBeforeSerialize(
       W packet,
       int expectedLength,
       int totalSize,
@@ -59,13 +60,14 @@ public class DefaultNetworkPacketWriter<W extends WritableNetworkPacket, C exten
   }
 
   @Override
-  protected ByteBuffer onResult(
+  protected ByteBuffer onSerializeResult(
       W packet,
       int expectedLength,
       int totalSize,
       ByteBuffer firstBuffer,
       ByteBuffer secondBuffer) {
-    return writePacketLength(firstBuffer, firstBuffer.limit()).position(0);
+    return writePacketLength(firstBuffer, firstBuffer.limit())
+        .position(0);
   }
 
   protected ByteBuffer writePacketLength(ByteBuffer buffer, int packetLength) {
