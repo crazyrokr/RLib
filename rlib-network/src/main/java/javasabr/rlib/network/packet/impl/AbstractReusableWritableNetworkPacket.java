@@ -10,30 +10,37 @@ import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.network.packet.ReusableWritablePacket;
 import javasabr.rlib.reusable.pool.Pool;
 import javasabr.rlib.reusable.pool.PoolFactory;
+import lombok.AccessLevel;
+import lombok.CustomLog;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The reusable implementation of {@link AbstractWritablePacket} using the counter to control the life cycle of this
+ * The reusable implementation of {@link AbstractWritableNetworkPacket} using the counter to control the life cycle of this
  * packet.
  *
  * @author JavaSaBr
  */
-public abstract class AbstractReusableWritablePacket extends AbstractWritablePacket implements ReusableWritablePacket {
+@CustomLog
+@FieldDefaults(level = AccessLevel.PROTECTED)
+public abstract class AbstractReusableWritableNetworkPacket extends AbstractWritableNetworkPacket
+    implements ReusableWritablePacket {
 
-  protected static final ThreadLocal<Map<Class<? super ReusableWritablePacket>, Pool<ReusableWritablePacket>>> LOCAL_POOLS = ThreadLocal.withInitial(
-      HashMap::new);
+  protected static final ThreadLocal<Map<Class<? super ReusableWritablePacket>, Pool<ReusableWritablePacket>>>
+      LOCAL_POOLS = ThreadLocal.withInitial(HashMap::new);
 
-  protected final AtomicInteger counter;
+  final AtomicInteger counter;
 
   /**
    * The pool to store this packet after using.
    */
-  protected volatile @Nullable Pool<ReusableWritablePacket> pool;
-  protected volatile int barrier;
+  @Nullable
+  volatile Pool<ReusableWritablePacket> pool;
+  volatile int barrier;
 
-  protected int barrierSink;
+  int barrierSink;
 
-  public AbstractReusableWritablePacket() {
+  public AbstractReusableWritableNetworkPacket() {
     this.counter = new AtomicInteger();
   }
 
@@ -41,11 +48,8 @@ public abstract class AbstractReusableWritablePacket extends AbstractWritablePac
   public boolean write(ByteBuffer buffer) {
 
     if (counter.get() < 1) {
-      LOGGER.warning(
-          this,
-          arg -> "Attempt to write is already finished packet " + arg + " on thread " + Thread
-              .currentThread()
-              .getName());
+      log.warning(this, arg ->
+          "Attempt to write is already finished packet:[%s] on thread:[%s]".formatted(arg, Thread.currentThread().getName()));
       return false;
     }
 
@@ -115,11 +119,11 @@ public abstract class AbstractReusableWritablePacket extends AbstractWritablePac
   }
 
   /**
-   * Get thread local pool.
+   * Gets thread local pool.
    *
    * @return thread local pool.
    */
-  protected Pool<ReusableWritablePacket> getThreadLocalPool() {
+  protected Pool<ReusableWritablePacket> threadLocalPool() {
     Class<ReusableWritablePacket> packetClass = ClassUtils.unsafeNNCast(getClass());
     return LOCAL_POOLS
         .get()
@@ -127,22 +131,20 @@ public abstract class AbstractReusableWritablePacket extends AbstractWritablePac
   }
 
   /**
-   * Get the pool to store used packet.
+   * Gets the pool to store used packet.
    *
    * @return the pool to store used packet.
    */
   protected Pool<ReusableWritablePacket> getPool() {
 
     Pool<ReusableWritablePacket> local = this.pool;
-
     if (local != null) {
       return local;
     }
 
-    this.pool = getThreadLocalPool();
+    this.pool = threadLocalPool();
 
     local = this.pool;
-
     return notNull(local);
   }
 
@@ -200,6 +202,6 @@ public abstract class AbstractReusableWritablePacket extends AbstractWritablePac
 
   @Override
   public String toString() {
-    return "AbstractReusableSendablePacket{" + "counter=" + counter + "} " + super.toString();
+    return "AbstractReusableWritableNetworkPacket{" + "counter=" + counter + "} " + super.toString();
   }
 }

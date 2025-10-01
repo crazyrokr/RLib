@@ -4,12 +4,12 @@ import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.Network;
-import javasabr.rlib.network.packet.PacketReader;
-import javasabr.rlib.network.packet.PacketWriter;
-import javasabr.rlib.network.packet.ReadablePacket;
-import javasabr.rlib.network.packet.WritablePacket;
-import javasabr.rlib.network.packet.impl.DefaultPacketReader;
-import javasabr.rlib.network.packet.impl.DefaultPacketWriter;
+import javasabr.rlib.network.packet.NetworkPacketReader;
+import javasabr.rlib.network.packet.NetworkPacketWriter;
+import javasabr.rlib.network.packet.ReadableNetworkPacket;
+import javasabr.rlib.network.packet.WritableNetworkPacket;
+import javasabr.rlib.network.packet.impl.DefaultNetworkPacketReader;
+import javasabr.rlib.network.packet.impl.DefaultNetworkPacketWriter;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -17,11 +17,11 @@ import lombok.Getter;
  * @author JavaSaBr
  */
 @Getter(AccessLevel.PROTECTED)
-public abstract class DefaultDataConnection<R extends ReadablePacket, W extends WritablePacket> extends
+public abstract class DefaultDataConnection<R extends ReadableNetworkPacket, W extends WritableNetworkPacket> extends
     AbstractConnection<R, W> {
 
-  private final PacketReader packetReader;
-  private final PacketWriter packetWriter;
+  private final NetworkPacketReader packetReader;
+  private final NetworkPacketWriter packetWriter;
 
   private final int packetLengthHeaderSize;
 
@@ -37,8 +37,8 @@ public abstract class DefaultDataConnection<R extends ReadablePacket, W extends 
     this.packetWriter = createPacketWriter();
   }
 
-  protected PacketReader createPacketReader() {
-    return new DefaultPacketReader<>(
+  protected NetworkPacketReader createPacketReader() {
+    return new DefaultNetworkPacketReader<>(
         this,
         channel,
         bufferAllocator,
@@ -49,8 +49,8 @@ public abstract class DefaultDataConnection<R extends ReadablePacket, W extends 
         maxPacketsByRead);
   }
 
-  protected PacketWriter createPacketWriter() {
-    return new DefaultPacketWriter<W, Connection<R, W>>(
+  protected NetworkPacketWriter createPacketWriter() {
+    return new DefaultNetworkPacketWriter<W, Connection<R, W>>(
         this,
         channel,
         bufferAllocator,

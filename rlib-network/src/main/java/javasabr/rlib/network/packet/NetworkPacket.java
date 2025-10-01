@@ -5,12 +5,10 @@ package javasabr.rlib.network.packet;
  *
  * @author JavaSaBr
  */
-public interface Packet {
+public interface NetworkPacket {
 
   /**
-   * Get packet's name.
-   *
    * @return the packet's name.
    */
-  String getName();
+  String name();
 }

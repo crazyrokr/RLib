@@ -4,13 +4,13 @@ import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.Network;
-import javasabr.rlib.network.packet.ReadablePacket;
-import javasabr.rlib.network.packet.WritablePacket;
+import javasabr.rlib.network.packet.ReadableNetworkPacket;
+import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 
-public abstract class AbstractSSLConnection<R extends ReadablePacket, W extends WritablePacket> extends
+public abstract class AbstractSSLConnection<R extends ReadableNetworkPacket, W extends WritableNetworkPacket> extends
     AbstractConnection<R, W> {
 
   protected final SSLEngine sslEngine;
@@ -33,7 +33,7 @@ public abstract class AbstractSSLConnection<R extends ReadablePacket, W extends 
   }
 
   @Override
-  protected void sendImpl(WritablePacket packet) {
+  protected void sendImpl(WritableNetworkPacket packet) {
     super.sendImpl(packet);
     getPacketReader().startRead();
   }

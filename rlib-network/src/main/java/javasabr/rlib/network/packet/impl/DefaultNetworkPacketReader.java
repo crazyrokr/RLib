@@ -2,11 +2,13 @@ package javasabr.rlib.network.packet.impl;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.function.Consumer;
 import java.util.function.IntFunction;
-import javasabr.rlib.common.function.NotNullConsumer;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
-import javasabr.rlib.network.packet.ReadablePacket;
+import javasabr.rlib.network.packet.ReadableNetworkPacket;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -14,23 +16,24 @@ import org.jspecify.annotations.Nullable;
  * @param <C> the connections' type.
  * @author JavaSaBR
  */
-public class DefaultPacketReader<R extends ReadablePacket, C extends Connection<R, ?>> extends
-    AbstractPacketReader<R, C> {
+@FieldDefaults(level = AccessLevel.PROTECTED)
+public class DefaultNetworkPacketReader<R extends ReadableNetworkPacket, C extends Connection<R, ?>>
+    extends AbstractNetworkPacketReader<R, C> {
 
-  private final IntFunction<R> readPacketFactory;
-  private final int packetLengthHeaderSize;
+  final IntFunction<R> readablePacketFactory;
+  final int packetLengthHeaderSize;
 
-  public DefaultPacketReader(
+  public DefaultNetworkPacketReader(
       C connection,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
-      NotNullConsumer<R> readPacketHandler,
-      IntFunction<R> readPacketFactory,
+      Consumer<R> packetHandler,
+      IntFunction<R> readablePacketFactory,
       int packetLengthHeaderSize,
       int maxPacketsByRead) {
-    super(connection, channel, bufferAllocator, updateActivityFunction, readPacketHandler, maxPacketsByRead);
-    this.readPacketFactory = readPacketFactory;
+    super(connection, channel, bufferAllocator, updateActivityFunction, packetHandler, maxPacketsByRead);
+    this.readablePacketFactory = readablePacketFactory;
     this.packetLengthHeaderSize = packetLengthHeaderSize;
   }
 
@@ -40,16 +43,17 @@ public class DefaultPacketReader<R extends ReadablePacket, C extends Connection<
   }
 
   @Override
-  protected int readPacketLength(ByteBuffer buffer) {
+  protected int readFullPacketLength(ByteBuffer buffer) {
     return readHeader(buffer, packetLengthHeaderSize);
   }
 
+  @Nullable
   @Override
-  protected @Nullable R createPacketFor(
+  protected R createPacketFor(
       ByteBuffer buffer,
       int startPacketPosition,
-      int packetLength,
-      int dataLength) {
-    return readPacketFactory.apply(dataLength);
+      int packetFullLength,
+      int packetDataLength) {
+    return readablePacketFactory.apply(packetDataLength);
   }
 }

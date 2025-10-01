@@ -1,9 +1,10 @@
 package javasabr.rlib.network;
 
 import java.nio.ByteOrder;
-import javasabr.rlib.common.util.GroupThreadFactory;
+import javasabr.rlib.common.util.GroupThreadFactory.ThreadConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.Accessors;
 
 /**
  * The interface to implement a server network config.
@@ -14,6 +15,7 @@ public interface ServerNetworkConfig extends NetworkConfig {
 
   @Builder
   @Getter
+  @Accessors(fluent = true, chain = false)
   class SimpleServerNetworkConfig implements ServerNetworkConfig {
 
     @Builder.Default
@@ -21,7 +23,7 @@ public interface ServerNetworkConfig extends NetworkConfig {
     @Builder.Default
     private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
     @Builder.Default
-    private GroupThreadFactory.ThreadConstructor threadConstructor = Thread::new;
+    private ThreadConstructor threadConstructor = Thread::new;
 
     @Builder.Default
     private int readBufferSize = 2048;
@@ -38,40 +40,34 @@ public interface ServerNetworkConfig extends NetworkConfig {
   ServerNetworkConfig DEFAULT_SERVER = new ServerNetworkConfig() {
 
     @Override
-    public int getThreadGroupMinSize() {
+    public int threadGroupMinSize() {
       return 1;
     }
 
     @Override
-    public String getThreadGroupName() {
+    public String threadGroupName() {
       return "ServerNetworkThread";
     }
   };
 
   /**
    * Get a minimal size of network thread executor.
-   *
-   * @return the minimal executor size.
    */
-  default int getThreadGroupMinSize() {
+  default int threadGroupMinSize() {
     return 1;
   }
 
   /**
    * Get a maximum size of network thread executor.
-   *
-   * @return the maximum executor size.
    */
-  default int getThreadGroupMaxSize() {
-    return getThreadGroupMinSize();
+  default int threadGroupMaxSize() {
+    return threadGroupMinSize();
   }
 
   /**
    * Get a thread constructor which should be used to create network threads.
-   *
-   * @return the thread constructor.
    */
-  default GroupThreadFactory.ThreadConstructor getThreadConstructor() {
+  default ThreadConstructor threadConstructor() {
     return Thread::new;
   }
 
@@ -80,7 +76,7 @@ public interface ServerNetworkConfig extends NetworkConfig {
    *
    * @return the priority of network threads.
    */
-  default int getThreadPriority() {
+  default int threadPriority() {
     return Thread.NORM_PRIORITY;
   }
 }

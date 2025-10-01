@@ -5,8 +5,8 @@ import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.common.function.NotNullConsumer;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
-import javasabr.rlib.network.packet.IdBasedReadablePacket;
-import javasabr.rlib.network.packet.registry.ReadablePacketRegistry;
+import javasabr.rlib.network.packet.IdBasedReadableNetworkPacket;
+import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -14,10 +14,10 @@ import org.jspecify.annotations.Nullable;
  * @param <C> the connection's type.
  * @author JavaSaBr
  */
-public class IdBasedPacketReader<R extends IdBasedReadablePacket<R>, C extends Connection<R, ?>> extends
-    AbstractPacketReader<R, C> {
+public class IdBasedPacketReader<R extends IdBasedReadableNetworkPacket<R>, C extends Connection<R, ?>> extends
+    AbstractNetworkPacketReader<R, C> {
 
-  private final ReadablePacketRegistry<R> packetRegistry;
+  private final ReadableNetworkPacketRegistry<R> packetRegistry;
   private final int packetLengthHeaderSize;
   private final int packetIdHeaderSize;
 
@@ -30,7 +30,7 @@ public class IdBasedPacketReader<R extends IdBasedReadablePacket<R>, C extends C
       int packetLengthHeaderSize,
       int maxPacketsByRead,
       int packetIdHeaderSize,
-      ReadablePacketRegistry<R> packetRegistry) {
+      ReadableNetworkPacketRegistry<R> packetRegistry) {
     super(connection, channel, bufferAllocator, updateActivityFunction, readPacketHandler, maxPacketsByRead);
     this.packetLengthHeaderSize = packetLengthHeaderSize;
     this.packetIdHeaderSize = packetIdHeaderSize;
@@ -43,7 +43,7 @@ public class IdBasedPacketReader<R extends IdBasedReadablePacket<R>, C extends C
   }
 
   @Override
-  protected int readPacketLength(ByteBuffer buffer) {
+  protected int readFullPacketLength(ByteBuffer buffer) {
     return readHeader(buffer, packetLengthHeaderSize);
   }
 
@@ -51,10 +51,10 @@ public class IdBasedPacketReader<R extends IdBasedReadablePacket<R>, C extends C
   protected @Nullable R createPacketFor(
       ByteBuffer buffer,
       int startPacketPosition,
-      int packetLength,
-      int dataLength) {
+      int packetFullLength,
+      int packetDataLength) {
     return packetRegistry
-        .findById(readHeader(buffer, packetIdHeaderSize))
+        .resolvePrototypeById(readHeader(buffer, packetIdHeaderSize))
         .newInstance();
   }
 }

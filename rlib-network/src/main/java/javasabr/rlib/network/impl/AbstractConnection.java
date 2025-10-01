@@ -18,10 +18,10 @@ import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.Network;
 import javasabr.rlib.network.UnsafeConnection;
-import javasabr.rlib.network.packet.PacketReader;
-import javasabr.rlib.network.packet.PacketWriter;
-import javasabr.rlib.network.packet.ReadablePacket;
-import javasabr.rlib.network.packet.WritablePacket;
+import javasabr.rlib.network.packet.NetworkPacketReader;
+import javasabr.rlib.network.packet.NetworkPacketWriter;
+import javasabr.rlib.network.packet.ReadableNetworkPacket;
+import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javasabr.rlib.network.packet.impl.WritablePacketWrapper;
 import javasabr.rlib.network.util.NetworkUtils;
 import lombok.Getter;
@@ -34,12 +34,12 @@ import reactor.core.publisher.FluxSink;
  *
  * @author JavaSaBr
  */
-public abstract class AbstractConnection<R extends ReadablePacket, W extends WritablePacket> implements
+public abstract class AbstractConnection<R extends ReadableNetworkPacket, W extends WritableNetworkPacket> implements
     UnsafeConnection<R, W> {
 
   private static final Logger LOGGER = LoggerManager.getLogger(AbstractConnection.class);
 
-  private static class WritablePacketWithFeedback<W extends WritablePacket> extends
+  private static class WritablePacketWithFeedback<W extends WritableNetworkPacket> extends
       WritablePacketWrapper<CompletableFuture<Boolean>, W> {
 
     public WritablePacketWithFeedback(CompletableFuture<Boolean> attachment, W packet) {
@@ -53,7 +53,7 @@ public abstract class AbstractConnection<R extends ReadablePacket, W extends Wri
   protected final Network<? extends Connection<R, W>> network;
   protected final BufferAllocator bufferAllocator;
   protected final AsynchronousSocketChannel channel;
-  protected final Deque<WritablePacket> pendingPackets;
+  protected final Deque<WritableNetworkPacket> pendingPackets;
   protected final StampedLock lock;
 
   protected final AtomicBoolean isWriting;
@@ -86,9 +86,9 @@ public abstract class AbstractConnection<R extends ReadablePacket, W extends Wri
   public void onConnected() {
   }
 
-  protected abstract PacketReader getPacketReader();
+  protected abstract NetworkPacketReader getPacketReader();
 
-  protected abstract PacketWriter getPacketWriter();
+  protected abstract NetworkPacketWriter getPacketWriter();
 
   protected void handleReceivedPacket(R packet) {
     LOGGER.debug(
@@ -138,7 +138,7 @@ public abstract class AbstractConnection<R extends ReadablePacket, W extends Wri
     sink.onDispose(() -> subscribers.remove(listener));
   }
 
-  protected @Nullable WritablePacket nextPacketToWrite() {
+  protected @Nullable WritableNetworkPacket nextPacketToWrite() {
     long stamp = lock.writeLock();
     try {
       return pendingPackets.poll();
@@ -181,10 +181,10 @@ public abstract class AbstractConnection<R extends ReadablePacket, W extends Wri
     return closed.get();
   }
 
-  protected void onWrittenPacket(WritablePacket packet) {
+  protected void onWrittenPacket(WritableNetworkPacket packet) {
   }
 
-  protected void onSentPacket(WritablePacket packet, Boolean result) {
+  protected void onSentPacket(WritableNetworkPacket packet, Boolean result) {
     if (packet instanceof WritablePacketWithFeedback) {
       ((WritablePacketWithFeedback<W>) packet)
           .getAttachment()
@@ -197,7 +197,7 @@ public abstract class AbstractConnection<R extends ReadablePacket, W extends Wri
     sendImpl(packet);
   }
 
-  protected void sendImpl(WritablePacket packet) {
+  protected void sendImpl(WritableNetworkPacket packet) {
 
     if (isClosed()) {
       return;
@@ -213,7 +213,7 @@ public abstract class AbstractConnection<R extends ReadablePacket, W extends Wri
     getPacketWriter().writeNextPacket();
   }
 
-  protected void queueAtFirst(WritablePacket packet) {
+  protected void queueAtFirst(WritableNetworkPacket packet) {
     long stamp = lock.writeLock();
     try {
       pendingPackets.addFirst(packet);

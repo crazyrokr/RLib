@@ -6,8 +6,8 @@ import java.util.function.IntFunction;
 import javasabr.rlib.common.function.NotNullConsumer;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
-import javasabr.rlib.network.packet.ReadablePacket;
-import javasabr.rlib.network.packet.WritablePacket;
+import javasabr.rlib.network.packet.ReadableNetworkPacket;
+import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javax.net.ssl.SSLEngine;
 import org.jspecify.annotations.Nullable;
 
@@ -16,13 +16,13 @@ import org.jspecify.annotations.Nullable;
  * @param <C> the connections' type.
  * @author JavaSaBR
  */
-public class DefaultSSLPacketReader<R extends ReadablePacket, C extends Connection<R, ?>> extends
-    AbstractSSLPacketReader<R, C> {
+public class DefaultSslNetworkPacketReader<R extends ReadableNetworkPacket, C extends Connection<R, ?>> extends
+    AbstractSslNetworkPacketReader<R, C> {
 
   private final IntFunction<R> readPacketFactory;
   private final int packetLengthHeaderSize;
 
-  public DefaultSSLPacketReader(
+  public DefaultSslNetworkPacketReader(
       C connection,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
@@ -30,7 +30,7 @@ public class DefaultSSLPacketReader<R extends ReadablePacket, C extends Connecti
       NotNullConsumer<R> readPacketHandler,
       IntFunction<R> readPacketFactory,
       SSLEngine sslEngine,
-      NotNullConsumer<WritablePacket> packetWriter,
+      NotNullConsumer<WritableNetworkPacket> packetWriter,
       int packetLengthHeaderSize,
       int maxPacketsByRead) {
     super(
@@ -52,7 +52,7 @@ public class DefaultSSLPacketReader<R extends ReadablePacket, C extends Connecti
   }
 
   @Override
-  protected int readPacketLength(ByteBuffer buffer) {
+  protected int readFullPacketLength(ByteBuffer buffer) {
     return readHeader(buffer, packetLengthHeaderSize);
   }
 
@@ -60,8 +60,8 @@ public class DefaultSSLPacketReader<R extends ReadablePacket, C extends Connecti
   protected @Nullable R createPacketFor(
       ByteBuffer buffer,
       int startPacketPosition,
-      int packetLength,
-      int dataLength) {
-    return readPacketFactory.apply(dataLength);
+      int packetFullLength,
+      int packetDataLength) {
+    return readPacketFactory.apply(packetDataLength);
   }
 }

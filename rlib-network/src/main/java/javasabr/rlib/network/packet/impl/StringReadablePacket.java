@@ -9,7 +9,7 @@ import org.jspecify.annotations.Nullable;
  * @author JavaSaBr
  */
 @Getter
-public class StringReadablePacket extends AbstractReadablePacket<Connection<?, ?>> {
+public class StringReadablePacket extends AbstractReadableNetworkPacket<Connection<?, ?>> {
 
   /**
    * Read data.

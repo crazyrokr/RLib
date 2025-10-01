@@ -20,10 +20,10 @@ import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerLevel;
 import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
-import javasabr.rlib.network.packet.impl.AbstractSSLPacketReader;
-import javasabr.rlib.network.packet.impl.AbstractSSLPacketWriter;
+import javasabr.rlib.network.packet.impl.AbstractSslNetworkPacketReader;
+import javasabr.rlib.network.packet.impl.AbstractSslNetworkPacketWriter;
 import javasabr.rlib.network.packet.impl.StringReadablePacket;
-import javasabr.rlib.network.packet.impl.StringWritablePacket;
+import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 import javasabr.rlib.network.util.NetworkUtils;
 import javax.net.ssl.SSLSocket;
 import lombok.SneakyThrows;
@@ -89,7 +89,7 @@ public class StringSSLNetworkTest extends BaseNetworkTest {
         .subscribe(event -> {
           var message = event.packet.getData();
           LOGGER.info("Received from client: " + message);
-          event.connection.send(new StringWritablePacket("Echo: " + message));
+          event.connection.send(new StringWritableNetworkPacket("Echo: " + message));
         });
 
     var clientSslContext = NetworkUtils.createAllTrustedClientSslContext();
@@ -99,7 +99,7 @@ public class StringSSLNetworkTest extends BaseNetworkTest {
     var buffer = ByteBuffer.allocate(1024);
     buffer.position(2);
 
-    new StringWritablePacket("Hello SSL").write(buffer);
+    new StringWritableNetworkPacket("Hello SSL").write(buffer);
 
     buffer.putShort(0, (short) buffer.position());
     buffer.flip();
@@ -151,7 +151,7 @@ public class StringSSLNetworkTest extends BaseNetworkTest {
 
     clientNetwork
         .connected(new InetSocketAddress("localhost", serverPort))
-        .doOnNext(connection -> connection.send(new StringWritablePacket("Hello SSL")))
+        .doOnNext(connection -> connection.send(new StringWritableNetworkPacket("Hello SSL")))
         .doOnError(Throwable::printStackTrace)
         .flatMapMany(Connection::receivedEvents)
         .subscribe(event -> {
@@ -182,7 +182,7 @@ public class StringSSLNetworkTest extends BaseNetworkTest {
     buffer.clear();
     buffer.position(2);
 
-    new StringWritablePacket("Echo: Hello SSL").write(buffer);
+    new StringWritableNetworkPacket("Echo: Hello SSL").write(buffer);
 
     buffer.putShort(0, (short) buffer.position());
     buffer.flip();
@@ -228,7 +228,7 @@ public class StringSSLNetworkTest extends BaseNetworkTest {
         .subscribe(event -> {
           var message = event.packet.getData();
           LOGGER.info("Received from client: " + message);
-          event.connection.send(new StringWritablePacket("Echo: " + message));
+          event.connection.send(new StringWritableNetworkPacket("Echo: " + message));
         });
 
     var clientSslContext = NetworkUtils.createAllTrustedClientSslContext();
@@ -267,8 +267,8 @@ public class StringSSLNetworkTest extends BaseNetworkTest {
     //System.setProperty("javax.net.debug", "all");
     //LoggerManager.enable(AbstractPacketReader.class, LoggerLevel.DEBUG);
     //LoggerManager.enable(AbstractPacketWriter.class, LoggerLevel.DEBUG);
-    LoggerManager.enable(AbstractSSLPacketWriter.class, LoggerLevel.DEBUG);
-    LoggerManager.enable(AbstractSSLPacketReader.class, LoggerLevel.DEBUG);
+    LoggerManager.enable(AbstractSslNetworkPacketWriter.class, LoggerLevel.DEBUG);
+    LoggerManager.enable(AbstractSslNetworkPacketReader.class, LoggerLevel.DEBUG);
 
     var keystoreFile = StringSSLNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
     var serverSSLContext = NetworkUtils.createSslContext(keystoreFile, "test");
@@ -296,7 +296,7 @@ public class StringSSLNetworkTest extends BaseNetworkTest {
             var length = value % 3 == 0 ? bufferSize : random.nextInt(0, bufferSize / 2 - 1);
             return StringUtils.generate(length);
           })
-          .peek(message -> clientToServer.send(new StringWritablePacket(message)))
+          .peek(message -> clientToServer.send(new StringWritableNetworkPacket(message)))
           .collect(toList());
 
       var receivedPackets = ObjectUtils.notNull(pendingPacketsOnServer.blockFirst(Duration.ofSeconds(5000)));
@@ -315,7 +315,7 @@ public class StringSSLNetworkTest extends BaseNetworkTest {
     }
   }
 
-  private static StringWritablePacket newMessage(int minMessageLength, int maxMessageLength) {
-    return new StringWritablePacket(StringUtils.generate(minMessageLength, maxMessageLength));
+  private static StringWritableNetworkPacket newMessage(int minMessageLength, int maxMessageLength) {
+    return new StringWritableNetworkPacket(StringUtils.generate(minMessageLength, maxMessageLength));
   }
 }

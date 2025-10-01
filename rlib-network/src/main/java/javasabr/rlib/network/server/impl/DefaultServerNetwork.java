@@ -1,7 +1,5 @@
 package javasabr.rlib.network.server.impl;
 
-import static javasabr.rlib.common.util.Utils.uncheckedGet;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AcceptPendingException;
@@ -11,6 +9,7 @@ import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -22,14 +21,15 @@ import javasabr.rlib.collections.array.MutableArray;
 import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.common.util.GroupThreadFactory;
 import javasabr.rlib.common.util.Utils;
-import javasabr.rlib.logger.api.Logger;
-import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.Network;
 import javasabr.rlib.network.ServerNetworkConfig;
 import javasabr.rlib.network.UnsafeConnection;
 import javasabr.rlib.network.impl.AbstractNetwork;
 import javasabr.rlib.network.server.ServerNetwork;
 import javasabr.rlib.network.util.NetworkUtils;
+import lombok.AccessLevel;
+import lombok.CustomLog;
+import lombok.experimental.FieldDefaults;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
@@ -38,10 +38,10 @@ import reactor.core.publisher.FluxSink;
  *
  * @author JavaSaBr
  */
-public final class DefaultServerNetwork<C extends UnsafeConnection<?, ?>> extends AbstractNetwork<C> implements
-    ServerNetwork<C> {
-
-  protected static final Logger LOGGER = LoggerManager.getLogger(DefaultServerNetwork.class);
+@CustomLog
+@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
+public class DefaultServerNetwork<C extends UnsafeConnection<?, ?>>
+    extends AbstractNetwork<C> implements ServerNetwork<C> {
 
   private interface ServerCompletionHandler<C extends UnsafeConnection<?, ?>> extends
       CompletionHandler<AsynchronousSocketChannel, DefaultServerNetwork<C>> {}
@@ -50,8 +50,8 @@ public final class DefaultServerNetwork<C extends UnsafeConnection<?, ?>> extend
 
     @Override
     public void completed(AsynchronousSocketChannel channel, DefaultServerNetwork<C> network) {
-      var connection = network.channelToConnection.apply(DefaultServerNetwork.this, channel);
-      LOGGER.debug(connection, conn -> "Accepted new connection: " + conn.getRemoteAddress());
+      var connection = network.channelToConnection.apply(network, channel);
+      log.debug(connection.remoteAddress(), "Accepted new connection:[%s]"::formatted);
       network.onAccept(connection);
       network.acceptNext();
     }
@@ -59,11 +59,10 @@ public final class DefaultServerNetwork<C extends UnsafeConnection<?, ?>> extend
     @Override
     public void failed(Throwable exc, DefaultServerNetwork<C> network) {
       if (exc instanceof AsynchronousCloseException) {
-        LOGGER.warning("Server network was closed");
+        log.warning("Server network was closed");
       } else {
-        LOGGER.error("Got exception during accepting new connection:");
-        LOGGER.error(exc);
-
+        log.error("Got exception during accepting new connection:");
+        log.error(exc);
         if (channel.isOpen()) {
           network.acceptNext();
         }
@@ -71,56 +70,25 @@ public final class DefaultServerNetwork<C extends UnsafeConnection<?, ?>> extend
     }
   };
 
-  protected final AsynchronousChannelGroup group;
-  protected final AsynchronousServerSocketChannel channel;
-  protected final MutableArray<Consumer<? super C>> subscribers;
+  AsynchronousChannelGroup group;
+  AsynchronousServerSocketChannel channel;
+  MutableArray<Consumer<? super C>> subscribers;
 
   public DefaultServerNetwork(
       ServerNetworkConfig config,
       BiFunction<Network<C>, AsynchronousSocketChannel, C> channelToConnection) {
-
     super(config, channelToConnection);
-
-    var threadFactory = new GroupThreadFactory(
-        config.getThreadGroupName(),
-        config.getThreadConstructor(),
-        config.getThreadPriority(),
-        false);
-
-    var executor = config.getThreadGroupMinSize() < config.getThreadGroupMaxSize()
-                   ? new ThreadPoolExecutor(
-        config.getThreadGroupMinSize(),
-        config.getThreadGroupMaxSize(),
-        120,
-        TimeUnit.SECONDS,
-        new SynchronousQueue<>(),
-        threadFactory,
-        new ThreadPoolExecutor.CallerRunsPolicy())
-                   : Executors.newFixedThreadPool(config.getThreadGroupMinSize(), threadFactory);
-
-    // activate the executor
-    executor.submit(() -> {});
-
-    LOGGER.info(
-        config,
-        conf -> "Server network configuration: {\n" + "  minThreads: " + conf.getThreadGroupMinSize() + ",\n"
-            + "  maxThreads: " + conf.getThreadGroupMaxSize() + ",\n" + "  priority: " + conf.getThreadPriority()
-            + ",\n" + "  groupName: \"" + conf.getThreadGroupName() + "\",\n" + "  readBufferSize: "
-            + conf.getReadBufferSize() + ",\n" + "  pendingBufferSize: " + conf.getPendingBufferSize() + ",\n"
-            + "  writeBufferSize: " + conf.getWriteBufferSize() + "\n" + "}");
-
-    this.group = uncheckedGet(executor, AsynchronousChannelGroup::withThreadPool);
-    this.channel = uncheckedGet(group, AsynchronousServerSocketChannel::open);
+    this.group = Utils.uncheckedGet(buildExecutor(config), AsynchronousChannelGroup::withThreadPool);
+    this.channel = Utils.uncheckedGet(group, AsynchronousServerSocketChannel::open);
     this.subscribers = ArrayFactory.copyOnModifyArray(Consumer.class);
+    log.info(config, DefaultServerNetwork::buildConfigDescription);
   }
 
   @Override
   public InetSocketAddress start() {
 
     InetSocketAddress address = null;
-
     while (address == null) {
-
       address = new InetSocketAddress(NetworkUtils.getAvailablePort(1500));
       try {
         channel.bind(address);
@@ -129,7 +97,7 @@ public final class DefaultServerNetwork<C extends UnsafeConnection<?, ?>> extend
       }
     }
 
-    LOGGER.info(address, adr -> "Started server socket on address: " + adr);
+    log.info(address, "Started server socket on address:[%s]"::formatted);
 
     if (!subscribers.isEmpty()) {
       acceptNext();
@@ -141,13 +109,10 @@ public final class DefaultServerNetwork<C extends UnsafeConnection<?, ?>> extend
   @Override
   public <S extends ServerNetwork<C>> S start(InetSocketAddress serverAddress) {
     Utils.unchecked(channel, serverAddress, AsynchronousServerSocketChannel::bind);
-
-    LOGGER.info(serverAddress, addr -> "Started server socket on address: " + addr);
-
+    log.info(serverAddress, addr -> "Started server socket on address: " + addr);
     if (!subscribers.isEmpty()) {
       acceptNext();
     }
-
     return ClassUtils.unsafeNNCast(this);
   }
 
@@ -155,10 +120,9 @@ public final class DefaultServerNetwork<C extends UnsafeConnection<?, ?>> extend
     if (channel.isOpen()) {
       try {
         channel.accept(this, acceptHandler);
-      } catch (AcceptPendingException ignored) {
-      }
+      } catch (AcceptPendingException ignored) {}
     } else {
-      LOGGER.warning("Cannot accept a next connection because server channel is already closed");
+      log.error("Cannot accept next connection because server channel is already closed");
     }
   }
 
@@ -190,5 +154,40 @@ public final class DefaultServerNetwork<C extends UnsafeConnection<?, ?>> extend
   public void shutdown() {
     Utils.unchecked(channel, AsynchronousChannel::close);
     group.shutdown();
+  }
+
+  protected ExecutorService buildExecutor(ServerNetworkConfig config) {
+
+    var threadFactory = new GroupThreadFactory(
+        config.threadGroupName(),
+        config.threadConstructor(),
+        config.threadPriority(),
+        false);
+
+    ExecutorService executorService;
+    if (config.threadGroupMinSize() < config.threadGroupMaxSize()) {
+      executorService = new ThreadPoolExecutor(
+          config.threadGroupMinSize(),
+          config.threadGroupMaxSize(),
+          120,
+          TimeUnit.SECONDS,
+          new SynchronousQueue<>(),
+          threadFactory,
+          new ThreadPoolExecutor.CallerRunsPolicy());
+    } else {
+      executorService = Executors.newFixedThreadPool(config.threadGroupMinSize(), threadFactory);
+    }
+
+    // activate the executor
+    executorService.submit(() -> {});
+    return executorService;
+  }
+
+  private static String buildConfigDescription(ServerNetworkConfig conf) {
+    return "Server network configuration: {\n" + "  minThreads: " + conf.threadGroupMinSize() + ",\n" + "  maxThreads: "
+        + conf.threadGroupMaxSize() + ",\n" + "  priority: " + conf.threadPriority() + ",\n" + "  groupName: \""
+        + conf.threadGroupName() + "\",\n" + "  readBufferSize: " + conf.readBufferSize() + ",\n"
+        + "  pendingBufferSize: " + conf.pendingBufferSize() + ",\n" + "  writeBufferSize: " + conf.writeBufferSize()
+        + "\n" + "}";
   }
 }

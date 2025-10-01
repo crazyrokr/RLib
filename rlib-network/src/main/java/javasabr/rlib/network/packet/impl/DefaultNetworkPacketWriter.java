@@ -2,33 +2,32 @@ package javasabr.rlib.network.packet.impl;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
-import javasabr.rlib.common.function.NotNullBiConsumer;
-import javasabr.rlib.common.function.NotNullConsumer;
-import javasabr.rlib.common.function.NullableSupplier;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
-import javasabr.rlib.network.packet.WritablePacket;
-import javax.net.ssl.SSLEngine;
+import javasabr.rlib.network.packet.WritableNetworkPacket;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 /**
  * @author JavaSaBr
  */
-public class DefaultSSLPacketWriter<W extends WritablePacket, C extends Connection<?, W>> extends
-    AbstractSSLPacketWriter<W, C> {
+@FieldDefaults(level = AccessLevel.PROTECTED)
+public class DefaultNetworkPacketWriter<W extends WritableNetworkPacket, C extends Connection<?, W>>
+    extends AbstractNetworkPacketWriter<W, C> {
 
-  protected final int packetLengthHeaderSize;
+  final int packetLengthHeaderSize;
 
-  public DefaultSSLPacketWriter(
+  public DefaultNetworkPacketWriter(
       C connection,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
-      NullableSupplier<WritablePacket> nextWritePacketSupplier,
-      NotNullConsumer<WritablePacket> writtenPacketHandler,
-      NotNullBiConsumer<WritablePacket, Boolean> sentPacketHandler,
-      SSLEngine sslEngine,
-      NotNullConsumer<WritablePacket> packetWriter,
-      NotNullConsumer<WritablePacket> queueAtFirst,
+      Supplier<WritableNetworkPacket> nextWritePacketSupplier,
+      Consumer<WritableNetworkPacket> writtenPacketHandler,
+      BiConsumer<WritableNetworkPacket, Boolean> sentPacketHandler,
       int packetLengthHeaderSize) {
     super(
         connection,
@@ -37,15 +36,12 @@ public class DefaultSSLPacketWriter<W extends WritablePacket, C extends Connecti
         updateActivityFunction,
         nextWritePacketSupplier,
         writtenPacketHandler,
-        sentPacketHandler,
-        sslEngine,
-        packetWriter,
-        queueAtFirst);
+        sentPacketHandler);
     this.packetLengthHeaderSize = packetLengthHeaderSize;
   }
 
   @Override
-  protected int getTotalSize(WritablePacket packet, int expectedLength) {
+  protected int totalSize(WritableNetworkPacket packet, int expectedLength) {
     return expectedLength + packetLengthHeaderSize;
   }
 

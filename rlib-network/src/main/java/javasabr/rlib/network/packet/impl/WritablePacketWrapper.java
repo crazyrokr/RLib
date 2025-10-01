@@ -1,7 +1,7 @@
 package javasabr.rlib.network.packet.impl;
 
 import java.nio.ByteBuffer;
-import javasabr.rlib.network.packet.WritablePacket;
+import javasabr.rlib.network.packet.WritableNetworkPacket;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -13,7 +13,8 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public class WritablePacketWrapper<A, W extends WritablePacket> implements WritablePacket {
+public class WritablePacketWrapper<A, W extends WritableNetworkPacket>
+    implements WritableNetworkPacket {
 
   private final A attachment;
   private final W packet;
@@ -24,12 +25,12 @@ public class WritablePacketWrapper<A, W extends WritablePacket> implements Writa
   }
 
   @Override
-  public int getExpectedLength() {
-    return packet.getExpectedLength();
+  public int expectedLength() {
+    return packet.expectedLength();
   }
 
   @Override
-  public String getName() {
+  public String name() {
     return "WritablePacketWrapper";
   }
 }

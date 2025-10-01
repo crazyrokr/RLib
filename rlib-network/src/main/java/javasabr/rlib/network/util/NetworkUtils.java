@@ -37,11 +37,9 @@ public class NetworkUtils {
       return EMPTY_CERTS;
     }
 
-    public void checkClientTrusted(X509Certificate[] certificates, String arg1) {
-    }
+    public void checkClientTrusted(X509Certificate[] certificates, String arg1) {}
 
-    public void checkServerTrusted(X509Certificate[] certificates, String arg1) {
-    }
+    public void checkServerTrusted(X509Certificate[] certificates, String arg1) {}
   }
 
   public static SocketAddress getRemoteAddress(AsynchronousSocketChannel socketChannel) {
@@ -96,14 +94,10 @@ public class NetworkUtils {
   }
 
   public static SSLContext createAllTrustedClientSslContext() {
-
     try {
-
       var sslContext = SSLContext.getInstance("TLSv1.2");
       sslContext.init(null, new TrustManager[]{new AllTrustManager()}, new SecureRandom());
-
       return sslContext;
-
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

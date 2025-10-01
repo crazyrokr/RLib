@@ -7,24 +7,28 @@ import javasabr.rlib.common.function.NotNullConsumer;
 import javasabr.rlib.common.function.NullableSupplier;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
-import javasabr.rlib.network.packet.WritablePacket;
+import javasabr.rlib.network.packet.WritableNetworkPacket;
+import javax.net.ssl.SSLEngine;
 
 /**
  * @author JavaSaBr
  */
-public class DefaultPacketWriter<W extends WritablePacket, C extends Connection<?, W>> extends
-    AbstractPacketWriter<W, C> {
+public class DefaultSslNetworkPacketWriter<W extends WritableNetworkPacket, C extends Connection<?, W>> extends
+    AbstractSslNetworkPacketWriter<W, C> {
 
   protected final int packetLengthHeaderSize;
 
-  public DefaultPacketWriter(
+  public DefaultSslNetworkPacketWriter(
       C connection,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
-      NullableSupplier<WritablePacket> nextWritePacketSupplier,
-      NotNullConsumer<WritablePacket> writtenPacketHandler,
-      NotNullBiConsumer<WritablePacket, Boolean> sentPacketHandler,
+      NullableSupplier<WritableNetworkPacket> nextWritePacketSupplier,
+      NotNullConsumer<WritableNetworkPacket> writtenPacketHandler,
+      NotNullBiConsumer<WritableNetworkPacket, Boolean> sentPacketHandler,
+      SSLEngine sslEngine,
+      NotNullConsumer<WritableNetworkPacket> packetWriter,
+      NotNullConsumer<WritableNetworkPacket> queueAtFirst,
       int packetLengthHeaderSize) {
     super(
         connection,
@@ -33,12 +37,15 @@ public class DefaultPacketWriter<W extends WritablePacket, C extends Connection<
         updateActivityFunction,
         nextWritePacketSupplier,
         writtenPacketHandler,
-        sentPacketHandler);
+        sentPacketHandler,
+        sslEngine,
+        packetWriter,
+        queueAtFirst);
     this.packetLengthHeaderSize = packetLengthHeaderSize;
   }
 
   @Override
-  protected int getTotalSize(WritablePacket packet, int expectedLength) {
+  protected int totalSize(WritableNetworkPacket packet, int expectedLength) {
     return expectedLength + packetLengthHeaderSize;
   }
 

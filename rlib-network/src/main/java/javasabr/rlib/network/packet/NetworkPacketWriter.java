@@ -3,7 +3,7 @@ package javasabr.rlib.network.packet;
 /**
  * @author JavaSaBr
  */
-public interface PacketWriter {
+public interface NetworkPacketWriter {
 
   void writeNextPacket();
 

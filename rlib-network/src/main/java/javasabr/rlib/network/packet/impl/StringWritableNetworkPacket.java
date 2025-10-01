@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
  * @author JavaSaBr
  */
 @RequiredArgsConstructor
-public class StringWritablePacket extends AbstractWritablePacket {
+public class StringWritableNetworkPacket extends AbstractWritableNetworkPacket {
 
   private final String data;
 
@@ -18,7 +18,7 @@ public class StringWritablePacket extends AbstractWritablePacket {
   }
 
   @Override
-  public int getExpectedLength() {
+  public int expectedLength() {
     return 4 + data.length() * 2;
   }
 

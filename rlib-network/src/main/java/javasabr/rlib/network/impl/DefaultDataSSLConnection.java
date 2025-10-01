@@ -4,12 +4,12 @@ import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.Network;
-import javasabr.rlib.network.packet.PacketReader;
-import javasabr.rlib.network.packet.PacketWriter;
-import javasabr.rlib.network.packet.ReadablePacket;
-import javasabr.rlib.network.packet.WritablePacket;
-import javasabr.rlib.network.packet.impl.DefaultSSLPacketReader;
-import javasabr.rlib.network.packet.impl.DefaultSSLPacketWriter;
+import javasabr.rlib.network.packet.NetworkPacketReader;
+import javasabr.rlib.network.packet.NetworkPacketWriter;
+import javasabr.rlib.network.packet.ReadableNetworkPacket;
+import javasabr.rlib.network.packet.WritableNetworkPacket;
+import javasabr.rlib.network.packet.impl.DefaultSslNetworkPacketReader;
+import javasabr.rlib.network.packet.impl.DefaultSslNetworkPacketWriter;
 import javax.net.ssl.SSLContext;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -18,11 +18,11 @@ import lombok.Getter;
  * @author JavaSaBr
  */
 @Getter(AccessLevel.PROTECTED)
-public abstract class DefaultDataSSLConnection<R extends ReadablePacket, W extends WritablePacket> extends
+public abstract class DefaultDataSSLConnection<R extends ReadableNetworkPacket, W extends WritableNetworkPacket> extends
     AbstractSSLConnection<R, W> {
 
-  private final PacketReader packetReader;
-  private final PacketWriter packetWriter;
+  private final NetworkPacketReader packetReader;
+  private final NetworkPacketWriter packetWriter;
 
   private final int packetLengthHeaderSize;
 
@@ -40,8 +40,8 @@ public abstract class DefaultDataSSLConnection<R extends ReadablePacket, W exten
     this.packetWriter = createPacketWriter();
   }
 
-  protected PacketReader createPacketReader() {
-    return new DefaultSSLPacketReader<>(
+  protected NetworkPacketReader createPacketReader() {
+    return new DefaultSslNetworkPacketReader<>(
         this,
         channel,
         bufferAllocator,
@@ -54,8 +54,8 @@ public abstract class DefaultDataSSLConnection<R extends ReadablePacket, W exten
         maxPacketsByRead);
   }
 
-  protected PacketWriter createPacketWriter() {
-    return new DefaultSSLPacketWriter<W, Connection<R, W>>(
+  protected NetworkPacketWriter createPacketWriter() {
+    return new DefaultSslNetworkPacketWriter<W, Connection<R, W>>(
         this,
         channel,
         bufferAllocator,

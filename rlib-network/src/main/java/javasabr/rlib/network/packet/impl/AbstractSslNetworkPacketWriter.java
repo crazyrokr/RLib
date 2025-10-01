@@ -6,47 +6,48 @@ import static javasabr.rlib.network.util.NetworkUtils.hexDump;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
-import javasabr.rlib.common.function.NotNullBiConsumer;
-import javasabr.rlib.common.function.NotNullConsumer;
-import javasabr.rlib.common.function.NullableSupplier;
-import javasabr.rlib.logger.api.Logger;
-import javasabr.rlib.logger.api.LoggerManager;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
-import javasabr.rlib.network.packet.WritablePacket;
+import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javasabr.rlib.network.util.NetworkUtils;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLException;
+import lombok.AccessLevel;
+import lombok.CustomLog;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 
-public abstract class AbstractSSLPacketWriter<W extends WritablePacket, C extends Connection<?, W>> extends
-    AbstractPacketWriter<W, C> {
-
-  private static final Logger LOGGER = LoggerManager.getLogger(AbstractSSLPacketWriter.class);
+@CustomLog
+@FieldDefaults(level = AccessLevel.PROTECTED)
+public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPacket, C extends Connection<?, W>>
+    extends AbstractNetworkPacketWriter<W, C> {
 
   private static final ByteBuffer[] EMPTY_BUFFERS = {
       NetworkUtils.EMPTY_BUFFER
   };
 
-  protected final SSLEngine sslEngine;
-  protected final NotNullConsumer<WritablePacket> packetWriter;
-  protected final NotNullConsumer<WritablePacket> queueAtFirst;
+  final SSLEngine sslEngine;
+  final Consumer<WritableNetworkPacket> packetWriter;
+  final Consumer<WritableNetworkPacket> queueAtFirst;
 
   protected volatile ByteBuffer sslNetworkBuffer;
 
-  public AbstractSSLPacketWriter(
+  public AbstractSslNetworkPacketWriter(
       C connection,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
-      NullableSupplier<WritablePacket> packetProvider,
-      NotNullConsumer<WritablePacket> writtenPacketHandler,
-      NotNullBiConsumer<WritablePacket, Boolean> sentPacketHandler,
+      Supplier<WritableNetworkPacket> packetProvider,
+      Consumer<WritableNetworkPacket> writtenPacketHandler,
+      BiConsumer<WritableNetworkPacket, Boolean> sentPacketHandler,
       SSLEngine sslEngine,
-      NotNullConsumer<WritablePacket> packetWriter,
-      NotNullConsumer<WritablePacket> queueAtFirst) {
+      Consumer<WritableNetworkPacket> packetWriter,
+      Consumer<WritableNetworkPacket> queueAtFirst) {
     super(
         connection,
         channel,
@@ -65,55 +66,50 @@ public abstract class AbstractSSLPacketWriter<W extends WritablePacket, C extend
 
   @Override
   public void writeNextPacket() {
-
-    var status = sslEngine.getHandshakeStatus();
-
-    switch (status) {
-      case NEED_UNWRAP:
-        return;
+    HandshakeStatus status = sslEngine.getHandshakeStatus();
+    if (status == HandshakeStatus.NEED_UNWRAP) {
+      return;
     }
-
     super.writeNextPacket();
   }
 
   @Override
-  protected ByteBuffer serialize(WritablePacket packet) {
-
-    var status = sslEngine.getHandshakeStatus();
-
+  protected ByteBuffer serialize(WritableNetworkPacket packet) {
+    HandshakeStatus status = sslEngine.getHandshakeStatus();
     if (status == HandshakeStatus.FINISHED || status == HandshakeStatus.NOT_HANDSHAKING) {
-
-      if (packet instanceof SSLWritablePacket) {
+      if (packet instanceof SslWritableNetworkPacket) {
         return EMPTY_BUFFER;
       }
 
-      var dataBuffer = super.serialize(packet);
-
-      LOGGER.debug(dataBuffer, buff -> "Try to encrypt data:\n" + hexDump(buff));
+      ByteBuffer packetDataBuffer = super.serialize(packet);
+      log.debug(packetDataBuffer, buff -> "Try to encrypt data:\n" + hexDump(buff));
 
       SSLEngineResult result;
       try {
-        result = sslEngine.wrap(dataBuffer, sslNetworkBuffer.clear());
+        result = sslEngine.wrap(packetDataBuffer, sslNetworkBuffer.clear());
       } catch (SSLException e) {
         throw new RuntimeException(e);
       }
 
       switch (result.getStatus()) {
-        case BUFFER_UNDERFLOW:
+        case BUFFER_UNDERFLOW: {
           increaseNetworkBuffer();
           break;
-        case BUFFER_OVERFLOW:
+        }
+        case BUFFER_OVERFLOW: {
           throw new IllegalStateException("Unexpected ssl engine result");
-        case OK:
+        }
+        case OK: {
           return sslNetworkBuffer.flip();
-        case CLOSED:
+        }
+        case CLOSED: {
           closeConnection();
           return EMPTY_BUFFER;
+        }
       }
     }
 
-    var bufferToWrite = doHandshake(packet);
-
+    ByteBuffer bufferToWrite = doHandshake(packet);
     if (bufferToWrite != null) {
       return bufferToWrite;
     }
@@ -121,28 +117,25 @@ public abstract class AbstractSSLPacketWriter<W extends WritablePacket, C extend
     throw new IllegalStateException();
   }
 
-  protected @Nullable ByteBuffer doHandshake(WritablePacket packet) {
-
-    if (!(packet instanceof SSLWritablePacket)) {
-      LOGGER.debug(packet, pck -> "Return packet " + pck + " to queue as first");
+  @Nullable
+  protected ByteBuffer doHandshake(WritableNetworkPacket packet) {
+    if (!(packet instanceof SslWritableNetworkPacket)) {
+      log.debug(packet, "Return packet:[%s] to queue as first"::formatted);
       queueAtFirst.accept(packet);
     }
 
-    var handshakeStatus = sslEngine.getHandshakeStatus();
+    HandshakeStatus handshakeStatus = sslEngine.getHandshakeStatus();
 
     while (handshakeStatus != HandshakeStatus.FINISHED && handshakeStatus != HandshakeStatus.NOT_HANDSHAKING) {
-
       SSLEngineResult result;
-
       switch (handshakeStatus) {
-
-        case NEED_WRAP:
+        case NEED_WRAP: {
           try {
             // check result
             result = sslEngine.wrap(EMPTY_BUFFERS, sslNetworkBuffer.clear());
             handshakeStatus = result.getHandshakeStatus();
           } catch (SSLException sslException) {
-            LOGGER.error("A problem was encountered while processing the data that caused the SSLEngine "
+            log.error("A problem was encountered while processing the data that caused the SSLEngine "
                 + "to abort. Will try to properly close connection...");
             sslEngine.closeOutbound();
             handshakeStatus = sslEngine.getHandshakeStatus();
@@ -150,46 +143,50 @@ public abstract class AbstractSSLPacketWriter<W extends WritablePacket, C extend
           }
           switch (result.getStatus()) {
             case OK:
-
               sslNetworkBuffer.flip();
-
               if (handshakeStatus == HandshakeStatus.NEED_WRAP) {
-                LOGGER.debug("Send command to wrap data again");
-                queueAtFirst.accept(SSLWritablePacket.getInstance());
+                log.debug("Send command to wrap data again");
+                queueAtFirst.accept(SslWritableNetworkPacket.getInstance());
               }
-
-              LOGGER.debug(sslNetworkBuffer, result, (buf, res) -> "Send wrapped data:\n" + hexDump(buf, res));
-
+              log.debug(sslNetworkBuffer, result, (buf, res) -> "Send wrapped data:\n" + hexDump(buf, res));
               return sslNetworkBuffer;
-            case BUFFER_OVERFLOW:
+            case BUFFER_OVERFLOW: {
               sslNetworkBuffer = NetworkUtils.enlargePacketBuffer(bufferAllocator, sslEngine);
               break;
-            case BUFFER_UNDERFLOW:
+            }
+            case BUFFER_UNDERFLOW: {
               throw new IllegalStateException("Unexpected ssl engine result");
-            case CLOSED:
+            }
+            case CLOSED: {
               try {
                 return EMPTY_BUFFER;
               } catch (Exception e) {
-                LOGGER.error("Failed to send server's CLOSE message due to socket channel's failure.");
+                log.error("Failed to send server's CLOSE message due to socket channel's failure.");
                 handshakeStatus = sslEngine.getHandshakeStatus();
               }
               break;
-            default:
+            }
+            default: {
               throw new IllegalStateException("Invalid SSL status: " + result.getStatus());
+            }
           }
           break;
-        case NEED_TASK:
+        }
+        case NEED_TASK: {
           Runnable task;
           while ((task = sslEngine.getDelegatedTask()) != null) {
-            LOGGER.debug(task, t -> "Execute SSL Engine's task: " + t.getClass());
+            log.debug(task, "Execute SSL Engine's task:[%s]"::formatted);
             task.run();
           }
           handshakeStatus = sslEngine.getHandshakeStatus();
           break;
-        case NEED_UNWRAP:
+        }
+        case NEED_UNWRAP: {
           break;
-        default:
+        }
+        default: {
           throw new IllegalStateException("Invalid SSL status: " + handshakeStatus);
+        }
       }
     }
 
@@ -203,7 +200,7 @@ public abstract class AbstractSSLPacketWriter<W extends WritablePacket, C extend
   protected void closeConnection() {
     try {
       sslEngine.closeOutbound();
-      channel.close();
+      socketChannel.close();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

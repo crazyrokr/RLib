@@ -3,7 +3,7 @@ package javasabr.rlib.network.packet;
 /**
  * @author JavaSaBr
  */
-public interface PacketReader {
+public interface NetworkPacketReader {
 
   /**
    * Activate a process of receiving packets.

@@ -14,7 +14,6 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface PacketDescription {
-
+public @interface NetworkPacketDescription {
   int id();
 }
