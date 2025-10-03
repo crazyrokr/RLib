@@ -14,7 +14,13 @@ import reactor.core.publisher.Flux;
 public interface Connection<R extends ReadableNetworkPacket, W extends WritableNetworkPacket> {
 
   record ReceivedPacketEvent<C extends Connection<?, ?>, R extends ReadableNetworkPacket>(
-      C connection, R packet) {}
+      C connection, R packet) {
+
+    @Override
+    public String toString() {
+      return "[" + connection + "|" + packet + ']';
+    }
+  }
 
   /**
    * Get a remote address of this connection.

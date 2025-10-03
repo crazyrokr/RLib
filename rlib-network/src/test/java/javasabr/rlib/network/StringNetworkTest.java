@@ -9,16 +9,23 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import javasabr.rlib.common.util.ObjectUtils;
 import javasabr.rlib.common.util.StringUtils;
+import javasabr.rlib.common.util.ThreadUtils;
+import javasabr.rlib.logger.api.LoggerLevel;
+import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.ServerNetworkConfig.SimpleServerNetworkConfig;
 import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.StringDataConnection;
+import javasabr.rlib.network.packet.impl.AbstractNetworkPacketReader;
 import javasabr.rlib.network.packet.impl.StringReadablePacket;
 import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 import javasabr.rlib.network.server.ServerNetwork;
@@ -39,35 +46,49 @@ public class StringNetworkTest extends BaseNetworkTest {
   @Test
   @SneakyThrows
   void echoNetworkTest() {
+    //LoggerManager.enable(StringNetworkTest.class, LoggerLevel.INFO);
+    LoggerManager.enable(AbstractNetworkPacketReader.class, LoggerLevel.INFO);
+    //LoggerManager.enable(AbstractNetworkPacketReader.class, LoggerLevel.DEBUG);
 
     ServerNetwork<StringDataConnection> serverNetwork = NetworkFactory.stringDataServerNetwork();
     InetSocketAddress serverAddress = serverNetwork.start();
 
-    var counter = new CountDownLatch(90);
+    log.info(serverAddress, "Server address:[%s]"::formatted);
+
+    var counter = new CountDownLatch(190);
 
     serverNetwork
         .accepted()
         .flatMap(Connection::receivedEvents)
         .subscribe(event -> {
           String message = event.packet().data();
-          log.info(message, "Received from client:[%s]"::formatted);
+          //log.info(message, "Received from client:[%s]"::formatted);
           event.connection().send(new StringWritableNetworkPacket("Echo: " + message));
         });
 
+    ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     var clientNetwork = NetworkFactory.stringDataClientNetwork();
     clientNetwork
         .connectReactive(serverAddress)
         .doOnNext(connection -> IntStream
-            .range(10, 100)
-            .forEach(length -> connection.send(new StringWritableNetworkPacket(StringUtils.generate(length)))))
+            .range(10, 200)
+            .forEach(length -> {
+              var packet = new StringWritableNetworkPacket(StringUtils.generate(length));
+              int delay = ThreadLocalRandom
+                  .current()
+                  .nextInt(50);
+              connection.send(packet);
+              //executor.schedule(() -> connection.send(packet), delay, TimeUnit.MILLISECONDS);
+            }))
         .flatMapMany(Connection::receivedEvents)
         .subscribe(event -> {
-          log.info(event.packet().data(), "Received from server:[%s]"::formatted);
+          //log.info(event.packet().data(), "Received from server:[%s]"::formatted);
           counter.countDown();
+          log.info(counter.getCount(), "Still wait for:[%s]"::formatted);
         });
 
     Assertions.assertTrue(
-        counter.await(10000, TimeUnit.MILLISECONDS),
+        counter.await(10000, TimeUnit.MINUTES),
         "Still wait for " + counter.getCount() + " packets...");
 
     clientNetwork.shutdown();

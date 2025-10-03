@@ -60,4 +60,9 @@ public class DefaultArrayBasedDeque<E> extends AbstractArrayBasedDeque<E> {
   protected void decrementSize() {
     size--;
   }
+
+  @Override
+  protected int decrementSizeAndGet() {
+    return --size;
+  }
 }

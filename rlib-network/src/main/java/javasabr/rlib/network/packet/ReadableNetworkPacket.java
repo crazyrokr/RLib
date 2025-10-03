@@ -13,8 +13,8 @@ public interface ReadableNetworkPacket extends NetworkPacket {
    * Read packet's data from byte buffer.
    *
    * @param buffer the buffer with received data.
-   * @param expectedLength the expected data length.
+   * @param remainingDataLength the expected remaining data length.
    * @return true if reading was success.
    */
-  boolean read(ByteBuffer buffer, int expectedLength);
+  boolean read(ByteBuffer buffer, int remainingDataLength);
 }

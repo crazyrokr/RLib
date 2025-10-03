@@ -177,7 +177,7 @@ public abstract class AbstractConnection<R extends ReadableNetworkPacket, W exte
         .forEach(this, packet, BiConsumer::accept);
   }
 
-  protected void handleSentPacket(WritableNetworkPacket packet, Boolean result) {
+  protected void handleSentPacket(WritableNetworkPacket packet, boolean result) {
     if (packet instanceof WritablePacketWithFeedback) {
       ((WritablePacketWithFeedback<W>) packet)
           .getAttachment()
@@ -198,7 +198,7 @@ public abstract class AbstractConnection<R extends ReadableNetworkPacket, W exte
 
     long stamp = lock.writeLock();
     try {
-      pendingPackets.add(packet);
+      pendingPackets.addLast(packet);
     } finally {
       lock.unlockWrite(stamp);
     }
@@ -244,9 +244,14 @@ public abstract class AbstractConnection<R extends ReadableNetworkPacket, W exte
   protected void doClearWaitPackets() {
 
     for (var pendingPacket : pendingPackets) {
-      handleSentPacket(pendingPacket, Boolean.FALSE);
+      handleSentPacket(pendingPacket, false);
     }
 
     pendingPackets.clear();
+  }
+
+  @Override
+  public String toString() {
+    return "{" + remoteAddress + '}';
   }
 }

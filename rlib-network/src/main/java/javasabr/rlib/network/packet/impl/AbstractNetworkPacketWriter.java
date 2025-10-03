@@ -32,7 +32,6 @@ import org.jspecify.annotations.Nullable;
 public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacket, C extends Connection<?, W>>
     implements NetworkPacketWriter {
 
-
   final CompletionHandler<Integer, WritableNetworkPacket> writeHandler = new CompletionHandler<>() {
 
     @Override
@@ -86,6 +85,10 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
     this.sentPacketHandler = sentPacketHandler;
   }
 
+  protected String remoteAddress() {
+    return connection.remoteAddress();
+  }
+
   @Override
   public boolean tryToSendNextPacket() {
     if (connection.closed() || !writing.compareAndSet(false, true)) {
@@ -103,8 +106,8 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
 
     if (resultBuffer.limit() != 0) {
       writingBuffer = resultBuffer;
-      log.debug(connection.remoteAddress(), resultBuffer,
-          (address, buff) -> "Write to channel:[%] data:\n" + hexDump(buff));
+      log.debug(remoteAddress(), resultBuffer,
+          (address, buff) -> "[%s] Write to channel data:\n" + hexDump(buff));
       socketChannel.write(resultBuffer, nextPacket, writeHandler);
       startedWriting = true;
     } else {
@@ -275,8 +278,8 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
       }
       return buffer;
     } catch (IndexOutOfBoundsException ex) {
-      log.error(position, headerSize, buffer,
-          "Cannot write header by position:[%s] with header size:[%s] to buffer:[%s]"::formatted);
+      log.error(remoteAddress(), position, headerSize, buffer,
+          "[%s] Cannot write header by position:[%s] with header size:[%s] to buffer:[%s]"::formatted);
       throw ex;
     }
   }
@@ -315,12 +318,12 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
 
     ByteBuffer writingBuffer = writingBuffer();
     if (writingBuffer.remaining() > 0) {
-      log.debug(writingBuffer, connection.remoteAddress(),
-          "Buffer was not consumed fully, try to write else [%s] bytes to channel:[%s]"::formatted);
+      log.debug(remoteAddress(), writingBuffer,
+          "[%s] Buffer was not consumed fully, try to write else [%s] bytes to channel"::formatted);
       socketChannel.write(writingBuffer, packet, writeHandler);
       return;
     } else {
-      log.debug(wroteBytes, "Finished writing [%s] bytes"::formatted);
+      log.debug(remoteAddress(), wroteBytes, "[%s] Finished writing [%s] bytes"::formatted);
     }
 
     sentPacketHandler.accept(packet, true);

@@ -11,7 +11,8 @@ import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
 /**
  * @author JavaSaBr
  */
-public class DefaultConnection extends IdBasedPacketConnection<DefaultReadableNetworkPacket, DefaultWritableNetworkPacket> {
+public class DefaultConnection extends
+    IdBasedPacketConnection<DefaultReadableNetworkPacket, DefaultWritableNetworkPacket> {
 
   public DefaultConnection(
       Network<? extends Connection<DefaultReadableNetworkPacket, DefaultWritableNetworkPacket>> network,

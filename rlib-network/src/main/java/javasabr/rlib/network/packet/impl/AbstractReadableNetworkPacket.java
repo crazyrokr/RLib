@@ -20,10 +20,10 @@ public abstract class AbstractReadableNetworkPacket
     extends AbstractNetworkPacket implements ReadableNetworkPacket {
 
   @Override
-  public boolean read(ByteBuffer buffer, int expectedLength) {
+  public boolean read(ByteBuffer buffer, int remainingDataLength) {
     int oldLimit = buffer.limit();
     try {
-      buffer.limit(buffer.position() + expectedLength);
+      buffer.limit(buffer.position() + remainingDataLength);
       readImpl(buffer);
       return true;
     } catch (Exception e) {

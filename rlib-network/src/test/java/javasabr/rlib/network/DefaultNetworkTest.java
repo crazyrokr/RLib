@@ -15,10 +15,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import javasabr.rlib.common.util.ObjectUtils;
 import javasabr.rlib.common.util.StringUtils;
+import javasabr.rlib.logger.api.LoggerLevel;
+import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.annotation.NetworkPacketDescription;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.DefaultConnection;
 import javasabr.rlib.network.packet.MarkerNetworkPacket;
+import javasabr.rlib.network.packet.impl.AbstractNetworkPacketReader;
 import javasabr.rlib.network.packet.impl.DefaultReadableNetworkPacket;
 import javasabr.rlib.network.packet.impl.DefaultWritableNetworkPacket;
 import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
@@ -27,7 +30,6 @@ import lombok.CustomLog;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.ToString;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -59,7 +61,6 @@ public class DefaultNetworkTest extends BaseNetworkTest {
     @NetworkPacketDescription(id = 2)
     class RequestServerTime extends DefaultWritableNetworkPacket implements MarkerNetworkPacket {}
 
-    @ToString
     @RequiredArgsConstructor
     @NetworkPacketDescription(id = 3)
     class ResponseEchoMessage extends DefaultReadableNetworkPacket {
@@ -72,9 +73,13 @@ public class DefaultNetworkTest extends BaseNetworkTest {
       protected void readImpl(ByteBuffer buffer) {
         message = readString(buffer, Integer.MAX_VALUE);
       }
+
+      @Override
+      public String toString() {
+        return "Message:[" + message + "]";
+      }
     }
 
-    @ToString
     @NetworkPacketDescription(id = 4)
     class ResponseServerTime extends DefaultReadableNetworkPacket {
 
@@ -87,13 +92,17 @@ public class DefaultNetworkTest extends BaseNetworkTest {
         super.readImpl(buffer);
         localDateTime = LocalDateTime.ofEpochSecond(readLong(buffer), 0, ZoneOffset.ofTotalSeconds(readInt(buffer)));
       }
+
+      @Override
+      public String toString() {
+        return "ResponseServerTime";
+      }
     }
   }
 
   // server packets
   interface ServerPackets {
 
-    @ToString
     @NetworkPacketDescription(id = 1)
     class RequestEchoMessage extends DefaultReadableNetworkPacket {
 
@@ -104,11 +113,21 @@ public class DefaultNetworkTest extends BaseNetworkTest {
         super.readImpl(buffer);
         message = readString(buffer, Integer.MAX_VALUE);
       }
+
+      @Override
+      public String toString() {
+        return "Message:[" + message + "]";
+      }
     }
 
-    @ToString
     @NetworkPacketDescription(id = 2)
-    class RequestServerTime extends DefaultReadableNetworkPacket implements MarkerNetworkPacket {}
+    class RequestServerTime extends DefaultReadableNetworkPacket implements MarkerNetworkPacket {
+
+      @Override
+      public String toString() {
+        return "RequestServerTime";
+      }
+    }
 
     @RequiredArgsConstructor
     @NetworkPacketDescription(id = 3)
@@ -139,6 +158,9 @@ public class DefaultNetworkTest extends BaseNetworkTest {
   @Test
   @SneakyThrows
   void echoNetworkTest() {
+    LoggerManager.enable(DefaultNetworkTest.class, LoggerLevel.DEBUG);
+    LoggerManager.enable(DefaultNetworkTest.class, LoggerLevel.INFO);
+    LoggerManager.enable(AbstractNetworkPacketReader.class, LoggerLevel.DEBUG);
 
     ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> serverPackets = ReadableNetworkPacketRegistry.of(
         DefaultReadableNetworkPacket.class,

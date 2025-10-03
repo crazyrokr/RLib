@@ -63,11 +63,8 @@ public interface ReadableNetworkPacketRegistry<R extends IdBasedReadableNetworkP
         .stream()
         .filter(type -> type.getAnnotation(NetworkPacketDescription.class) != null)
         .collect(ArrayCollectors.<Class<? extends IdBasedReadableNetworkPacket>>toArray(Class.class));
-
-    var registry = new IdBasedReadableNetworkPacketRegistry<>(IdBasedReadableNetworkPacket.class);
-    registry.register(result);
-
-    return registry;
+    return new IdBasedReadableNetworkPacketRegistry<>(IdBasedReadableNetworkPacket.class)
+        .register(result);
   }
 
   /**
@@ -77,9 +74,8 @@ public interface ReadableNetworkPacketRegistry<R extends IdBasedReadableNetworkP
   static <T extends IdBasedReadableNetworkPacket<T>> ReadableNetworkPacketRegistry<T> of(
       Class<T> type,
       Class<? extends T>... classes) {
-    var registry = new IdBasedReadableNetworkPacketRegistry<>(type);
-    registry.register(classes, classes.length);
-    return registry;
+    return new IdBasedReadableNetworkPacketRegistry<>(type)
+        .register(classes, classes.length);
   }
 
   /**
@@ -88,11 +84,8 @@ public interface ReadableNetworkPacketRegistry<R extends IdBasedReadableNetworkP
   static <T extends IdBasedReadableNetworkPacket<T>> ReadableNetworkPacketRegistry<T> of(
       Class<T> type,
       Array<Class<? extends T>> classes) {
-
-    var registry = new IdBasedReadableNetworkPacketRegistry<>(type);
-    registry.register(classes);
-
-    return registry;
+    return new IdBasedReadableNetworkPacketRegistry<>(type)
+        .register(classes);
   }
 
   /**

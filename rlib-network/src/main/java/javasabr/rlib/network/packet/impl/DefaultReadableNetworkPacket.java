@@ -6,8 +6,4 @@ package javasabr.rlib.network.packet.impl;
 public class DefaultReadableNetworkPacket extends
     AbstractIdBasedReadableNetworkPacket<DefaultReadableNetworkPacket> {
 
-  @Override
-  public DefaultReadableNetworkPacket newInstance() {
-    return new DefaultReadableNetworkPacket();
-  }
 }

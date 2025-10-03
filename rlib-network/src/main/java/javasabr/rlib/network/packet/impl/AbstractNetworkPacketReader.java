@@ -13,7 +13,6 @@ import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.packet.NetworkPacketReader;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
-import javasabr.rlib.network.util.NetworkUtils;
 import lombok.AccessLevel;
 import lombok.CustomLog;
 import lombok.Getter;
@@ -84,12 +83,16 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
     return readBuffer;
   }
 
+  protected String remoteAddress() {
+    return connection.remoteAddress();
+  }
+
   @Override
   public void startRead() {
     if (!reading.compareAndSet(false, true)) {
       return;
     }
-    log.debug(socketChannel, ch -> "Start waiting for new data from channel:[" + NetworkUtils.getRemoteAddress(ch) + "]");
+    log.debug(remoteAddress(), "[%s] Start waiting for new data from channel..."::formatted);
     ByteBuffer buffer = bufferToReadFromChannel();
     socketChannel.read(buffer, buffer, readChannelHandler);
   }
@@ -112,7 +115,10 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
    * @return count of read packets.
    */
   protected int readPackets(ByteBuffer receivedBuffer, ByteBuffer pendingBuffer) {
-    log.debug(receivedBuffer, "Start reading packets from received buffer:[%s]"::formatted);
+    String remoteAddress = remoteAddress();
+
+    log.debug(remoteAddress, receivedBuffer,
+        "[%s] Start reading packets from received buffer:[%s]"::formatted);
 
     int waitedBytes = pendingBuffer.position();
     ByteBuffer bufferToRead = receivedBuffer;
@@ -126,7 +132,10 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
         tempBigBuffer = notNull(tempBigBuffer());
       }
 
-      log.debug(receivedBuffer, tempBigBuffer, "Put received buffer:[%s] to temp big buffer:[%s]"::formatted);
+      log.debug(
+          remoteAddress, receivedBuffer, tempBigBuffer,
+          "[%s] Put received buffer:[%s] to temp big buffer:[%s]"::formatted);
+
       bufferToRead = BufferUtils.putToAndFlip(tempBigBuffer, receivedBuffer);
     }
     // if we have some pending data we need to append the received buffer to the pending buffer
@@ -134,21 +143,26 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
     else if (waitedBytes > 0) {
       if (pendingBuffer.remaining() < receivedBuffer.remaining()) {
         log.debug(
+            remoteAddress,
             pendingBuffer,
             receivedBuffer,
-            "Pending buffer:[%s] is too small to append received buffer:[%s], allocate new temp bug buffer for this"::formatted);
+            "[%s] Pending buffer:[%s] is too small to append received buffer:[%s], allocate new temp bug buffer for this"::formatted);
 
         allocTempBigBuffers(pendingBuffer.flip(), pendingBuffer.capacity());
 
-        log.debug(pendingBuffer, "Clear pending buffer:[%s]"::formatted);
+        log.debug(remoteAddress, pendingBuffer, "[%s] Clear pending buffer:[%s]"::formatted);
         pendingBuffer.clear();
 
         tempBigBuffer = notNull(tempBigBuffer());
 
-        log.debug(receivedBuffer, tempBigBuffer, "Put received buffer:[%s] to temp big buffer:[%s]"::formatted);
+        log.debug(
+            remoteAddress, receivedBuffer, tempBigBuffer,
+            "[%s] Put received buffer:[%s] to temp big buffer:[%s]"::formatted);
         bufferToRead = BufferUtils.putToAndFlip(tempBigBuffer, receivedBuffer);
       } else {
-        log.debug(receivedBuffer, pendingBuffer, "Put received buffer:[%s] to pending buffer:[%s]"::formatted);
+        log.debug(
+            remoteAddress, receivedBuffer, pendingBuffer,
+            "[%s] Put received buffer:[%s] to pending buffer:[%s]"::formatted);
         bufferToRead = BufferUtils.putToAndFlip(pendingBuffer, receivedBuffer);
       }
     }
@@ -162,11 +176,13 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
       bufferToRead.position(endPosition);
 
       int positionBeforeRead = endPosition;
-      int alreadyReadBytes = bufferToRead.position() - endPosition;
       int packetFullLength = readFullPacketLength(bufferToRead);
+      int alreadyReadBytes = bufferToRead.position() - endPosition;
       int packetDataLength = calculatePacketDataLength(packetFullLength, alreadyReadBytes, bufferToRead);
 
-      log.debug(positionBeforeRead, packetFullLength, "Found next packet from position:[%s] with length:[%s] "::formatted);
+      log.debug(
+          remoteAddress, positionBeforeRead, packetFullLength,
+          "[%s] Found next packet from position:[%s] with length:[%s] "::formatted);
 
       // calculate position of the end of next packet
       endPosition += packetFullLength;
@@ -180,7 +196,9 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
         if (bufferToRead == receivedBuffer) {
           if (packetFullLength <= pendingBuffer.capacity()) {
             pendingBuffer.put(receivedBuffer);
-            log.debug(pendingBuffer, "Put pending data form received buffer to pending buffer:[%s]"::formatted);
+            log.debug(
+                remoteAddress, pendingBuffer,
+                "[%s] Put pending data form received buffer to pending buffer:[%s]"::formatted);
           } else {
             allocTempBigBuffers(receivedBuffer, packetFullLength);
           }
@@ -189,10 +207,10 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
         else if (bufferToRead == pendingBuffer) {
           if (packetFullLength <= pendingBuffer.capacity()) {
             pendingBuffer.compact();
-            log.debug(pendingBuffer, "Compact pending buffer:[%s]"::formatted);
+            log.debug(remoteAddress, pendingBuffer, "[%s] Compact pending buffer:[%s]"::formatted);
           } else {
             allocTempBigBuffers(pendingBuffer, packetFullLength);
-            log.debug(pendingBuffer, "Clear pending buffer:[%s]"::formatted);
+            log.debug(remoteAddress, pendingBuffer, "[%s] Clear pending buffer:[%s]"::formatted);
             pendingBuffer.clear();
           }
 
@@ -200,7 +218,9 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
           // if not yet read data is less than pending buffer, then we can switch to use the pending buffer
           if (Math.max(packetFullLength, tempBigBuffer.remaining()) <= pendingBuffer.capacity()) {
             pendingBuffer.clear().put(tempBigBuffer);
-            log.debug(pendingBuffer, "Moved pending data from temp big buffer to pending buffer:[%s]"::formatted);
+            log.debug(
+                remoteAddress, pendingBuffer,
+                "[%s] Moved pending data from temp big buffer to pending buffer:[%s]"::formatted);
             freeTempBigBuffers();
           }
           // if a new packet is bigger than current temp big buffer
@@ -210,14 +230,15 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
           // or just compact this current temp big buffer
           else {
             tempBigBuffer.compact();
-            log.debug(tempBigBuffer, "Compact temp big buffer:[%s]]"::formatted);
+            log.debug(remoteAddress, tempBigBuffer, "[%s] Compact temp big buffer:[%s]]"::formatted);
           }
         }
 
         log.debug(
+            remoteAddress,
             readPackets,
             connection.remoteAddress(),
-            ("Read [%s] packets from received buffer of [%s], "
+            ("[%s] Read [%s] packets from received buffer of [%s], "
                  + "but 1 packet is still waiting for receiving additional data.")::formatted);
 
         receivedBuffer.clear();
@@ -231,12 +252,13 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
           packetDataLength);
 
       if (readablePacket != null) {
-        log.debug(readablePacket, "Created instance of packet to read data:[%s]"::formatted);
-        readAndHandlePacket(bufferToRead, packetDataLength, readablePacket);
-        log.debug(readablePacket, "Finished reading data for packet:[%s]"::formatted);
+        int remainingDataLength = endPosition - bufferToRead.position();
+        log.debug(remoteAddress, readablePacket, "[%s] Created instance of packet to read data:[%s]"::formatted);
+        readAndHandlePacket(bufferToRead, remainingDataLength, readablePacket);
+        log.debug(remoteAddress, readablePacket, "[%s] Finished reading data for packet:[%s]"::formatted);
         readPackets++;
       } else {
-        log.warning("Cannot create any instance of packet to read data");
+        log.warning(remoteAddress, "[%s] Cannot create any instance of packet to read data"::formatted);
       }
 
       bufferToRead.position(endPosition);
@@ -245,7 +267,7 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
     if (bufferToRead.hasRemaining()) {
       if (bufferToRead == receivedBuffer) {
         pendingBuffer.put(receivedBuffer);
-        log.debug("Found not yet read data from receive buffer, will put it to pending buffer.");
+        log.debug(remoteAddress, "[%s] Found not yet read data from receive buffer, will put it to pending buffer"::formatted);
       } else {
         bufferToRead.compact();
       }
@@ -255,16 +277,17 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
       freeTempBigBuffers();
     }
 
-    log.debug(readPackets, connection.remoteAddress(), "Read [%s] packets from received buffer of [%s]"::formatted);
+    log.debug(remoteAddress, readPackets, "[%s] Read [%s] packets from received buffer"::formatted);
     receivedBuffer.clear();
     return readPackets;
   }
 
-  protected void readAndHandlePacket(ByteBuffer bufferToRead, int packetDataLength, R packetInstance) {
-    if (packetInstance.read(bufferToRead, packetDataLength)) {
+  protected void readAndHandlePacket(ByteBuffer bufferToRead, int remainingDataLength, R packetInstance) {
+    if (packetInstance.read(bufferToRead, remainingDataLength)) {
       packetHandler.accept(packetInstance);
     } else {
-      log.error(packetInstance, "Packet:[%s] was read incorrectly"::formatted);
+      log.error(remoteAddress(), packetInstance,
+          "[%s] Packet:[%s] was read incorrectly"::formatted);
     }
   }
 
@@ -296,10 +319,12 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
   protected abstract int readFullPacketLength(ByteBuffer buffer);
 
   protected void reAllocTempBigBuffers(ByteBuffer sourceBuffer, int fullPacketLength) {
-    log.debug(sourceBuffer.capacity(), fullPacketLength, "Resize temp big buffer from:[%s] to:[%s]"::formatted);
+    log.debug(remoteAddress(), sourceBuffer.capacity(), fullPacketLength,
+        "[%s] Resize temp big buffer from:[%s] to:[%s]"::formatted);
 
     var newTempBuffer = bufferAllocator.takeBuffer(fullPacketLength + readBuffer.capacity());
-    log.debug(sourceBuffer, newTempBuffer, "Moved data from old temp big buffer:[%s] to new:[%s]"::formatted);
+    log.debug(remoteAddress(), sourceBuffer, newTempBuffer,
+        "[%s] Moved data from old temp big buffer:[%s] to new:[%s]"::formatted);
     newTempBuffer.put(sourceBuffer);
 
     freeTempBigBuffers();
@@ -339,7 +364,7 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
       return;
     }
 
-    log.debug(receivedBytes, connection.remoteAddress(), "Received [%s] bytes from channel:[%s]"::formatted);
+    log.debug(remoteAddress(), receivedBytes, "[%s] Received [%s] bytes from channel"::formatted);
     readingBuffer.flip();
     try {
       readPackets(readingBuffer);
@@ -360,7 +385,7 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
    */
   protected void handleFailedReceiving(Throwable exception, ByteBuffer readingBuffer) {
     if (exception instanceof AsynchronousCloseException) {
-      log.info(connection.remoteAddress(), "Connection:[%s] was closed"::formatted);
+      log.info(remoteAddress(), "[%s] Connection was closed"::formatted);
     } else {
       log.error(exception);
       connection.close();
