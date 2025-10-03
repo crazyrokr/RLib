@@ -15,13 +15,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import javasabr.rlib.common.util.ObjectUtils;
 import javasabr.rlib.common.util.StringUtils;
-import javasabr.rlib.logger.api.LoggerLevel;
-import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.annotation.NetworkPacketDescription;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.DefaultConnection;
 import javasabr.rlib.network.packet.MarkerNetworkPacket;
-import javasabr.rlib.network.packet.impl.AbstractNetworkPacketReader;
 import javasabr.rlib.network.packet.impl.DefaultReadableNetworkPacket;
 import javasabr.rlib.network.packet.impl.DefaultWritableNetworkPacket;
 import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
@@ -158,9 +155,9 @@ public class DefaultNetworkTest extends BaseNetworkTest {
   @Test
   @SneakyThrows
   void echoNetworkTest() {
-    LoggerManager.enable(DefaultNetworkTest.class, LoggerLevel.DEBUG);
-    LoggerManager.enable(DefaultNetworkTest.class, LoggerLevel.INFO);
-    LoggerManager.enable(AbstractNetworkPacketReader.class, LoggerLevel.DEBUG);
+    //LoggerManager.enable(DefaultNetworkTest.class, LoggerLevel.DEBUG);
+    //LoggerManager.enable(DefaultNetworkTest.class, LoggerLevel.INFO);
+    //LoggerManager.enable(AbstractNetworkPacketReader.class, LoggerLevel.DEBUG);
 
     ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> serverPackets = ReadableNetworkPacketRegistry.of(
         DefaultReadableNetworkPacket.class,

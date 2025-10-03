@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
@@ -18,14 +17,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import javasabr.rlib.common.util.ObjectUtils;
 import javasabr.rlib.common.util.StringUtils;
-import javasabr.rlib.common.util.ThreadUtils;
-import javasabr.rlib.logger.api.LoggerLevel;
-import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.ServerNetworkConfig.SimpleServerNetworkConfig;
 import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.StringDataConnection;
-import javasabr.rlib.network.packet.impl.AbstractNetworkPacketReader;
 import javasabr.rlib.network.packet.impl.StringReadablePacket;
 import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 import javasabr.rlib.network.server.ServerNetwork;
@@ -46,7 +41,7 @@ public class StringNetworkTest extends BaseNetworkTest {
   @Test
   @SneakyThrows
   void echoNetworkTest() {
-    LoggerManager.enable(StringNetworkTest.class, LoggerLevel.INFO);
+    //LoggerManager.enable(StringNetworkTest.class, LoggerLevel.INFO);
     //LoggerManager.enable(AbstractNetworkPacketReader.class, LoggerLevel.INFO);
     //LoggerManager.enable(AbstractNetworkPacketReader.class, LoggerLevel.DEBUG);
 
@@ -158,7 +153,9 @@ public class StringNetworkTest extends BaseNetworkTest {
   @Test
   void shouldReceiveManyPacketsFromSmallToBigSize() {
     //LoggerManager.enable(StringNetworkTest.class, LoggerLevel.INFO);
+
     int packetCount = 2000;
+
     try (TestNetwork<StringDataConnection> testNetwork = buildStringNetwork();
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1)) {
       int bufferSize = testNetwork.serverNetworkConfig.readBufferSize();
@@ -213,7 +210,7 @@ public class StringNetworkTest extends BaseNetworkTest {
 
   @Test
   void shouldSendBiggerPacketThanWriteBuffer() {
-    LoggerManager.enable(StringNetworkTest.class, LoggerLevel.INFO);
+    //LoggerManager.enable(StringNetworkTest.class, LoggerLevel.INFO);
 
     int packetCount = 10_000;
 
@@ -272,7 +269,6 @@ public class StringNetworkTest extends BaseNetworkTest {
   @Test
   @SneakyThrows
   void testServerWithMultiplyClients() {
-
     //LoggerManager.enable(AbstractPacketWriter.class, LoggerLevel.DEBUG);
 
     var serverConfig = SimpleServerNetworkConfig

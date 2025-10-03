@@ -42,15 +42,15 @@ import org.junit.jupiter.api.Test;
  *
  * @author JavaSaBr
  */
-public class StringSSLNetworkTest extends BaseNetworkTest {
+public class StringSslNetworkTest extends BaseNetworkTest {
 
-  private static final Logger LOGGER = LoggerManager.getLogger(StringSSLNetworkTest.class);
+  private static final Logger LOGGER = LoggerManager.getLogger(StringSslNetworkTest.class);
 
   @Test
   @SneakyThrows
   void certificatesTest() {
 
-    InputStream keystoreFile = StringSSLNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
+    InputStream keystoreFile = StringSslNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
     SSLContext sslContext = NetworkUtils.createSslContext(keystoreFile, "test");
     SSLContext clientSSLContext = NetworkUtils.createAllTrustedClientSslContext();
 
@@ -80,7 +80,7 @@ public class StringSSLNetworkTest extends BaseNetworkTest {
   @SneakyThrows
   void serverSSLNetworkTest() {
 
-    InputStream keystoreFile = StringSSLNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
+    InputStream keystoreFile = StringSslNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
     SSLContext sslContext = NetworkUtils.createSslContext(keystoreFile, "test");
 
     ServerNetwork<StringDataSslConnection> serverNetwork = NetworkFactory.stringDataSslServerNetwork(
@@ -141,7 +141,7 @@ public class StringSSLNetworkTest extends BaseNetworkTest {
     //LoggerManager.enable(AbstractSSLPacketWriter.class, LoggerLevel.DEBUG);
     //LoggerManager.enable(AbstractSSLPacketReader.class, LoggerLevel.DEBUG);
 
-    InputStream keystoreFile = StringSSLNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
+    InputStream keystoreFile = StringSslNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
     SSLContext sslContext = NetworkUtils.createSslContext(keystoreFile, "test");
 
     int serverPort = NetworkUtils.getAvailablePort(1000);
@@ -217,7 +217,7 @@ public class StringSSLNetworkTest extends BaseNetworkTest {
     //LoggerManager.enable(AbstractSSLPacketWriter.class, LoggerLevel.DEBUG);
     //LoggerManager.enable(AbstractSSLPacketReader.class, LoggerLevel.DEBUG);
 
-    InputStream keystoreFile = StringSSLNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
+    InputStream keystoreFile = StringSslNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
     SSLContext serverSSLContext = NetworkUtils.createSslContext(keystoreFile, "test");
 
     ServerNetwork<StringDataSslConnection> serverNetwork = NetworkFactory.stringDataSslServerNetwork(
@@ -278,7 +278,7 @@ public class StringSSLNetworkTest extends BaseNetworkTest {
     LoggerManager.enable(AbstractSslNetworkPacketWriter.class, LoggerLevel.DEBUG);
     LoggerManager.enable(AbstractSslNetworkPacketReader.class, LoggerLevel.DEBUG);
 
-    InputStream keystoreFile = StringSSLNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
+    InputStream keystoreFile = StringSslNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
     SSLContext serverSSLContext = NetworkUtils.createSslContext(keystoreFile, "test");
     SSLContext clientSSLContext = NetworkUtils.createAllTrustedClientSslContext();
 
