@@ -46,8 +46,8 @@ public class StringNetworkTest extends BaseNetworkTest {
   @Test
   @SneakyThrows
   void echoNetworkTest() {
-    //LoggerManager.enable(StringNetworkTest.class, LoggerLevel.INFO);
-    LoggerManager.enable(AbstractNetworkPacketReader.class, LoggerLevel.INFO);
+    LoggerManager.enable(StringNetworkTest.class, LoggerLevel.INFO);
+    //LoggerManager.enable(AbstractNetworkPacketReader.class, LoggerLevel.INFO);
     //LoggerManager.enable(AbstractNetworkPacketReader.class, LoggerLevel.DEBUG);
 
     ServerNetwork<StringDataConnection> serverNetwork = NetworkFactory.stringDataServerNetwork();
@@ -62,7 +62,7 @@ public class StringNetworkTest extends BaseNetworkTest {
         .flatMap(Connection::receivedEvents)
         .subscribe(event -> {
           String message = event.packet().data();
-          //log.info(message, "Received from client:[%s]"::formatted);
+          log.info(message, "Received from client:[%s]"::formatted);
           event.connection().send(new StringWritableNetworkPacket("Echo: " + message));
         });
 
@@ -77,12 +77,11 @@ public class StringNetworkTest extends BaseNetworkTest {
               int delay = ThreadLocalRandom
                   .current()
                   .nextInt(50);
-              connection.send(packet);
-              //executor.schedule(() -> connection.send(packet), delay, TimeUnit.MILLISECONDS);
+              executor.schedule(() -> connection.send(packet), delay, TimeUnit.MILLISECONDS);
             }))
         .flatMapMany(Connection::receivedEvents)
         .subscribe(event -> {
-          //log.info(event.packet().data(), "Received from server:[%s]"::formatted);
+          log.info(event.packet().data(), "Received from server:[%s]"::formatted);
           counter.countDown();
           log.info(counter.getCount(), "Still wait for:[%s]"::formatted);
         });
@@ -93,6 +92,7 @@ public class StringNetworkTest extends BaseNetworkTest {
 
     clientNetwork.shutdown();
     serverNetwork.shutdown();
+    executor.shutdown();
   }
 
   @Test
@@ -157,8 +157,10 @@ public class StringNetworkTest extends BaseNetworkTest {
 
   @Test
   void shouldReceiveManyPacketsFromSmallToBigSize() {
-    int packetCount = 200;
-    try (TestNetwork<StringDataConnection> testNetwork = buildStringNetwork()) {
+    //LoggerManager.enable(StringNetworkTest.class, LoggerLevel.INFO);
+    int packetCount = 2000;
+    try (TestNetwork<StringDataConnection> testNetwork = buildStringNetwork();
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1)) {
       int bufferSize = testNetwork.serverNetworkConfig.readBufferSize();
       var random = ThreadLocalRandom.current();
 
@@ -167,6 +169,8 @@ public class StringNetworkTest extends BaseNetworkTest {
 
       var pendingPacketsOnServer = serverToClient
           .receivedPackets()
+          .doOnNext(packet ->
+              log.info(packet.data().length(), "Received [%s] symbols from client"::formatted))
           .buffer(packetCount);
 
       var messages = IntStream
@@ -176,8 +180,15 @@ public class StringNetworkTest extends BaseNetworkTest {
             return StringUtils.generate(length);
           })
           .peek(message -> {
-            log.info(message.length(), "Send [%s] symbols to server"::formatted);
-            clientToServer.send(new StringWritableNetworkPacket(message));
+            var packet = new StringWritableNetworkPacket(message);
+            int delay = ThreadLocalRandom
+                .current()
+                .nextInt(15);
+            executor.schedule(
+                () -> {
+                  clientToServer.send(packet);
+                  log.info(message.length(), "Send [%s] symbols to server"::formatted);
+                }, delay, TimeUnit.MILLISECONDS);
           })
           .toList();
 
@@ -202,10 +213,12 @@ public class StringNetworkTest extends BaseNetworkTest {
 
   @Test
   void shouldSendBiggerPacketThanWriteBuffer() {
+    LoggerManager.enable(StringNetworkTest.class, LoggerLevel.INFO);
 
     int packetCount = 10_000;
 
-    try (TestNetwork<StringDataConnection> testNetwork = buildStringNetwork()) {
+    try (TestNetwork<StringDataConnection> testNetwork = buildStringNetwork();
+         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1)) {
       int bufferSize = testNetwork.clientNetworkConfig.writeBufferSize();
       var random = ThreadLocalRandom.current();
 
@@ -214,19 +227,26 @@ public class StringNetworkTest extends BaseNetworkTest {
 
       var pendingPacketsOnServer = serverToClient
           .receivedPackets()
+          .doOnNext(packet ->
+              log.info(packet.data().length(), "Received [%s] symbols from client"::formatted))
           .buffer(packetCount);
 
       List<String> messages = IntStream
           .range(0, packetCount)
           .mapToObj(value -> {
-
             var length = random.nextBoolean() ? random.nextInt(bufferSize, bufferSize * 10) : random.nextInt(0, 200);
-
             return StringUtils.generate(length);
           })
           .peek(message -> {
-            log.info(message.length(), "Send [%s] symbols to server"::formatted);
-            clientToServer.send(new StringWritableNetworkPacket(message));
+            var packet = new StringWritableNetworkPacket(message);
+            int delay = ThreadLocalRandom
+                .current()
+                .nextInt(15);
+            executor.schedule(
+                () -> {
+                  clientToServer.send(packet);
+                  log.info(message.length(), "Send [%s] symbols to server"::formatted);
+                }, delay, TimeUnit.MILLISECONDS);
           })
           .toList();
 

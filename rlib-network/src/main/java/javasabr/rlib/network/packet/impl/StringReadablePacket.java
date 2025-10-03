@@ -15,7 +15,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public class StringReadablePacket extends AbstractReadableNetworkPacket {
 
-  public static final int MAX_LENGTH = 10_000;
+  public static final int MAX_LENGTH = 100_000;
 
   @Nullable
   volatile String data;
