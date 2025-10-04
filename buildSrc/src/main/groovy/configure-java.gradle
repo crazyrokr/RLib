@@ -43,6 +43,8 @@ tasks.register("loadTest", Test) {
   failOnNoDiscoveredTests = false
   testClassesDirs = sourceSets.loadTest.output.classesDirs
   classpath = sourceSets.loadTest.runtimeClasspath
+  minHeapSize = "128m"
+  maxHeapSize = "4G"
 }
 
 dependencies {

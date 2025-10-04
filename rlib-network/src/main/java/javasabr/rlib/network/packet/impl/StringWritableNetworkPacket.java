@@ -28,6 +28,6 @@ public class StringWritableNetworkPacket extends AbstractWritableNetworkPacket {
 
   @Override
   public String toString() {
-    return "StringWritablePacket {\n" + "\"\tdataLength\":" + data.length() + "\n}";
+    return "StringWritablePacket[length:" + data.length() + "]";
   }
 }

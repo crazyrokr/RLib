@@ -3,6 +3,7 @@ package javasabr.rlib.network.packet.impl;
 import static javasabr.rlib.network.util.NetworkUtils.EMPTY_BUFFER;
 import static javasabr.rlib.network.util.NetworkUtils.hexDump;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
@@ -344,7 +345,11 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
    * @param packet the packet.
    */
   protected void handleFailedWritingData(Throwable exception, WritableNetworkPacket packet) {
-    log.error(new RuntimeException("Failed writing packet: " + packet, exception));
+    log.error(new RuntimeException("Failed writing packet:" + packet, exception));
+    if (exception instanceof IOException) {
+      connection.close();
+      return;
+    }
     if (!connection.closed()) {
       if (writing.compareAndSet(true, false)) {
         tryToSendNextPacket();
