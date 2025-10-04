@@ -23,8 +23,30 @@ import reactor.core.publisher.Flux;
 @CustomLog
 public class StringNetworkLoadTest {
 
-  private static class TestClient {
+  private static class TestClient implements AutoCloseable {
 
+    private static final AtomicInteger ID_FACTORY = new AtomicInteger();
+
+    String clientId = "Client_%s".formatted(ID_FACTORY.incrementAndGet());
+    NetworkConfig networkConfig = NetworkConfig.SimpleNetworkConfig.builder()
+        .groupName(clientId)
+        .writeBufferSize(256)
+        .readBufferSize(256)
+        .pendingBufferSize(512)
+        .build();
+
+    BufferAllocator clientAllocator = new DefaultBufferAllocator(networkConfig);
+    ClientNetwork<StringDataConnection> network = NetworkFactory
+        .stringDataClientNetwork(networkConfig, clientAllocator);
+
+    void connectAndSendMessages(InetSocketAddress serverAddress, int messages, CountDownLatch ) {
+
+    }
+
+    @Override
+    public void close() throws Exception {
+      network.shutdown();
+    }
   }
 
   @Test
