@@ -1,4 +1,6 @@
-apply plugin: "jacoco-report-aggregation"
+plugins {
+  id("jacoco-report-aggregation")
+}
 
 dependencies {
   jacocoAggregation projects.rlibClasspath

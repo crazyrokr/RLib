@@ -1,8 +1,8 @@
 plugins {
+  id("configure-java")
   id 'org.openjfx.javafxplugin' version '0.1.0'
+  id("configure-publishing")
 }
-
-apply from: "$rootDir/gradle/configure-publishing.gradle"
 
 dependencies {
   api projects.rlibCommon

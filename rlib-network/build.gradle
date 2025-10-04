@@ -1,4 +1,7 @@
-apply from: "$rootDir/gradle/configure-publishing.gradle"
+plugins {
+  id("configure-java")
+  id("configure-publishing")
+}
 
 dependencies {
   api projects.rlibCommon
@@ -7,4 +10,5 @@ dependencies {
   api projects.rlibReusable
   api libs.project.reactor.core
   testRuntimeOnly projects.rlibLoggerImpl
+  loadTestRuntimeOnly projects.rlibLoggerImpl
 }

@@ -11,13 +11,15 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import javasabr.rlib.common.util.ObjectUtils;
 import javasabr.rlib.common.util.StringUtils;
+import javasabr.rlib.common.util.ThreadUtils;
 import javasabr.rlib.common.util.Utils;
-import javasabr.rlib.logger.api.Logger;
 import javasabr.rlib.logger.api.LoggerLevel;
 import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.client.ClientNetwork;
@@ -33,6 +35,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import lombok.CustomLog;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -42,9 +45,8 @@ import org.junit.jupiter.api.Test;
  *
  * @author JavaSaBr
  */
+@CustomLog
 public class StringSslNetworkTest extends BaseNetworkTest {
-
-  private static final Logger LOGGER = LoggerManager.getLogger(StringSslNetworkTest.class);
 
   @Test
   @SneakyThrows
@@ -52,14 +54,14 @@ public class StringSslNetworkTest extends BaseNetworkTest {
 
     InputStream keystoreFile = StringSslNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
     SSLContext sslContext = NetworkUtils.createSslContext(keystoreFile, "test");
-    SSLContext clientSSLContext = NetworkUtils.createAllTrustedClientSslContext();
+    SSLContext clientSslContext = NetworkUtils.createAllTrustedClientSslContext();
 
     int serverPort = NetworkUtils.getAvailablePort(10000);
 
     SSLServerSocketFactory serverSocketFactory = sslContext.getServerSocketFactory();
     ServerSocket serverSocket = serverSocketFactory.createServerSocket(serverPort);
 
-    SSLSocketFactory clientSocketFactory = clientSSLContext.getSocketFactory();
+    SSLSocketFactory clientSocketFactory = clientSslContext.getSocketFactory();
     SSLSocket clientSocket = (SSLSocket) clientSocketFactory.createSocket("localhost", serverPort);
 
     var clientSocketOnServer = serverSocket.accept();
@@ -78,7 +80,8 @@ public class StringSslNetworkTest extends BaseNetworkTest {
 
   @Test
   @SneakyThrows
-  void serverSSLNetworkTest() {
+  void serverSslNetworkTest() {
+    //LoggerManager.enable(StringSslNetworkTest.class, LoggerLevel.INFO);
 
     InputStream keystoreFile = StringSslNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
     SSLContext sslContext = NetworkUtils.createSslContext(keystoreFile, "test");
@@ -95,7 +98,7 @@ public class StringSslNetworkTest extends BaseNetworkTest {
         .flatMap(Connection::receivedEvents)
         .subscribe(event -> {
           var message = event.packet().data();
-          LOGGER.info("Received from client: " + message);
+          log.info(message, "Received from client:[%s]"::formatted);
           event.connection().send(new StringWritableNetworkPacket("Echo: " + message));
         });
 
@@ -103,11 +106,11 @@ public class StringSslNetworkTest extends BaseNetworkTest {
     SSLSocketFactory sslSocketFactory = clientSslContext.getSocketFactory();
     SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(serverAddress.getHostName(), serverAddress.getPort());
 
+    StringWritableNetworkPacket writableNetworkPacket = new StringWritableNetworkPacket("Hello SSL");
+
     var buffer = ByteBuffer.allocate(1024);
     buffer.position(2);
-
-    new StringWritableNetworkPacket("Hello SSL").write(buffer);
-
+    writableNetworkPacket.write(buffer);
     buffer.putShort(0, (short) buffer.position());
     buffer.flip();
 
@@ -128,18 +131,16 @@ public class StringSslNetworkTest extends BaseNetworkTest {
     StringReadablePacket response = new StringReadablePacket();
     response.read(buffer, packetLength - 2);
 
-    LOGGER.info("Response: " + response.data());
+    log.info(response.data(), "Response:[%s]"::formatted);
 
     serverNetwork.shutdown();
   }
 
   @Test
   @SneakyThrows
-  void clientSSLNetworkTest() {
-
-    System.setProperty("javax.net.debug", "all");
-    //LoggerManager.enable(AbstractSSLPacketWriter.class, LoggerLevel.DEBUG);
-    //LoggerManager.enable(AbstractSSLPacketReader.class, LoggerLevel.DEBUG);
+  void clientSslNetworkTest() {
+    //System.setProperty("javax.net.debug", "all");
+    //LoggerManager.enable(StringSslNetworkTest.class, LoggerLevel.INFO);
 
     InputStream keystoreFile = StringSslNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
     SSLContext sslContext = NetworkUtils.createSslContext(keystoreFile, "test");
@@ -162,7 +163,7 @@ public class StringSslNetworkTest extends BaseNetworkTest {
         .doOnError(Throwable::printStackTrace)
         .flatMapMany(Connection::receivedEvents)
         .subscribe(event -> {
-          LOGGER.info("Received from server: " + event.packet().data());
+          log.info(event.packet().data(), "Received from server:[%s]"::formatted);
           counter.countDown();
         });
 
@@ -184,13 +185,13 @@ public class StringSslNetworkTest extends BaseNetworkTest {
 
     Assertions.assertEquals("Hello SSL", receivedPacket.data());
 
-    LOGGER.info("Received from client: " + receivedPacket.data());
+    log.info(receivedPacket.data(), "Received from client:[%s]"::formatted);
+
+    StringWritableNetworkPacket writableNetworkPacket = new StringWritableNetworkPacket("Echo: Hello SSL");
 
     buffer.clear();
     buffer.position(2);
-
-    new StringWritableNetworkPacket("Echo: Hello SSL").write(buffer);
-
+    writableNetworkPacket.write(buffer);
     buffer.putShort(0, (short) buffer.position());
     buffer.flip();
 
@@ -211,14 +212,12 @@ public class StringSslNetworkTest extends BaseNetworkTest {
   @Test
   @SneakyThrows
   void echoNetworkTest() {
-
     //System.setProperty("javax.net.debug", "all");
-    //LoggerManager.enable(AbstractPacketWriter.class, LoggerLevel.DEBUG);
-    //LoggerManager.enable(AbstractSSLPacketWriter.class, LoggerLevel.DEBUG);
-    //LoggerManager.enable(AbstractSSLPacketReader.class, LoggerLevel.DEBUG);
+    LoggerManager.enable(StringSslNetworkTest.class, LoggerLevel.INFO);
 
     InputStream keystoreFile = StringSslNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
     SSLContext serverSSLContext = NetworkUtils.createSslContext(keystoreFile, "test");
+    ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
     ServerNetwork<StringDataSslConnection> serverNetwork = NetworkFactory.stringDataSslServerNetwork(
         ServerNetworkConfig.DEFAULT_SERVER,
@@ -235,7 +234,7 @@ public class StringSslNetworkTest extends BaseNetworkTest {
         .flatMap(Connection::receivedEvents)
         .subscribe(event -> {
           var message = event.packet().data();
-          LOGGER.info("Received from client: " + message);
+          log.info(message, "Received from client:[%s]"::formatted);
           event.connection().send(new StringWritableNetworkPacket("Echo: " + message));
         });
 
@@ -249,21 +248,32 @@ public class StringSslNetworkTest extends BaseNetworkTest {
         .connectReactive(serverAddress)
         .doOnNext(connection -> IntStream
             .range(10, expectedReceivedPackets + 10)
-            .forEach(length -> connection.send(newMessage(9, length))))
+            .forEach(length -> {
+              var packet = newMessage(9, length);
+              int delay = ThreadLocalRandom
+                  .current()
+                  .nextInt(2000);
+              executor.schedule(
+                  () -> {
+                    connection.send(packet);
+                    log.info(packet.data().length(), "Send [%s] symbols to server"::formatted);
+                  }, delay, TimeUnit.MILLISECONDS);
+            }))
         .doOnError(Throwable::printStackTrace)
         .flatMapMany(Connection::receivedEvents)
         .subscribe(event -> {
-          LOGGER.info("Received from server: " + event.packet().data());
+          log.info(event.packet().data(), "Received from server:[%s]"::formatted);
           counter.countDown();
         });
 
     Assertions.assertTrue(
-        counter.await(1000, TimeUnit.MILLISECONDS),
+        counter.await(60, TimeUnit.SECONDS),
         "Still wait for " + counter.getCount() + " packets...");
 
     serverNetwork.shutdown();
     clientNetwork.shutdown();
 
+    ThreadUtils.sleep(30000);
     //LoggerManager.disable(AbstractSSLPacketWriter.class, LoggerLevel.DEBUG);
     //LoggerManager.disable(AbstractSSLPacketReader.class, LoggerLevel.DEBUG);
     //LoggerManager.disable(AbstractPacketWriter.class, LoggerLevel.DEBUG);
@@ -293,7 +303,7 @@ public class StringSslNetworkTest extends BaseNetworkTest {
 
       var pendingPacketsOnServer = serverToClient
           .receivedPackets()
-          .doOnNext(packet -> LOGGER.info("Received from client: " + packet.data()))
+          .doOnNext(packet -> log.info("Received from client: " + packet.data()))
           .buffer(packetCount);
 
       var messages = IntStream

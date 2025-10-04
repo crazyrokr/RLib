@@ -1,11 +1,15 @@
 package javasabr.rlib.network.packet.impl;
 
 import java.nio.ByteBuffer;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
 /**
  * @author JavaSaBr
  */
+@Getter
+@Accessors(fluent = true, chain = false)
 @RequiredArgsConstructor
 public class StringWritableNetworkPacket extends AbstractWritableNetworkPacket {
 

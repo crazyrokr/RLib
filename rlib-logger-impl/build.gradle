@@ -1,4 +1,7 @@
-apply from: "$rootDir/gradle/configure-publishing.gradle"
+plugins {
+  id("configure-java")
+  id("configure-publishing")
+}
 
 dependencies {
   api projects.rlibCommon

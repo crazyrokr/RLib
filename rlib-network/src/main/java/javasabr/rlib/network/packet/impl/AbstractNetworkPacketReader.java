@@ -34,7 +34,11 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
 
     @Override
     public void completed(Integer receivedBytes, ByteBuffer readingBuffer) {
-      handleReceivedData(receivedBytes, readingBuffer);
+      try {
+        handleReceivedData(receivedBytes, readingBuffer);
+      } catch (RuntimeException ex) {
+        handleFailedReceiving(ex, readingBuffer);
+      }
     }
 
     @Override

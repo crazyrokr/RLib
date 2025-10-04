@@ -20,8 +20,7 @@ import lombok.CustomLog;
 import lombok.experimental.FieldDefaults;
 
 /**
- * @param <R> the readable packet's type.
- * @param <C> the connection's type.
+ * @author JavaSaBr
  */
 @CustomLog
 @FieldDefaults(level = AccessLevel.PROTECTED)
@@ -89,32 +88,26 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
     HandshakeStatus handshakeStatus = sslEngine.getHandshakeStatus();
     while (handshakeStatus != HandshakeStatus.FINISHED && handshakeStatus != HandshakeStatus.NOT_HANDSHAKING) {
       log.debug(handshakeStatus, "Do handshake with status:[%s] "::formatted);
-
       SSLEngineResult result;
-
       switch (handshakeStatus) {
         case NEED_UNWRAP: {
           if (receivedBytes == -1) {
             if (sslEngine.isInboundDone() && sslEngine.isOutboundDone()) {
               return SKIP_READ_PACKETS;
             }
-
             try {
               sslEngine.closeInbound();
             } catch (SSLException e) {
               log.error("This engine was forced to close inbound, without having received the "
                   + "proper SSL/TLS close notification message from the peer, due to end of stream.");
             }
-
             sslEngine.closeOutbound();
             handshakeStatus = sslEngine.getHandshakeStatus();
             break;
-
           } else if (!receivedBuffer.hasRemaining()) {
             receivedBuffer.clear();
             return SKIP_READ_PACKETS;
           }
-
           try {
             log.debug(receivedBuffer, buff -> "Try to unwrap data:\n" + hexDump(buff));
             result = sslEngine.unwrap(receivedBuffer, EMPTY_BUFFERS);
@@ -127,7 +120,6 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
             handshakeStatus = sslEngine.getHandshakeStatus();
             break;
           }
-
           switch (result.getStatus()) {
             case OK:
               break;
@@ -157,22 +149,17 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
           return SKIP_READ_PACKETS;
         }
         case NEED_TASK: {
-
           Runnable task;
-
           while ((task = sslEngine.getDelegatedTask()) != null) {
             log.debug(task, "Execute SSL Engine's task:[%s]"::formatted);
             task.run();
           }
-
           handshakeStatus = sslEngine.getHandshakeStatus();
           log.debug(handshakeStatus, "Handshake status:[%s] after engine tasks"::formatted);
-
           if (handshakeStatus == HandshakeStatus.NEED_UNWRAP && !receivedBuffer.hasRemaining()) {
             sslNetworkBuffer.clear();
             return SKIP_READ_PACKETS;
           }
-
           break;
         }
         default: {
@@ -182,14 +169,11 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
     }
 
     if (!receivedBuffer.hasRemaining()) {
-
       // if buffer is empty and status is FINISHED then we can notify writer
       if (handshakeStatus == HandshakeStatus.FINISHED) {
         packetWriter.accept(SslWritableNetworkPacket.getInstance());
       }
-
       receivedBuffer.clear();
-
       return SKIP_READ_PACKETS;
     }
 
@@ -197,9 +181,7 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
   }
 
   protected int decryptAndRead(ByteBuffer receivedBuffer) {
-
     int total = 0;
-
     while (receivedBuffer.hasRemaining()) {
       SSLEngineResult result;
       try {
@@ -208,7 +190,6 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
       } catch (SSLException e) {
         throw new IllegalStateException(e);
       }
-
       switch (result.getStatus()) {
         case OK: {
           sslDataBuffer.flip();
@@ -221,7 +202,7 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
           return decryptAndRead(receivedBuffer);
         }
         case CLOSED: {
-          closeConnection();
+          connection.close();
           return SKIP_READ_PACKETS;
         }
         default: {
@@ -246,12 +227,9 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
     sslDataBuffer = NetworkUtils.increaseApplicationBuffer(sslDataBuffer, bufferAllocator, sslEngine);
   }
 
-  protected void closeConnection() {
-    try {
-      sslEngine.closeOutbound();
-      socketChannel.close();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  @Override
+  public void close() {
+    sslEngine.closeOutbound();
+    super.close();
   }
 }
