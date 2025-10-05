@@ -82,7 +82,7 @@ public class StringSslNetworkLoadTest {
             int delay = random.nextInt(MAX_SEND_DELAY);
             ScheduledFuture<?> schedule = executor.schedule(
                 () -> {
-                  StringWritableNetworkPacket message = newMessage(12000, 15000); // 10240
+                  StringWritableNetworkPacket message = newMessage(10, 100); // 10240
                   connection.send(message);
                 }, delay, TimeUnit.MILLISECONDS);
             tasks.add(schedule);

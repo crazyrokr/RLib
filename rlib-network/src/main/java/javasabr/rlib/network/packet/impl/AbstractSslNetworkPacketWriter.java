@@ -79,6 +79,21 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
   }
 
   @Override
+  protected boolean tryToSendNextPacketImpl() {
+    HandshakeStatus status = sslEngine.getHandshakeStatus();
+    if (SslUtils.isReadyToCrypt(status)) {
+      return super.tryToSendNextPacketImpl();
+    }
+
+    ByteBuffer dataToSend = doHandshake(SslWritableNetworkPacket.getInstance());
+    if (dataToSend != null) {
+      return writeBuffer(dataToSend, null);
+    }
+
+    throw new IllegalStateException("Unexpected SSL state");
+  }
+
+  @Override
   protected ByteBuffer serialize(WritableNetworkPacket packet) {
     HandshakeStatus status = sslEngine.getHandshakeStatus();
     if (SslUtils.isReadyToCrypt(status)) {
@@ -158,7 +173,6 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
       switch (handshakeStatus) {
         case NEED_WRAP: {
           try {
-            // check result
             result = sslEngine.wrap(EMPTY_BUFFERS, sslNetworkBuffer.clear());
             handshakeStatus = result.getHandshakeStatus();
           } catch (SSLException sslException) {
@@ -168,13 +182,14 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
             handshakeStatus = sslEngine.getHandshakeStatus();
             break;
           }
+
           switch (result.getStatus()) {
             case OK:
               sslNetworkBuffer.flip();
-              if (handshakeStatus == HandshakeStatus.NEED_WRAP) {
+/*              if (handshakeStatus == HandshakeStatus.NEED_WRAP) {
                 log.debug("Send command to wrap data again");
                 queueAtFirst.accept(SslWritableNetworkPacket.getInstance());
-              }
+              }*/
               log.debug(sslNetworkBuffer, result, (buf, res) -> "Send wrapped data:\n" + hexDump(buf, res));
               return sslNetworkBuffer;
             case BUFFER_OVERFLOW: {

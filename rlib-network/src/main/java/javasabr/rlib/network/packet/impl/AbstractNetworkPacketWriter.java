@@ -34,15 +34,15 @@ import org.jspecify.annotations.Nullable;
 public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacket, C extends Connection<?, W>>
     implements NetworkPacketWriter {
 
-  final CompletionHandler<Integer, WritableNetworkPacket> writeHandler = new CompletionHandler<>() {
+  final CompletionHandler<Integer, @Nullable WritableNetworkPacket> writeHandler = new CompletionHandler<>() {
 
     @Override
-    public void completed(Integer result, WritableNetworkPacket packet) {
+    public void completed(Integer result, @Nullable WritableNetworkPacket packet) {
       handleSuccessfulWritingData(result, packet);
     }
 
     @Override
-    public void failed(Throwable exc, WritableNetworkPacket packet) {
+    public void failed(Throwable exc, @Nullable WritableNetworkPacket packet) {
       handleFailedWritingData(exc, packet);
     }
   };
@@ -64,7 +64,7 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
   volatile ByteBuffer writingBuffer = EMPTY_BUFFER;
 
   final Runnable updateActivityFunction;
-  final Supplier<@Nullable WritableNetworkPacket> nextWritePacketSupplier;
+  final Supplier<@Nullable WritableNetworkPacket> writablePacketProvider;
   final ObjBoolConsumer<WritableNetworkPacket> sentPacketHandler;
   final Consumer<WritableNetworkPacket> serializedToChannelPacketHandler;
 
@@ -82,7 +82,7 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
     this.firstWriteBuffer = bufferAllocator.takeWriteBuffer();
     this.secondWriteBuffer = bufferAllocator.takeWriteBuffer();
     this.updateActivityFunction = updateActivityFunction;
-    this.nextWritePacketSupplier = packetProvider;
+    this.writablePacketProvider = packetProvider;
     this.serializedToChannelPacketHandler = serializedToChannelPacketHandler;
     this.sentPacketHandler = sentPacketHandler;
   }
@@ -97,27 +97,42 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
       return false;
     }
 
-    WritableNetworkPacket nextPacket = nextWritePacketSupplier.get();
-    if (nextPacket == null) {
+    boolean startedWriting = false;
+
+    try {
+      startedWriting = tryToSendNextPacketImpl();
+    } catch (Exception ex) {
+      log.error(ex);
+    }
+
+    if (!startedWriting) {
       writing.set(false);
+    }
+
+    return startedWriting;
+  }
+
+  protected boolean tryToSendNextPacketImpl() {
+    for (var nextPacket = writablePacketProvider.get();
+         nextPacket != null; nextPacket = writablePacketProvider.get()) {
+      ByteBuffer resultBuffer = serialize(nextPacket);
+      boolean startedWriting = writeBuffer(resultBuffer, nextPacket);
+      serializedToChannelPacketHandler.accept(nextPacket);
+      if (startedWriting) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  protected boolean writeBuffer(ByteBuffer resultBuffer, @Nullable WritableNetworkPacket nextPacket) {
+    if (resultBuffer.limit() == 0) {
       return false;
     }
-
-    boolean startedWriting = false;
-    ByteBuffer resultBuffer = serialize(nextPacket);
-
-    if (resultBuffer.limit() != 0) {
-      writingBuffer = resultBuffer;
-      log.debug(remoteAddress(), resultBuffer,
-          (address, buff) -> "[%s] Write to channel data:\n" + hexDump(buff));
-      socketChannel.write(resultBuffer, nextPacket, writeHandler);
-      startedWriting = true;
-    } else {
-      writing.set(false);
-    }
-
-    serializedToChannelPacketHandler.accept(nextPacket);
-    return startedWriting;
+    writingBuffer = resultBuffer;
+    log.debug(remoteAddress(), resultBuffer, (address, buff) -> "[%s] Write to channel data:\n" + hexDump(buff));
+    socketChannel.write(resultBuffer, nextPacket, writeHandler);
+    return true;
   }
 
   /**
@@ -324,11 +339,13 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
    * @param wroteBytes the count of wrote bytes.
    * @param packet the sent packet.
    */
-  protected void handleSuccessfulWritingData(Integer wroteBytes, WritableNetworkPacket packet) {
+  protected void handleSuccessfulWritingData(Integer wroteBytes, @Nullable WritableNetworkPacket packet) {
     updateActivityFunction.run();
 
     if (wroteBytes == -1) {
-      sentPacketHandler.accept(packet, false);
+      if (packet != null) {
+        sentPacketHandler.accept(packet, false);
+      }
       connection.close();
       return;
     }
@@ -343,13 +360,12 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
       log.debug(remoteAddress(), wroteBytes, "[%s] Finished writing [%s] bytes"::formatted);
     }
 
-    sentPacketHandler.accept(packet, true);
+    if (packet != null) {
+      sentPacketHandler.accept(packet, true);
+    }
 
     if (writing.compareAndSet(true, false)) {
-      // if we have temp buffers, we can remove it after finishing writing a packet
-      if (firstWriteTempBuffer != null || secondWriteTempBuffer != null) {
-        clearTempBuffers();
-      }
+      clearTempBuffers();
       tryToSendNextPacket();
     }
   }
@@ -360,7 +376,7 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
    * @param exception the exception.
    * @param packet the packet.
    */
-  protected void handleFailedWritingData(Throwable exception, WritableNetworkPacket packet) {
+  protected void handleFailedWritingData(Throwable exception, @Nullable WritableNetworkPacket packet) {
     log.error(new RuntimeException("Failed writing packet:" + packet, exception));
     if (exception instanceof IOException) {
       connection.close();
@@ -368,6 +384,7 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
     }
     if (!connection.closed()) {
       if (writing.compareAndSet(true, false)) {
+        clearTempBuffers();
         tryToSendNextPacket();
       }
     }
@@ -383,6 +400,7 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
   }
 
   protected void clearTempBuffers() {
+    this.writingBuffer = EMPTY_BUFFER;
 
     var firstWriteTempBuffer = this.firstWriteTempBuffer;
     if (firstWriteTempBuffer != null) {

@@ -2,6 +2,7 @@ package javasabr.rlib.network.packet;
 
 import java.nio.ByteBuffer;
 
+
 /**
  * Interface to implement a writable packet.
  *
