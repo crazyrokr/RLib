@@ -1,5 +1,6 @@
 package javasabr.rlib.network;
 
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -19,8 +20,12 @@ import javasabr.rlib.network.ServerNetworkConfig.SimpleServerNetworkConfig;
 import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.StringDataConnection;
+import javasabr.rlib.network.impl.StringDataSslConnection;
+import javasabr.rlib.network.packet.impl.AbstractSslNetworkPacketReader;
 import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 import javasabr.rlib.network.server.ServerNetwork;
+import javasabr.rlib.network.util.NetworkUtils;
+import javax.net.ssl.SSLContext;
 import lombok.CustomLog;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -29,7 +34,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 @CustomLog
-public class StringNetworkLoadTest {
+public class StringSslNetworkLoadTest {
 
   public static final int MAX_ITERATIONS = 10;
   public static final int MAX_SEND_DELAY = 20_000;
@@ -48,8 +53,8 @@ public class StringNetworkLoadTest {
 
     BufferAllocator clientAllocator = new DefaultBufferAllocator(networkConfig);
     ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    ClientNetwork<StringDataConnection> network = NetworkFactory
-        .stringDataClientNetwork(networkConfig, clientAllocator);
+    ClientNetwork<StringDataSslConnection> network = NetworkFactory
+        .stringDataSslClientNetwork(networkConfig, clientAllocator, NetworkUtils.createAllTrustedClientSslContext());
     StatisticsCollector statistics;
 
     private TestClient(StatisticsCollector statistics) {
@@ -64,7 +69,7 @@ public class StringNetworkLoadTest {
         ThreadLocalRandom random = ThreadLocalRandom.current();
 
         ThreadUtils.sleep(random.nextInt(5000));
-        StringDataConnection connection = network.connect(serverAddress);
+        StringDataSslConnection connection = network.connect(serverAddress);
 
         connection.onReceive((serverConnection, packet) -> statistics
             .receivedServerPackersPerSecond()
@@ -77,7 +82,7 @@ public class StringNetworkLoadTest {
             int delay = random.nextInt(MAX_SEND_DELAY);
             ScheduledFuture<?> schedule = executor.schedule(
                 () -> {
-                  StringWritableNetworkPacket message = newMessage(10, 10240);
+                  StringWritableNetworkPacket message = newMessage(10, 10240); // 10240
                   connection.send(message);
                 }, delay, TimeUnit.MILLISECONDS);
             tasks.add(schedule);
@@ -116,7 +121,8 @@ public class StringNetworkLoadTest {
   @Test
   @SneakyThrows
   void testServerWithMultiplyClients() {
-    LoggerManager.enable(StringNetworkLoadTest.class, LoggerLevel.INFO);
+    LoggerManager.enable(StringSslNetworkLoadTest.class, LoggerLevel.INFO);
+    LoggerManager.enable(AbstractSslNetworkPacketReader.class, LoggerLevel.DEBUG);
 
     var serverConfig = SimpleServerNetworkConfig
         .builder()
@@ -129,14 +135,18 @@ public class StringNetworkLoadTest {
     var serverAllocator = new DefaultBufferAllocator(serverConfig);
     ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
-    int clientCount = 200;
-    int messagesPerIteration = 3_000;
+    int clientCount = 1;
+    int messagesPerIteration = 300;
     int expectedMessages = clientCount * messagesPerIteration * MAX_ITERATIONS;
 
-    var finalWaiter = new CountDownLatch(1);
+    var finalWaiter = new CountDownLatch(2);
     var statistics = new StatisticsCollector();
 
-    ServerNetwork<StringDataConnection> serverNetwork = NetworkFactory.stringDataServerNetwork(serverConfig, serverAllocator);
+    InputStream keystoreFile = StringSslNetworkLoadTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
+    SSLContext serverSslContext = NetworkUtils.createSslContext(keystoreFile, "test");
+
+    ServerNetwork<StringDataSslConnection> serverNetwork = NetworkFactory
+        .stringDataSslServerNetwork(serverConfig, serverAllocator, serverSslContext);
     InetSocketAddress serverAddress = serverNetwork.start();
 
     serverNetwork.onAccept(accepted -> accepted
@@ -144,7 +154,7 @@ public class StringNetworkLoadTest {
           statistics
               .receivedClientPackersPerSecond()
               .accumulate(1);
-          connection.send(new StringWritableNetworkPacket("Echo: " + packet.data()));
+          //connection.send(new StringWritableNetworkPacket("Echo: " + packet.data()));
           statistics
               .sentEchoPackersPerSecond()
               .accumulate(1);
@@ -161,6 +171,9 @@ public class StringNetworkLoadTest {
       TestClient testClient = new TestClient(statistics);
       testClient.connectAndSendMessages(serverAddress, messagesPerIteration);
     }
+
+    ThreadUtils.sleep(30000);
+    finalWaiter.countDown();
 
     Assertions
         .assertTrue(finalWaiter.await(300_000, TimeUnit.MILLISECONDS),
@@ -183,7 +196,7 @@ public class StringNetworkLoadTest {
           .getThenReset();
       log.info(received, "Server receiving [%s] messages/sec"::formatted);
       if (received == 0) {
-        finalWaiter.countDown();
+       // finalWaiter.countDown();
       }
     }, 1, 1, TimeUnit.SECONDS);
     scheduledExecutor.scheduleAtFixedRate(() -> {

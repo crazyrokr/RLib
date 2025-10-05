@@ -22,11 +22,13 @@ public abstract class AbstractReadableNetworkPacket
   @Override
   public boolean read(ByteBuffer buffer, int remainingDataLength) {
     int oldLimit = buffer.limit();
+    int oldPosition = buffer.position();
     try {
-      buffer.limit(buffer.position() + remainingDataLength);
+      buffer.limit(oldPosition + remainingDataLength);
       readImpl(buffer);
       return true;
     } catch (Exception e) {
+      buffer.position(oldPosition);
       handleException(buffer, e);
       return false;
     } finally {

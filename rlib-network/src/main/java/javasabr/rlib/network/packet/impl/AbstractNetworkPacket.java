@@ -26,11 +26,11 @@ public abstract class AbstractNetworkPacket implements NetworkPacket {
     String hexDump;
 
     if (buffer.isDirect()) {
-      var array = new byte[buffer.limit()];
-      buffer.get(array, 0, buffer.limit());
+      var array = new byte[buffer.remaining()];
+      buffer.get(array, buffer.position(), buffer.limit());
       hexDump = hexDump(array, array.length);
     } else {
-      hexDump = hexDump(buffer.array(), buffer.limit());
+      hexDump = hexDump(buffer.array(), buffer.position(), buffer.limit());
     }
 
     log.warning(name(), buffer, hexDump, "[%s] -> buffer:[%s]\n[%s]"::formatted);

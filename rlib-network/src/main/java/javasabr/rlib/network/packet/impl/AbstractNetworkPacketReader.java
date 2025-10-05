@@ -264,9 +264,9 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
       } else {
         log.warning(remoteAddress, "[%s] Cannot create any instance of packet to read data"::formatted);
       }
-
-      bufferToRead.position(endPosition);
     }
+
+    bufferToRead.position(endPosition);
 
     if (bufferToRead.hasRemaining()) {
       if (bufferToRead == receivedBuffer) {
@@ -360,7 +360,7 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
   /**
    * Handles received data from the channel.
    */
-  protected void handleReceivedData(Integer receivedBytes, ByteBuffer readingBuffer) {
+  protected void handleReceivedData(int receivedBytes, ByteBuffer readingBuffer) {
     updateActivityFunction.run();
 
     if (receivedBytes == -1) {

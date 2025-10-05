@@ -13,8 +13,6 @@ import lombok.experimental.UtilityClass;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * The utility class.
- *
  * @author JavaSaBr
  */
 @NullMarked
@@ -34,26 +32,19 @@ public class BufferUtils {
    * @param source the source buffer
    * @return the target buffer.
    */
-  public ByteBuffer loadFrom(ByteBuffer source, ByteBuffer target) {
-
+  public static ByteBuffer loadFrom(ByteBuffer source, ByteBuffer target) {
     var prevLimit = source.limit();
     try {
-
       target.clear();
-
-      var skip = source.remaining() - target.remaining();
-
+      int skip = source.remaining() - target.remaining();
       if (skip > 0) {
         source.limit(prevLimit - skip);
       }
-
       target.put(source);
       target.flip();
-
     } finally {
       source.limit(prevLimit);
     }
-
     return target;
   }
 
@@ -63,7 +54,7 @@ public class BufferUtils {
    * @param size the byte buffer's size.
    * @return the new mapped byte buffer.
    */
-  public MappedByteBuffer allocateRWMappedByteBuffer(int size) {
+  public static MappedByteBuffer allocateRWMappedByteBuffer(int size) {
     try {
 
       var tempFile = Files.createTempFile("rlib_common_util_", "_buffer_utils.bin");
@@ -77,21 +68,31 @@ public class BufferUtils {
     }
   }
 
-  public ByteBuffer putToAndFlip(ByteBuffer buffer, ByteBuffer additional) {
+  public static ByteBuffer putToAndFlip(ByteBuffer buffer, ByteBuffer additional) {
     return buffer
         .limit(buffer.capacity())
         .put(additional)
         .flip();
   }
 
+  public static ByteBuffer appendAndClear(ByteBuffer buffer, ByteBuffer additional) {
+    ByteBuffer result = buffer
+        .position(buffer.limit())
+        .limit(buffer.capacity())
+        .put(additional)
+        .flip();
+    additional.clear();
+    return result;
+  }
+
   /**
-   * Create a new byte buffer with with writing some data inside the consumer and to flip in the result.
+   * Create a new byte buffer with writing some data inside the consumer and to flip in the result.
    *
    * @param size the buffer's size.
    * @param consumer the consumer to write data.
    * @return the flipped buffer.
    */
-  public ByteBuffer prepareBuffer(int size, Consumer<ByteBuffer> consumer) {
+  public static ByteBuffer prepareBuffer(int size, Consumer<ByteBuffer> consumer) {
     var buffer = ByteBuffer.allocate(size);
     consumer.accept(buffer);
     return buffer.flip();

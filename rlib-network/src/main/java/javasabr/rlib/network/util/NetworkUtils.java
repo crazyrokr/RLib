@@ -166,14 +166,12 @@ public class NetworkUtils {
 
     hexDigit(builder, (byte) ((offset >>> 8) & 0xFF));
     hexDigit(builder, (byte) (offset & 0xFF));
+
     builder.append(": ");
-
     for (int i = offset; i < length; i++) {
-
       byte val = array[i];
 
       char ch;
-
       if (val < ' ' || val > 'z') {
         ch = '.';
       } else {
@@ -181,45 +179,31 @@ public class NetworkUtils {
       }
 
       if (i == end) {
-
         chars[count] = ch;
-
         hexDigit(builder, val)
             .append("   ".repeat(15 - count))
             .append("    ");
-
         if (count < 9) {
           builder.append("  ");
         }
-
         builder.append(chars);
-
       } else if (count < 15) {
-
         chars[count++] = ch;
         hexDigit(builder, val).append(' ');
-
         if (count == 8) {
           builder.append("  ");
         }
-
       } else {
-
         chars[15] = ch;
-
         hexDigit(builder, val)
             .append("    ")
             .append(chars)
             .append('\n');
-
         var nextPos = i + 1;
-
         hexDigit(builder, (byte) ((nextPos >>> 8) & 0xFF));
         hexDigit(builder, (byte) (nextPos & 0xFF));
         builder.append(": ");
-
         count = 0;
-
         for (int g = 0; g < 16; g++) {
           chars[g] = '.';
         }
@@ -326,6 +310,18 @@ public class NetworkUtils {
     var newBuffer = allocator.takeBuffer(engine
         .getSession()
         .getPacketBufferSize());
+    newBuffer.put(current);
+
+    if (current.capacity() > 0) {
+      allocator.putBuffer(current);
+    }
+
+    return newBuffer;
+  }
+
+  public static ByteBuffer increaseBuffer(ByteBuffer current, BufferAllocator allocator, int newSize) {
+
+    var newBuffer = allocator.takeBuffer(newSize);
     newBuffer.put(current);
 
     if (current.capacity() > 0) {
