@@ -4,6 +4,7 @@ import static javasabr.rlib.network.util.NetworkUtils.EMPTY_BUFFER;
 import static javasabr.rlib.network.util.NetworkUtils.hexDump;
 
 import java.io.IOException;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
@@ -116,7 +117,6 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
     }
 
     serializedToChannelPacketHandler.accept(nextPacket);
-
     return startedWriting;
   }
 
@@ -143,9 +143,25 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
       ByteBuffer second = bufferAllocator.takeBuffer(totalSize);
       firstWriteTempBuffer = first;
       secondWriteTempBuffer = second;
-      return serialize(resultPacket, expectedLength, totalSize, first, second);
+      try {
+        return serialize(resultPacket, expectedLength, totalSize, first, second);
+      } catch (BufferOverflowException ex) {
+        log.error(ex);
+        bufferAllocator.putBuffer(first);
+        bufferAllocator.putBuffer(second);
+        firstWriteTempBuffer = null;
+        secondWriteTempBuffer = null;
+        throw new RuntimeException(ex);
+      }
     } else {
-      return serialize(resultPacket, expectedLength, totalSize, firstWriteBuffer, secondWriteBuffer);
+      try {
+        return serialize(resultPacket, expectedLength, totalSize, firstWriteBuffer, secondWriteBuffer);
+      } catch (BufferOverflowException ex) {
+        log.error(ex);
+        firstWriteBuffer.clear();
+        secondWriteBuffer.clear();
+        throw new RuntimeException(ex);
+      }
     }
   }
 
@@ -359,29 +375,25 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
 
   @Override
   public void close() {
-
     bufferAllocator
         .putWriteBuffer(firstWriteBuffer)
         .putWriteBuffer(secondWriteBuffer);
-
     clearTempBuffers();
-
     writingBuffer = EMPTY_BUFFER;
   }
 
   protected void clearTempBuffers() {
 
-    var secondWriteTempBuffer = this.secondWriteTempBuffer;
     var firstWriteTempBuffer = this.firstWriteTempBuffer;
-
-    if (secondWriteTempBuffer != null) {
-      this.secondWriteTempBuffer = null;
-      bufferAllocator.putBuffer(secondWriteTempBuffer);
-    }
-
     if (firstWriteTempBuffer != null) {
       this.firstWriteTempBuffer = null;
       bufferAllocator.putBuffer(firstWriteTempBuffer);
+    }
+
+    var secondWriteTempBuffer = this.secondWriteTempBuffer;
+    if (secondWriteTempBuffer != null) {
+      this.secondWriteTempBuffer = null;
+      bufferAllocator.putBuffer(secondWriteTempBuffer);
     }
   }
 }

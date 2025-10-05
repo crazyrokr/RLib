@@ -279,29 +279,6 @@ public class NetworkUtils {
         .orElse(-1);
   }
 
-  public static ByteBuffer enlargePacketBuffer(BufferAllocator allocator, SSLEngine engine) {
-    return allocator.takeBuffer(engine
-        .getSession()
-        .getPacketBufferSize());
-  }
-
-  public static ByteBuffer increaseApplicationBuffer(
-      ByteBuffer current,
-      BufferAllocator allocator,
-      SSLEngine engine) {
-
-    var newBuffer = allocator.takeBuffer(engine
-        .getSession()
-        .getApplicationBufferSize());
-    newBuffer.put(current);
-
-    if (current.capacity() > 0) {
-      allocator.putBuffer(current);
-    }
-
-    return newBuffer;
-  }
-
   public static ByteBuffer increasePacketBuffer(
       ByteBuffer current,
       BufferAllocator allocator,

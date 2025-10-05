@@ -1,6 +1,7 @@
 package javasabr.rlib.network;
 
 import java.nio.ByteBuffer;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The interface to implement a buffer allocator for network things.

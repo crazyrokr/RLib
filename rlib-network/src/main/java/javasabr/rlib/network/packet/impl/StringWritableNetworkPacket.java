@@ -20,14 +20,16 @@ public class StringWritableNetworkPacket extends AbstractWritableNetworkPacket {
     super.writeImpl(buffer);
     writeLong(buffer, 0);
     writeLong(buffer, Long.MAX_VALUE);
+    writeLong(buffer, Long.MAX_VALUE);
     writeString(buffer, data);
     writeLong(buffer, Long.MAX_VALUE);
+    writeLong(buffer, 0);
     writeLong(buffer, 0);
   }
 
   @Override
   public int expectedLength() {
-    return 32 + 4 + data.length() * 2;
+    return 48 + 4 + data.length() * 2;
   }
 
   @Override

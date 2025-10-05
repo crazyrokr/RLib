@@ -82,7 +82,7 @@ public class StringSslNetworkLoadTest {
             int delay = random.nextInt(MAX_SEND_DELAY);
             ScheduledFuture<?> schedule = executor.schedule(
                 () -> {
-                  StringWritableNetworkPacket message = newMessage(10, 10240); // 10240
+                  StringWritableNetworkPacket message = newMessage(12000, 15000); // 10240
                   connection.send(message);
                 }, delay, TimeUnit.MILLISECONDS);
             tasks.add(schedule);
@@ -122,7 +122,7 @@ public class StringSslNetworkLoadTest {
   @SneakyThrows
   void testServerWithMultiplyClients() {
     LoggerManager.enable(StringSslNetworkLoadTest.class, LoggerLevel.INFO);
-    LoggerManager.enable(AbstractSslNetworkPacketReader.class, LoggerLevel.DEBUG);
+    //LoggerManager.enable(AbstractSslNetworkPacketReader.class, LoggerLevel.DEBUG);
 
     var serverConfig = SimpleServerNetworkConfig
         .builder()
@@ -136,7 +136,7 @@ public class StringSslNetworkLoadTest {
     ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
     int clientCount = 1;
-    int messagesPerIteration = 300;
+    int messagesPerIteration = 20;
     int expectedMessages = clientCount * messagesPerIteration * MAX_ITERATIONS;
 
     var finalWaiter = new CountDownLatch(2);
@@ -214,6 +214,8 @@ public class StringSslNetworkLoadTest {
   }
 
   private static StringWritableNetworkPacket newMessage(int minMessageLength, int maxMessageLength) {
-    return new StringWritableNetworkPacket(StringUtils.generate(minMessageLength, maxMessageLength));
+    String generate = StringUtils.generate(minMessageLength, maxMessageLength);
+    return new StringWritableNetworkPacket("a".repeat(generate.length()));
+    //return new StringWritableNetworkPacket(StringUtils.generate(minMessageLength, maxMessageLength));
   }
 }

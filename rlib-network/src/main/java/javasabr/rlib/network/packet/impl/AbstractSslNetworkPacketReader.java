@@ -84,17 +84,17 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
   protected int readPackets(ByteBuffer readingBuffer) {
     ByteBuffer networkBuffer = moveDataToNetworkBuffer(readingBuffer);
     HandshakeStatus handshakeStatus = sslEngine.getHandshakeStatus();
-    if (SslUtils.isReadyToDecrypt(handshakeStatus)) {
+    if (SslUtils.isReadyToCrypt(handshakeStatus)) {
       return decryptAndRead(networkBuffer);
     } else {
       return doHandshake(networkBuffer, networkBuffer.limit());
     }
   }
 
-  private ByteBuffer moveDataToNetworkBuffer(ByteBuffer readingBuffer) {
+  protected ByteBuffer moveDataToNetworkBuffer(ByteBuffer readingBuffer) {
     ByteBuffer sslNetworkBuffer = sslNetworkBuffer();
-    int freeSpace = sslNetworkBuffer.capacity() - sslNetworkBuffer.limit();
-    if (freeSpace >= readingBuffer.limit()) {
+    int availableSpace = sslNetworkBuffer.capacity() - sslNetworkBuffer.limit();
+    if (availableSpace >= readingBuffer.limit()) {
       BufferUtils.appendAndClear(sslNetworkBuffer, readingBuffer);
     } else {
       sslNetworkBuffer = increaseNetworkBuffer(readingBuffer.limit());
@@ -103,7 +103,7 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
     return sslNetworkBuffer;
   }
 
-  protected int doHandshake(ByteBuffer receivedBuffer, int receivedBytes) {
+  protected int doHandshake(ByteBuffer networkBuffer, int receivedBytes) {
     HandshakeStatus handshakeStatus = sslEngine.getHandshakeStatus();
     while (SslUtils.needToProcess(handshakeStatus)) {
       log.debug(handshakeStatus, "Do handshake with status:[%s] "::formatted);
@@ -123,13 +123,13 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
             sslEngine.closeOutbound();
             handshakeStatus = sslEngine.getHandshakeStatus();
             break;
-          } else if (!receivedBuffer.hasRemaining()) {
-            receivedBuffer.clear().limit(0);
+          } else if (!networkBuffer.hasRemaining()) {
+            cleanNetworkBuffer(networkBuffer);
             return SKIP_READ_PACKETS;
           }
           try {
-            log.debug(receivedBuffer, buff -> "Try to unwrap data:\n" + hexDump(buff));
-            result = sslEngine.unwrap(receivedBuffer, EMPTY_BUFFERS);
+            log.debug(networkBuffer, buff -> "Try to unwrap data:\n" + hexDump(buff));
+            result = sslEngine.unwrap(networkBuffer, EMPTY_BUFFERS);
             handshakeStatus = result.getHandshakeStatus();
             log.debug(handshakeStatus, "Handshake status:[%s] after unwrapping"::formatted);
           } catch (SSLException sslException) {
@@ -167,21 +167,16 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
           break;
         }
         case NEED_WRAP: {
-          log.debug("Send command to wrap data");
+          log.debug(remoteAddress(), "[%s] Send command to wrap data"::formatted);
           packetWriter.accept(SslWritableNetworkPacket.getInstance());
-          receivedBuffer.clear().limit(0);
+          cleanNetworkBuffer(networkBuffer);
           return SKIP_READ_PACKETS;
         }
         case NEED_TASK: {
-          Runnable task;
-          while ((task = sslEngine.getDelegatedTask()) != null) {
-            log.debug(task, "Execute SSL Engine's task:[%s]"::formatted);
-            task.run();
-          }
-          handshakeStatus = sslEngine.getHandshakeStatus();
+          handshakeStatus = SslUtils.executeSslTasks(sslEngine);
           log.debug(handshakeStatus, "Handshake status:[%s] after engine tasks"::formatted);
-          if (handshakeStatus == HandshakeStatus.NEED_UNWRAP && !receivedBuffer.hasRemaining()) {
-            receivedBuffer.clear().limit(0);
+          if (handshakeStatus == HandshakeStatus.NEED_UNWRAP && !networkBuffer.hasRemaining()) {
+            cleanNetworkBuffer(networkBuffer);
             return SKIP_READ_PACKETS;
           }
           break;
@@ -192,16 +187,16 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
       }
     }
 
-    if (!receivedBuffer.hasRemaining()) {
+    if (!networkBuffer.hasRemaining()) {
       // if buffer is empty and status is FINISHED then we can notify writer
       if (handshakeStatus == HandshakeStatus.FINISHED) {
         packetWriter.accept(SslWritableNetworkPacket.getInstance());
       }
-      receivedBuffer.clear().limit(0);
+      cleanNetworkBuffer(networkBuffer);
       return SKIP_READ_PACKETS;
     }
 
-    return decryptAndRead(receivedBuffer);
+    return decryptAndRead(networkBuffer);
   }
 
   protected int decryptAndRead(ByteBuffer receivedBuffer) {
@@ -251,7 +246,7 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
     return total;
   }
 
-  private synchronized ByteBuffer increaseNetworkBuffer(int extra) {
+  protected synchronized ByteBuffer increaseNetworkBuffer(int extra) {
     ByteBuffer current = sslNetworkBuffer();
     int newSize = (int) Math.max(current.capacity() * 1.3, current.capacity() + extra);
     sslNetworkBuffer = NetworkUtils
@@ -260,7 +255,7 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
     return sslNetworkBuffer;
   }
 
-  private synchronized void increaseDataBuffer() {
+  protected synchronized void increaseDataBuffer() {
     int newSize = sslEngine
         .getSession()
         .getApplicationBufferSize();
@@ -280,5 +275,9 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
         .putBuffer(sslDataPendingBuffer)
         .putBuffer(sslNetworkBuffer);
     super.close();
+  }
+
+  protected static void cleanNetworkBuffer(ByteBuffer networkBuffer) {
+    networkBuffer.clear().limit(0);
   }
 }
