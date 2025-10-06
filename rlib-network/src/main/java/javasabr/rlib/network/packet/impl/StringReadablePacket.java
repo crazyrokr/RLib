@@ -22,13 +22,7 @@ public class StringReadablePacket extends AbstractReadableNetworkPacket {
 
   @Override
   protected void readImpl(ByteBuffer buffer) {
-    readLong(buffer);
-    readLong(buffer);
-    readLong(buffer);
     this.data = readString(buffer, MAX_LENGTH);
-    readLong(buffer);
-    readLong(buffer);
-    readLong(buffer);
   }
 
   @Override

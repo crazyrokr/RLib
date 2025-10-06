@@ -198,7 +198,7 @@ public class StringSslNetworkLoadTest {
           .getThenReset();
       log.info(received, "Server receiving [%s] messages/sec"::formatted);
       if (received == 0) {
-       // finalWaiter.countDown();
+       finalWaiter.countDown();
       }
     }, 1, 1, TimeUnit.SECONDS);
     scheduledExecutor.scheduleAtFixedRate(() -> {
@@ -216,8 +216,6 @@ public class StringSslNetworkLoadTest {
   }
 
   private static StringWritableNetworkPacket newMessage(int minMessageLength, int maxMessageLength) {
-    String generate = StringUtils.generate(minMessageLength, maxMessageLength);
-    return new StringWritableNetworkPacket("a".repeat(generate.length()));
-    //return new StringWritableNetworkPacket(StringUtils.generate(minMessageLength, maxMessageLength));
+    return new StringWritableNetworkPacket(StringUtils.generate(minMessageLength, maxMessageLength));
   }
 }

@@ -15,7 +15,6 @@ import javasabr.rlib.common.util.Utils;
 import javasabr.rlib.network.BufferAllocator;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -279,22 +278,6 @@ public class NetworkUtils {
         .orElse(-1);
   }
 
-  public static ByteBuffer increasePacketBuffer(
-      ByteBuffer current,
-      BufferAllocator allocator,
-      SSLEngine engine) {
-
-    var newBuffer = allocator.takeBuffer(engine
-        .getSession()
-        .getPacketBufferSize());
-    newBuffer.put(current);
-
-    if (current.capacity() > 0) {
-      allocator.putBuffer(current);
-    }
-
-    return newBuffer;
-  }
 
   public static ByteBuffer increaseBuffer(ByteBuffer current, BufferAllocator allocator, int newSize) {
 
@@ -308,11 +291,13 @@ public class NetworkUtils {
     return newBuffer;
   }
 
-  public static ByteBuffer enlargeApplicationBuffer(
-      BufferAllocator allocator,
-      SSLEngine engine) {
-    return allocator.takeBuffer(engine
-        .getSession()
-        .getApplicationBufferSize());
+  public static void cleanNetworkBuffer(ByteBuffer networkBuffer) {
+    networkBuffer.clear().limit(0);
+  }
+
+  public static void compactNetworkBufferIfNeed(ByteBuffer networkBuffer) {
+    if (networkBuffer.position() > 0) {
+      networkBuffer.compact().limit(networkBuffer.position());
+    }
   }
 }

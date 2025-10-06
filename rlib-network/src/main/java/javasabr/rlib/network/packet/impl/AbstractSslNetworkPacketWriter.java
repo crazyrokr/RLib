@@ -95,21 +95,25 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
 
   @Override
   protected ByteBuffer serialize(WritableNetworkPacket packet) {
-    if (packet instanceof SslWritableNetworkPacket) {
+    if (packet instanceof SslWrapRequestPacket) {
       return EMPTY_BUFFER;
     }
 
+    String remoteAddress = remoteAddress();
     ByteBuffer serialized = super.serialize(packet);
-    log.debug(remoteAddress(), serialized, (address, buff) ->
-        "[%s] Try to encrypt data:\n%s".formatted(address, hexDump(buff)));
+    logDataBeforeEncrypt(remoteAddress, serialized);
 
     ByteBuffer bufferToSend = sslNetworkBuffer();
     SSLEngineResult result = tryEncrypt(serialized, bufferToSend);
 
     if (result.getStatus() == SSLEngineResult.Status.OK && serialized.hasRemaining()) {
+      log.debug(remoteAddress, serialized.remaining(),
+          "[%s] Has remaining [%s] bytes after encrypting, will create temp big buffer"::formatted);
+
       int tempBufferSize = (int) ((bufferToSend.limit() + serialized.remaining()) * 1.2);
       ByteBuffer tempBuffer = bufferAllocator.takeBuffer(tempBufferSize);
       tempBuffer.put(bufferToSend.flip());
+
       while (serialized.hasRemaining()) {
         result = tryEncrypt(serialized, bufferToSend);
         if (result.getStatus() != SSLEngineResult.Status.OK) {
@@ -117,14 +121,19 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
         }
         tempBuffer.put(bufferToSend.flip());
       }
+
       bufferToSend = tempBuffer;
       this.sslTempBuffer = tempBuffer;
     }
 
     return switch (result.getStatus()) {
-      case BUFFER_UNDERFLOW -> increaseAndTryAgain(packet);
-      case BUFFER_OVERFLOW -> throw new IllegalStateException("Unexpected ssl engine result");
-      case OK -> bufferToSend.flip();
+      case BUFFER_UNDERFLOW, BUFFER_OVERFLOW ->
+          throw new IllegalStateException("Unexpected ssl engine result");
+      case OK -> {
+        bufferToSend.flip();
+        logEncryptedData(remoteAddress, bufferToSend);
+        yield bufferToSend;
+      }
       case CLOSED -> closeAndReturn();
     };
   }
@@ -132,12 +141,6 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
   protected ByteBuffer closeAndReturn() {
     connection.close();
     return EMPTY_BUFFER;
-  }
-
-  protected ByteBuffer increaseAndTryAgain(WritableNetworkPacket packet) {
-    log.debug(remoteAddress(), "[%s] Increase network buffer and try again..."::formatted);
-    increaseNetworkBuffer();
-    return serialize(packet);
   }
 
   protected SSLEngineResult tryEncrypt(ByteBuffer source, ByteBuffer destination) {
@@ -151,14 +154,15 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
 
   @Nullable
   protected ByteBuffer doHandshake(HandshakeStatus handshakeStatus) {
+    String remoteAddress = remoteAddress();
     while (SslUtils.needToProcess(handshakeStatus)) {
-      log.debug(remoteAddress(), handshakeStatus, "[%s] Do handshake with status:[%s] "::formatted);
+      log.debug(remoteAddress, handshakeStatus, "[%s] Do handshake with status:[%s] "::formatted);
+      ByteBuffer sslNetworkBuffer = sslNetworkBuffer();
       switch (handshakeStatus) {
         case NEED_WRAP: {
           SSLEngineResult result;
           try {
             result = sslEngine.wrap(EMPTY_BUFFERS, sslNetworkBuffer.clear());
-            handshakeStatus = result.getHandshakeStatus();
           } catch (SSLException sslException) {
             log.error("A problem was encountered while processing the data that caused the SSLEngine "
                 + "to abort. Will try to properly close connection...");
@@ -168,16 +172,11 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
           }
           switch (result.getStatus()) {
             case OK:
-              log.debug(remoteAddress(), sslNetworkBuffer, result,
-                  (address, buf, res) -> "[%s] Send wrapped data:\n%s".formatted(address, hexDump(buf, res)));
-              return sslNetworkBuffer.flip();
-            case BUFFER_OVERFLOW: {
-              log.debug(remoteAddress(), "[%s] Increase network buffer"::formatted);
-              increaseNetworkBuffer();
-              break;
-            }
-            case BUFFER_UNDERFLOW: {
-              throw new IllegalStateException("Unexpected ssl engine result");
+              sslNetworkBuffer.flip();
+              logWrappedData(remoteAddress, sslNetworkBuffer, result);
+              return sslNetworkBuffer;
+            case BUFFER_OVERFLOW, BUFFER_UNDERFLOW: {
+              throw new RuntimeException("Unexpected SSL result:" + result);
             }
             case CLOSED: {
               try {
@@ -189,7 +188,7 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
               break;
             }
             default: {
-              throw new IllegalStateException("Invalid SSL status: " + result.getStatus());
+              throw new IllegalStateException("Invalid SSL result:" + result);
             }
           }
           break;
@@ -202,7 +201,7 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
           break;
         }
         default: {
-          throw new IllegalStateException("Invalid SSL status: " + handshakeStatus);
+          throw new IllegalStateException("Invalid SSL status:" + handshakeStatus);
         }
       }
     }
@@ -220,15 +219,25 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
     }
   }
 
-  protected synchronized void increaseNetworkBuffer() {
-    sslNetworkBuffer = NetworkUtils
-        .increasePacketBuffer(sslNetworkBuffer, bufferAllocator, sslEngine);
-  }
-
   @Override
   public void close() {
     sslEngine.closeOutbound();
     bufferAllocator.putBuffer(sslNetworkBuffer);
     super.close();
+  }
+
+  private static void logDataBeforeEncrypt(String remoteAddress, ByteBuffer serialized) {
+    log.debug(remoteAddress, serialized,
+        (address, buff) -> "[%s] Try to encrypt data:\n%s".formatted(address, hexDump(buff)));
+  }
+
+  private static void logEncryptedData(String remoteAddress, ByteBuffer bufferToSend) {
+    log.debug(remoteAddress, bufferToSend,
+        (address, buff) -> "[%s] Result encrypted data:\n%s".formatted(address, hexDump(buff)));
+  }
+
+  private static void logWrappedData(String remoteAddress, ByteBuffer sslNetworkBuffer, SSLEngineResult result) {
+    log.debug(remoteAddress, sslNetworkBuffer, result,
+        (address, buf, res) -> "[%s] Send wrapped data:\n%s".formatted(address, hexDump(buf, res)));
   }
 }

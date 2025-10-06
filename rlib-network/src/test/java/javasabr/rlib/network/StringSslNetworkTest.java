@@ -213,7 +213,7 @@ public class StringSslNetworkTest extends BaseNetworkTest {
   @SneakyThrows
   void echoNetworkTest() {
     //System.setProperty("javax.net.debug", "all");
-    LoggerManager.enable(StringSslNetworkTest.class, LoggerLevel.INFO);
+    //LoggerManager.enable(StringSslNetworkTest.class, LoggerLevel.INFO);
 
     InputStream keystoreFile = StringSslNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
     SSLContext serverSSLContext = NetworkUtils.createSslContext(keystoreFile, "test");
@@ -272,11 +272,6 @@ public class StringSslNetworkTest extends BaseNetworkTest {
 
     serverNetwork.shutdown();
     clientNetwork.shutdown();
-
-    ThreadUtils.sleep(30000);
-    //LoggerManager.disable(AbstractSSLPacketWriter.class, LoggerLevel.DEBUG);
-    //LoggerManager.disable(AbstractSSLPacketReader.class, LoggerLevel.DEBUG);
-    //LoggerManager.disable(AbstractPacketWriter.class, LoggerLevel.DEBUG);
   }
 
   @Test
@@ -285,8 +280,8 @@ public class StringSslNetworkTest extends BaseNetworkTest {
     //System.setProperty("javax.net.debug", "all");
     //LoggerManager.enable(AbstractPacketReader.class, LoggerLevel.DEBUG);
     //LoggerManager.enable(AbstractPacketWriter.class, LoggerLevel.DEBUG);
-    LoggerManager.enable(AbstractSslNetworkPacketWriter.class, LoggerLevel.DEBUG);
-    LoggerManager.enable(AbstractSslNetworkPacketReader.class, LoggerLevel.DEBUG);
+    //LoggerManager.enable(AbstractSslNetworkPacketWriter.class, LoggerLevel.DEBUG);
+    //LoggerManager.enable(AbstractSslNetworkPacketReader.class, LoggerLevel.DEBUG);
 
     InputStream keystoreFile = StringSslNetworkTest.class.getResourceAsStream("/ssl/rlib_test_cert.p12");
     SSLContext serverSSLContext = NetworkUtils.createSslContext(keystoreFile, "test");
