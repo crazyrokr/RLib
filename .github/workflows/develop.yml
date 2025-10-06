@@ -31,7 +31,7 @@ jobs:
       - name: Run tests for all modules
         run: ./gradlew test
 
-      - name: Publish Test Report
+      - name: Generate test report
         uses: mikepenz/action-junit-report@v5
         if: success() || failure() # always run even if the previous step fails
         with:
@@ -40,13 +40,6 @@ jobs:
           detailed_summary: true
           require_passed_tests: true
           include_passed: true
-
-      - name: Publish Test Report 2
-        uses: dorny/test-reporter@v2
-        with:
-          name: JUnit Tests
-          path: '**/build/test-results/test/TEST-*.xml'
-          reporter: java-junit
 
       - name: Generate jacoco reports
         run: ./gradlew jacocoTestReport
