@@ -3,6 +3,7 @@ package javasabr.rlib.network;
 import java.nio.ByteOrder;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.Accessors;
 
 /**
  * The interface to implement a network config.
@@ -13,6 +14,7 @@ public interface NetworkConfig {
 
   @Builder
   @Getter
+  @Accessors(fluent = true, chain = false)
   class SimpleNetworkConfig implements NetworkConfig {
 
     @Builder.Default
@@ -31,49 +33,43 @@ public interface NetworkConfig {
   NetworkConfig DEFAULT_CLIENT = new NetworkConfig() {
 
     @Override
-    public String getThreadGroupName() {
+    public String threadGroupName() {
       return "ClientNetworkThread";
     }
   };
 
   /**
    * Get a group name of network threads.
-   *
-   * @return the group name.
    */
-  default String getThreadGroupName() {
+  default String threadGroupName() {
     return "NetworkThread";
   }
 
   /**
    * Get size of buffer with used to collect received data from network.
-   *
-   * @return the read buffer's size.
    */
-  default int getReadBufferSize() {
+  default int readBufferSize() {
     return 2048;
   }
 
   /**
    * Get size of buffer with pending data. Pending buffer allows to construct a packet with bigger data than
-   * {@link #getReadBufferSize()}. It should be at least 2x of {@link #getReadBufferSize()}
+   * {@link #readBufferSize()}. It should be at least 2x of {@link #readBufferSize()}
    *
    * @return the pending buffer's size.
    */
-  default int getPendingBufferSize() {
-    return getReadBufferSize() * 2;
+  default int pendingBufferSize() {
+    return readBufferSize() * 2;
   }
 
   /**
    * Get size of buffer which used to serialize packets to bytes.
-   *
-   * @return the write buffer's size.
    */
-  default int getWriteBufferSize() {
+  default int writeBufferSize() {
     return 2048;
   }
 
-  default ByteOrder getByteOrder() {
+  default ByteOrder byteOrder() {
     return ByteOrder.BIG_ENDIAN;
   }
 

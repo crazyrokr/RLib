@@ -4,35 +4,39 @@ import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.Network;
-import javasabr.rlib.network.packet.IdBasedReadablePacket;
-import javasabr.rlib.network.packet.IdBasedWritablePacket;
-import javasabr.rlib.network.packet.PacketReader;
-import javasabr.rlib.network.packet.PacketWriter;
+import javasabr.rlib.network.packet.IdBasedReadableNetworkPacket;
+import javasabr.rlib.network.packet.IdBasedWritableNetworkPacket;
+import javasabr.rlib.network.packet.NetworkPacketReader;
+import javasabr.rlib.network.packet.NetworkPacketWriter;
 import javasabr.rlib.network.packet.impl.IdBasedPacketReader;
-import javasabr.rlib.network.packet.impl.IdBasedPacketWriter;
-import javasabr.rlib.network.packet.registry.ReadablePacketRegistry;
+import javasabr.rlib.network.packet.impl.IdBasedNetworkPacketWriter;
+import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldDefaults;
 
 /**
  * @author JavaSaBr
  */
 @Getter(AccessLevel.PROTECTED)
-public class IdBasedPacketConnection<R extends IdBasedReadablePacket<R>, W extends IdBasedWritablePacket> extends
-    AbstractConnection<R, W> {
+@Accessors(fluent = true, chain = false)
+@FieldDefaults(level = AccessLevel.PROTECTED)
+public class IdBasedPacketConnection<R extends IdBasedReadableNetworkPacket<R>, W extends IdBasedWritableNetworkPacket>
+    extends AbstractConnection<R, W> {
 
-  private final PacketReader packetReader;
-  private final PacketWriter packetWriter;
-  private final ReadablePacketRegistry<R> packetRegistry;
+  final NetworkPacketReader packetReader;
+  final NetworkPacketWriter packetWriter;
+  final ReadableNetworkPacketRegistry<R> packetRegistry;
 
-  private final int packetLengthHeaderSize;
-  private final int packetIdHeaderSize;
+  final int packetLengthHeaderSize;
+  final int packetIdHeaderSize;
 
   public IdBasedPacketConnection(
       Network<? extends Connection<R, W>> network,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
-      ReadablePacketRegistry<R> packetRegistry,
+      ReadableNetworkPacketRegistry<R> packetRegistry,
       int maxPacketsByRead,
       int packetLengthHeaderSize,
       int packetIdHeaderSize) {
@@ -44,7 +48,7 @@ public class IdBasedPacketConnection<R extends IdBasedReadablePacket<R>, W exten
     this.packetWriter = createPacketWriter();
   }
 
-  protected PacketReader createPacketReader() {
+  protected NetworkPacketReader createPacketReader() {
     return new IdBasedPacketReader<>(
         this,
         channel,
@@ -57,15 +61,15 @@ public class IdBasedPacketConnection<R extends IdBasedReadablePacket<R>, W exten
         packetRegistry);
   }
 
-  protected PacketWriter createPacketWriter() {
-    return new IdBasedPacketWriter<>(
+  protected NetworkPacketWriter createPacketWriter() {
+    return new IdBasedNetworkPacketWriter<>(
         this,
         channel,
         bufferAllocator,
         this::updateLastActivity,
         this::nextPacketToWrite,
-        this::onWrittenPacket,
-        this::onSentPacket,
+        this::serializedPacket,
+        this::handleSentPacket,
         packetLengthHeaderSize,
         packetIdHeaderSize);
   }

@@ -1,5 +1,7 @@
 plugins {
+  id("configure-java")
   id 'org.openjfx.javafxplugin' version '0.1.0'
+  id("configure-publishing")
 }
 
 dependencies {

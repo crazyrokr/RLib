@@ -111,6 +111,8 @@ public abstract class AbstractArrayBasedDeque<E> implements Deque<E> {
   protected abstract void incrementSize();
   protected abstract void decrementSize();
 
+  protected abstract int decrementSizeAndGet();
+
   protected @Nullable E[] increaseLeft(@Nullable E[] items, int size) {
 
     int stepSize = stepSize(items);
@@ -177,13 +179,17 @@ public abstract class AbstractArrayBasedDeque<E> implements Deque<E> {
     E item = items[head];
     items[head] = null;
 
-    decrementSize();
-    int newHead = incrementHeadAndGet();
+    int newSize = decrementSizeAndGet();
+    if (newSize == 0) {
+      resetIndexes();
+      //noinspection DataFlowIssue
+      return item;
+    }
 
+    int newHead = incrementHeadAndGet();
     if (head == tail()) {
       tail(newHead);
     }
-
     if (newHead > rebalanceTrigger()) {
       rebalance();
     }
@@ -205,13 +211,17 @@ public abstract class AbstractArrayBasedDeque<E> implements Deque<E> {
     E item = items[tail];
     items[tail] = null;
 
-    decrementSize();
-    int newTail = decrementTailAndGet();
+    int newSize = decrementSizeAndGet();
+    if (newSize == 0) {
+      resetIndexes();
+      //noinspection DataFlowIssue
+      return item;
+    }
 
+    int newTail = decrementTailAndGet();
     if (tail == head()) {
       head(newTail);
     }
-
     if (items.length - tail > rebalanceTrigger()) {
       rebalance();
     }

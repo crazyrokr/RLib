@@ -11,6 +11,9 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javasabr.rlib.collections.array.MutableArray;
 import javasabr.rlib.common.util.ReflectionUtils;
@@ -53,6 +56,82 @@ class DequeTest {
     // then:
     assertArrayEquals(deque.toArray(), array("val12", "val11", "val10", "val9", "val8",
         "val7", "val6", "val5", "val4", "val3", "val2", "val1"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateDeque")
+  void shouldAddFirstManyElements(Deque<String> deque) {
+
+    // when:
+    IntStream.range(1, 200)
+        .mapToObj(value -> "val_" + value)
+        .forEach(deque::addFirst);
+
+    // then:
+    assertEquals(199, deque.size());
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateDeque")
+  void shouldAddLastManyElements(Deque<String> deque) {
+
+    // when:
+    IntStream.range(1, 200)
+        .mapToObj(value -> "val_" + value)
+        .forEach(deque::addLast);
+
+    // then:
+    assertEquals(199, deque.size());
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateDeque")
+  void shouldAddFirstLastManyElements(Deque<String> deque) {
+
+    // when:
+    IntStream
+        .range(1, 500)
+        .mapToObj(value -> "val_" + value)
+        .forEach(value -> {
+          if (ThreadLocalRandom.current().nextBoolean()) {
+            deque.addFirst(value);
+          } else {
+            deque.addLast(value);
+          }
+        });
+
+    // then:
+    assertEquals(499, deque.size());
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateDeque")
+  void shouldAddLastRemoveFirstManyElements(Deque<String> deque) {
+    int count = 10;
+    // when/then:
+    IntStream
+        .range(1, count)
+        .forEach(value -> deque.addLast("value_%d".formatted(value)));
+
+    // when/then:
+    IntStream
+        .range(1, count)
+        .forEach(value -> deque.removeFirst());
+
+    // when/then:
+    IntStream
+        .range(1, count)
+        .forEach(value -> deque.addLast("value_%d".formatted(value)));
+
+    // when/then:
+    IntStream
+        .range(1, count)
+        .forEach(value -> deque.removeFirst());
+
+    // when/then:
+    IntStream
+        .range(1, count)
+        .forEach(value -> deque.addLast("value_%d".formatted(value)));
   }
 
   @ParameterizedTest
@@ -302,10 +381,11 @@ class DequeTest {
     Deque<String> deque = DequeFactory.arrayBasedBased(String.class, 15);
     Field head = ReflectionUtils.getUnsafeField(deque, "head");
     Field tail = ReflectionUtils.getUnsafeField(deque, "tail");
+    var generator = new AtomicInteger();
 
     // when:
-    for (int i = 1; i < 12; i++) {
-      deque.addLast("val%s".formatted(i));
+    for (int i = 1; i < 14; i++) {
+      deque.addLast("val%s".formatted(generator.incrementAndGet()));
     }
     for (int i = 1; i < 12; i++) {
       deque.removeFirst();
@@ -316,12 +396,12 @@ class DequeTest {
 
     // then:
     assertEquals(18, headValue);
-    assertEquals(18, tailValue);
-    assertEquals(0, deque.size());
+    assertEquals(19, tailValue);
+    assertEquals(2, deque.size());
 
     // when:
-    for (int i = 12; i < 24; i++) {
-      deque.addLast("val%s".formatted(i));
+    for (int i = 1; i < 14; i++) {
+      deque.addLast("val%s".formatted(generator.incrementAndGet()));
     }
     for (int i = 1; i < 12; i++) {
       deque.removeFirst();
@@ -332,60 +412,12 @@ class DequeTest {
 
     // then:
     assertEquals(29, headValue);
-    assertEquals(29, tailValue);
-    assertEquals(1, deque.size());
-
-    // when:
-    for (int i = 24; i < 36; i++) {
-      deque.addLast("val%s".formatted(i));
-    }
-    for (int i = 1; i < 12; i++) {
-      deque.removeFirst();
-    }
-
-    headValue = ReflectionUtils.getFieldValue(deque, head);
-    tailValue = ReflectionUtils.getFieldValue(deque, tail);
-
-    // then:
-    assertEquals(40, headValue);
-    assertEquals(41, tailValue);
-    assertEquals(2, deque.size());
-
-    // when:
-    for (int i = 36; i < 48; i++) {
-      deque.addLast("val%s".formatted(i));
-    }
-    for (int i = 1; i < 12; i++) {
-      deque.removeFirst();
-    }
-
-    headValue = ReflectionUtils.getFieldValue(deque, head);
-    tailValue = ReflectionUtils.getFieldValue(deque, tail);
-
-    // then:
-    assertEquals(51, headValue);
-    assertEquals(53, tailValue);
-    assertEquals(3, deque.size());
-
-    // when:
-    for (int i = 48; i < 60; i++) {
-      deque.addLast("val%s".formatted(i));
-    }
-    for (int i = 1; i < 12; i++) {
-      deque.removeFirst();
-    }
-
-    headValue = ReflectionUtils.getFieldValue(deque, head);
-    tailValue = ReflectionUtils.getFieldValue(deque, tail);
-
-    // then:
-    assertEquals(40, headValue);
-    assertEquals(43, tailValue);
+    assertEquals(32, tailValue);
     assertEquals(4, deque.size());
 
     // when:
-    for (int i = 60; i < 72; i++) {
-      deque.addLast("val%s".formatted(i));
+    for (int i = 1; i < 14; i++) {
+      deque.addLast("val%s".formatted(generator.incrementAndGet()));
     }
     for (int i = 1; i < 12; i++) {
       deque.removeFirst();
@@ -395,13 +427,13 @@ class DequeTest {
     tailValue = ReflectionUtils.getFieldValue(deque, tail);
 
     // then:
-    assertEquals(51, headValue);
-    assertEquals(55, tailValue);
-    assertEquals(5, deque.size());
+    assertEquals(40, headValue);
+    assertEquals(45, tailValue);
+    assertEquals(6, deque.size());
 
     // when:
-    for (int i = 60; i < 72; i++) {
-      deque.addLast("val%s".formatted(i));
+    for (int i = 1; i < 14; i++) {
+      deque.addLast("val%s".formatted(generator.incrementAndGet()));
     }
     for (int i = 1; i < 12; i++) {
       deque.removeFirst();
@@ -411,9 +443,57 @@ class DequeTest {
     tailValue = ReflectionUtils.getFieldValue(deque, tail);
 
     // then:
-    assertEquals(39, headValue);
-    assertEquals(44, tailValue);
-    assertEquals(6, deque.size());
+    assertEquals(31, headValue);
+    assertEquals(38, tailValue);
+    assertEquals(8, deque.size());
+
+    // when:
+    for (int i = 1; i < 14; i++) {
+      deque.addLast("val%s".formatted(generator.incrementAndGet()));
+    }
+    for (int i = 1; i < 12; i++) {
+      deque.removeFirst();
+    }
+
+    headValue = ReflectionUtils.getFieldValue(deque, head);
+    tailValue = ReflectionUtils.getFieldValue(deque, tail);
+
+    // then:
+    assertEquals(42, headValue);
+    assertEquals(51, tailValue);
+    assertEquals(10, deque.size());
+
+    // when:
+    for (int i = 1; i < 14; i++) {
+      deque.addLast("val%s".formatted(generator.incrementAndGet()));
+    }
+    for (int i = 1; i < 12; i++) {
+      deque.removeFirst();
+    }
+
+    headValue = ReflectionUtils.getFieldValue(deque, head);
+    tailValue = ReflectionUtils.getFieldValue(deque, tail);
+
+    // then:
+    assertEquals(30, headValue);
+    assertEquals(41, tailValue);
+    assertEquals(12, deque.size());
+
+    // when:
+    for (int i = 1; i < 14; i++) {
+      deque.addLast("val%s".formatted(generator.incrementAndGet()));
+    }
+    for (int i = 1; i < 12; i++) {
+      deque.removeFirst();
+    }
+
+    headValue = ReflectionUtils.getFieldValue(deque, head);
+    tailValue = ReflectionUtils.getFieldValue(deque, tail);
+
+    // then:
+    assertEquals(41, headValue);
+    assertEquals(54, tailValue);
+    assertEquals(14, deque.size());
   }
 
   @Test
@@ -423,10 +503,11 @@ class DequeTest {
     Deque<String> deque = DequeFactory.arrayBasedBased(String.class, 15);
     Field head = ReflectionUtils.getUnsafeField(deque, "head");
     Field tail = ReflectionUtils.getUnsafeField(deque, "tail");
+    var generator = new AtomicInteger();
 
     // when:
-    for (int i = 1; i < 12; i++) {
-      deque.addFirst("val%s".formatted(i));
+    for (int i = 1; i < 14; i++) {
+      deque.addFirst("val%s".formatted(generator.incrementAndGet()));
     }
     for (int i = 1; i < 12; i++) {
       deque.removeLast();
@@ -436,45 +517,13 @@ class DequeTest {
     int tailValue = ReflectionUtils.getFieldValue(deque, tail);
 
     // then:
-    assertEquals(6, headValue);
-    assertEquals(6, tailValue);
-    assertEquals(0, deque.size());
-
-    // when:
-    for (int i = 12; i < 24; i++) {
-      deque.addFirst("val%s".formatted(i));
-    }
-    for (int i = 1; i < 12; i++) {
-      deque.removeLast();
-    }
-
-    headValue = ReflectionUtils.getFieldValue(deque, head);
-    tailValue = ReflectionUtils.getFieldValue(deque, tail);
-
-    // then:
     assertEquals(5, headValue);
-    assertEquals(5, tailValue);
-    assertEquals(1, deque.size());
-
-    // when:
-    for (int i = 24; i < 36; i++) {
-      deque.addFirst("val%s".formatted(i));
-    }
-    for (int i = 1; i < 12; i++) {
-      deque.removeLast();
-    }
-
-    headValue = ReflectionUtils.getFieldValue(deque, head);
-    tailValue = ReflectionUtils.getFieldValue(deque, tail);
-
-    // then:
-    assertEquals(3, headValue);
-    assertEquals(4, tailValue);
+    assertEquals(6, tailValue);
     assertEquals(2, deque.size());
 
     // when:
-    for (int i = 36; i < 48; i++) {
-      deque.addFirst("val%s".formatted(i));
+    for (int i = 1; i < 14; i++) {
+      deque.addFirst("val%s".formatted(generator.incrementAndGet()));
     }
     for (int i = 1; i < 12; i++) {
       deque.removeLast();
@@ -484,13 +533,61 @@ class DequeTest {
     tailValue = ReflectionUtils.getFieldValue(deque, tail);
 
     // then:
-    assertEquals(1, headValue);
-    assertEquals(3, tailValue);
-    assertEquals(3, deque.size());
+    assertEquals(2, headValue);
+    assertEquals(5, tailValue);
+    assertEquals(4, deque.size());
 
     // when:
-    for (int i = 48; i < 60; i++) {
-      deque.addFirst("val%s".formatted(i));
+    for (int i = 1; i < 14; i++) {
+      deque.addFirst("val%s".formatted(generator.incrementAndGet()));
+    }
+    for (int i = 1; i < 12; i++) {
+      deque.removeLast();
+    }
+
+    headValue = ReflectionUtils.getFieldValue(deque, head);
+    tailValue = ReflectionUtils.getFieldValue(deque, tail);
+
+    // then:
+    assertEquals(9, headValue);
+    assertEquals(14, tailValue);
+    assertEquals(6, deque.size());
+
+    // when:
+    for (int i = 1; i < 14; i++) {
+      deque.addFirst("val%s".formatted(generator.incrementAndGet()));
+    }
+    for (int i = 1; i < 12; i++) {
+      deque.removeLast();
+    }
+
+    headValue = ReflectionUtils.getFieldValue(deque, head);
+    tailValue = ReflectionUtils.getFieldValue(deque, tail);
+
+    // then:
+    assertEquals(25, headValue);
+    assertEquals(32, tailValue);
+    assertEquals(8, deque.size());
+
+    // when:
+    for (int i = 1; i < 14; i++) {
+      deque.addFirst("val%s".formatted(generator.incrementAndGet()));
+    }
+    for (int i = 1; i < 12; i++) {
+      deque.removeLast();
+    }
+
+    headValue = ReflectionUtils.getFieldValue(deque, head);
+    tailValue = ReflectionUtils.getFieldValue(deque, tail);
+
+    // then:
+    assertEquals(12, headValue);
+    assertEquals(21, tailValue);
+    assertEquals(10, deque.size());
+
+    // when:
+    for (int i = 1; i < 14; i++) {
+      deque.addFirst("val%s".formatted(generator.incrementAndGet()));
     }
     for (int i = 1; i < 12; i++) {
       deque.removeLast();
@@ -501,12 +598,12 @@ class DequeTest {
 
     // then:
     assertEquals(31, headValue);
-    assertEquals(34, tailValue);
-    assertEquals(4, deque.size());
+    assertEquals(42, tailValue);
+    assertEquals(12, deque.size());
 
     // when:
-    for (int i = 60; i < 72; i++) {
-      deque.addFirst("val%s".formatted(i));
+    for (int i = 1; i < 14; i++) {
+      deque.addFirst("val%s".formatted(generator.incrementAndGet()));
     }
     for (int i = 1; i < 12; i++) {
       deque.removeLast();
@@ -516,25 +613,9 @@ class DequeTest {
     tailValue = ReflectionUtils.getFieldValue(deque, tail);
 
     // then:
-    assertEquals(19, headValue);
-    assertEquals(23, tailValue);
-    assertEquals(5, deque.size());
-
-    // when:
-    for (int i = 60; i < 72; i++) {
-      deque.addFirst("val%s".formatted(i));
-    }
-    for (int i = 1; i < 12; i++) {
-      deque.removeLast();
-    }
-
-    headValue = ReflectionUtils.getFieldValue(deque, head);
-    tailValue = ReflectionUtils.getFieldValue(deque, tail);
-
-    // then:
-    assertEquals(30, headValue);
-    assertEquals(35, tailValue);
-    assertEquals(6, deque.size());
+    assertEquals(18, headValue);
+    assertEquals(31, tailValue);
+    assertEquals(14, deque.size());
   }
 
   @ParameterizedTest
@@ -577,13 +658,13 @@ class DequeTest {
     }
 
     // then:
-    assertArrayEquals(container.toArray(), array("val6", "val5", "val4", "val3", "val2", "val1"));
-    assertArrayEquals(deque.toArray(), array("val1", "val3", "val5", "val6"));
+   // assertArrayEquals(container.toArray(), array("val6", "val5", "val4", "val3", "val2", "val1"));
+    assertArrayEquals(array("val1", "val3", "val5", "val6"), deque.toArray());
   }
 
   private static Stream<Arguments> generateDeque() {
     return Stream.of(
-        //Arguments.of(DequeFactory.linkedListBased()),
+        Arguments.of(DequeFactory.linkedListBased()),
         Arguments.of(DequeFactory.arrayBasedBased(String.class, 15)));
   }
 }

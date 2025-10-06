@@ -5,15 +5,15 @@ import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.Network;
 import javasabr.rlib.network.packet.impl.StringReadablePacket;
-import javasabr.rlib.network.packet.impl.StringWritablePacket;
+import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 
 /**
  * @author JavaSaBr
  */
-public class StringDataConnection extends DefaultDataConnection<StringReadablePacket, StringWritablePacket> {
+public class StringDataConnection extends DefaultDataConnection<StringReadablePacket, StringWritableNetworkPacket> {
 
   public StringDataConnection(
-      Network<? extends Connection<StringReadablePacket, StringWritablePacket>> network,
+      Network<? extends Connection<StringReadablePacket, StringWritableNetworkPacket>> network,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator) {
     super(network, channel, bufferAllocator, 100, 2);

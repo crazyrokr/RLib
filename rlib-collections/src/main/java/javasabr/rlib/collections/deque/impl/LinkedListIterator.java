@@ -18,6 +18,8 @@ public class LinkedListIterator<E> implements Iterator<E> {
 
   @Nullable
   LinkedNode<E> next;
+  @Nullable
+  LinkedNode<E> current;
 
   public LinkedListIterator(AbstractLinkedListBasedDeque<E> linkedList, int mode) {
     if (mode == NEXT) {
@@ -43,7 +45,16 @@ public class LinkedListIterator<E> implements Iterator<E> {
       throw new NoSuchElementException();
     }
     E item = next.item;
+    current = next;
     next = nextFunction.apply(next);
     return item;
+  }
+
+  @Override
+  public void remove() {
+    if (current == null) {
+      throw new NoSuchElementException();
+    }
+    linkedList.unlink(current);
   }
 }

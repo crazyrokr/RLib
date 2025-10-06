@@ -1,9 +1,7 @@
 package javasabr.rlib.network.client.impl;
 
-import static javasabr.rlib.common.util.Utils.unchecked;
-import static javasabr.rlib.common.util.Utils.uncheckedGet;
-
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.Optional;
@@ -12,15 +10,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import javasabr.rlib.common.util.AsyncUtils;
 import javasabr.rlib.common.util.ThreadUtils;
-import javasabr.rlib.logger.api.Logger;
-import javasabr.rlib.logger.api.LoggerManager;
+import javasabr.rlib.common.util.Utils;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.Network;
 import javasabr.rlib.network.NetworkConfig;
 import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.AbstractNetwork;
 import javasabr.rlib.network.util.NetworkUtils;
+import lombok.AccessLevel;
+import lombok.CustomLog;
 import lombok.Getter;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldDefaults;
 import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
@@ -29,69 +30,69 @@ import reactor.core.publisher.Mono;
  *
  * @author JavaSaBr
  */
+@CustomLog
+@Accessors(fluent = true, chain = false)
+@FieldDefaults(level = AccessLevel.PROTECTED)
 public class DefaultClientNetwork<C extends Connection<?, ?>> extends AbstractNetwork<C> implements ClientNetwork<C> {
 
-  protected static final Logger LOGGER = LoggerManager.getLogger(DefaultClientNetwork.class);
+  final AtomicBoolean connecting;
 
-  protected final AtomicBoolean connecting;
+  @Nullable
+  @Getter(AccessLevel.PROTECTED)
+  volatile CompletableFuture<C> pendingConnection;
 
-  protected volatile @Nullable CompletableFuture<C> pendingConnection;
-  protected volatile @Getter
-  @Nullable C currentConnection;
+  @Getter
+  @Nullable
+  volatile C currentConnection;
 
   public DefaultClientNetwork(
       NetworkConfig config,
       BiFunction<Network<C>, AsynchronousSocketChannel, C> channelToConnection) {
     super(config, channelToConnection);
     this.connecting = new AtomicBoolean(false);
-
-    LOGGER.info(
-        config,
-        conf -> "Client network configuration: {\n" + "  groupName: \"" + conf.getThreadGroupName() + "\",\n"
-            + "  readBufferSize: " + conf.getReadBufferSize() + ",\n" + "  pendingBufferSize: "
-            + conf.getPendingBufferSize() + ",\n" + "  writeBufferSize: " + conf.getWriteBufferSize() + "\n" + "}");
+    log.info(config, DefaultClientNetwork::buildConfigDescription);
   }
 
   @Override
-  public CompletableFuture<C> connect(InetSocketAddress serverAddress) {
+  public C connect(InetSocketAddress serverAddress) {
+    return connectAsync(serverAddress).join();
+  }
 
-    C currentConnection = getCurrentConnection();
+  @Override
+  public CompletableFuture<C> connectAsync(InetSocketAddress serverAddress) {
 
+    C currentConnection = currentConnection();
     if (currentConnection != null) {
-      unchecked(currentConnection, C::close);
+      Utils.unchecked(currentConnection, C::close);
     }
 
     // if we are trying connection now
     if (!connecting.compareAndSet(false, true)) {
-
-      var asyncResult = this.pendingConnection;
-
-      if (asyncResult != null) {
-        return asyncResult;
+      CompletableFuture<C> pendingConnection = pendingConnection();
+      if (pendingConnection != null) {
+        return pendingConnection;
       }
-
       ThreadUtils.sleep(100);
-
-      return connect(serverAddress);
+      return connectAsync(serverAddress);
     }
 
     var asyncResult = new CompletableFuture<C>();
 
-    var channel = uncheckedGet(AsynchronousSocketChannel::open);
-    channel.connect(
-        serverAddress, null, new CompletionHandler<Void, Void>() {
+    @SuppressWarnings("resource")
+    var channel = Utils.uncheckedGet(AsynchronousSocketChannel::open);
+    channel.connect(serverAddress, this, new CompletionHandler<>() {
+      @Override
+      public void completed(@Nullable Void result, DefaultClientNetwork<C> network) {
+        SocketAddress remoteAddress = NetworkUtils.getRemoteAddress(channel);
+        log.info(remoteAddress, "Connected to server:[%s]"::formatted);
+        asyncResult.complete(channelToConnection.apply(network, channel));
+      }
 
-          @Override
-          public void completed(@Nullable Void result, @Nullable Void attachment) {
-            LOGGER.info(channel, ch -> "Connected to server: " + NetworkUtils.getRemoteAddress(ch));
-            asyncResult.complete(channelToConnection.apply(DefaultClientNetwork.this, channel));
-          }
-
-          @Override
-          public void failed(Throwable exc, @Nullable Void attachment) {
-            asyncResult.completeExceptionally(exc);
-          }
-        });
+      @Override
+      public void failed(Throwable exc, DefaultClientNetwork<C> attachment) {
+        asyncResult.completeExceptionally(exc);
+      }
+    });
 
     pendingConnection = asyncResult;
 
@@ -103,20 +104,34 @@ public class DefaultClientNetwork<C extends Connection<?, ?>> extends AbstractNe
   }
 
   @Override
-  public Mono<C> connected(InetSocketAddress serverAddress) {
-    return Mono.create(monoSink -> connect(serverAddress).whenComplete((connection, ex) -> {
-      if (ex != null) {
-        monoSink.error(ex);
-      } else {
-        monoSink.success(connection);
-      }
-    }));
+  public Mono<C> connectReactive(InetSocketAddress serverAddress) {
+    return Mono
+        .create(monoSink -> connectAsync(serverAddress)
+            .whenComplete((connection, ex) -> {
+              if (ex != null) {
+                monoSink.error(ex);
+              } else {
+                monoSink.success(connection);
+              }
+            }));
+  }
+
+  @Override
+  public Optional<C> currentConnectionOptional() {
+    return Optional.ofNullable(currentConnection());
   }
 
   @Override
   public void shutdown() {
-    Optional
-        .ofNullable(getCurrentConnection())
-        .ifPresent(connection -> unchecked(connection, C::close));
+    C connection = currentConnection();
+    if (connection != null) {
+      Utils.unchecked(connection, C::close);
+    }
+  }
+
+  private static String buildConfigDescription(NetworkConfig conf) {
+    return "Client network configuration: {\n" + "  groupName: \"" + conf.threadGroupName() + "\",\n"
+        + "  readBufferSize: " + conf.readBufferSize() + ",\n" + "  pendingBufferSize: " + conf.pendingBufferSize()
+        + ",\n" + "  writeBufferSize: " + conf.writeBufferSize() + "\n" + "}";
   }
 }

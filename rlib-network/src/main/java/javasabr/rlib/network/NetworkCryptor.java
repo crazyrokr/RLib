@@ -15,13 +15,15 @@ public interface NetworkCryptor {
    */
   NetworkCryptor NULL = new NetworkCryptor() {
 
+    @Nullable
     @Override
-    public @Nullable ByteBuffer decrypt(ByteBuffer data, int length, ByteBuffer toStore) {
+    public ByteBuffer decrypt(ByteBuffer data, int length, ByteBuffer toStore) {
       return null;
     }
 
+    @Nullable
     @Override
-    public @Nullable ByteBuffer encrypt(ByteBuffer data, int length, ByteBuffer toStore) {
+    public ByteBuffer encrypt(ByteBuffer data, int length, ByteBuffer toStore) {
       return null;
     }
   };
@@ -34,7 +36,8 @@ public interface NetworkCryptor {
    * @param toStore the buffer to store decrypted data.
    * @return the buffer with decrypted data or null if don't need to decrypt anything.
    */
-  @Nullable ByteBuffer decrypt(ByteBuffer data, int length, ByteBuffer toStore);
+  @Nullable
+  ByteBuffer decrypt(ByteBuffer data, int length, ByteBuffer toStore);
 
   /**
    * Encrypt data.
@@ -44,5 +47,6 @@ public interface NetworkCryptor {
    * @param toStore the buffer to store encrypted data.
    * @return the buffer with encrypted data or null if don't need to decrypt encrypt.
    */
-  @Nullable ByteBuffer encrypt(ByteBuffer data, int length, ByteBuffer toStore);
+  @Nullable
+  ByteBuffer encrypt(ByteBuffer data, int length, ByteBuffer toStore);
 }

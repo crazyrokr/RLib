@@ -5,9 +5,9 @@ import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.DefaultConnection;
 import javasabr.rlib.network.impl.StringDataConnection;
-import javasabr.rlib.network.impl.StringDataSSLConnection;
-import javasabr.rlib.network.packet.impl.DefaultReadablePacket;
-import javasabr.rlib.network.packet.registry.ReadablePacketRegistry;
+import javasabr.rlib.network.impl.StringDataSslConnection;
+import javasabr.rlib.network.packet.impl.DefaultReadableNetworkPacket;
+import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
 import javasabr.rlib.network.server.ServerNetwork;
 import javax.net.ssl.SSLContext;
 import lombok.AllArgsConstructor;
@@ -48,7 +48,7 @@ public class BaseNetworkTest {
         new DefaultBufferAllocator(NetworkConfig.DEFAULT_CLIENT));
   }
 
-  protected TestNetwork<StringDataSSLConnection> buildStringSSLNetwork(
+  protected TestNetwork<StringDataSslConnection> buildStringSSLNetwork(
       SSLContext serverSSLContext,
       SSLContext clientSSLContext) {
     return buildStringSSLNetwork(
@@ -89,14 +89,14 @@ public class BaseNetworkTest {
     var asyncClientToServer = new CompletableFuture<StringDataConnection>();
     var asyncServerToClient = new CompletableFuture<StringDataConnection>();
 
-    var serverNetwork = NetworkFactory.newStringDataServerNetwork(serverNetworkConfig, serverBufferAllocator);
+    var serverNetwork = NetworkFactory.stringDataServerNetwork(serverNetworkConfig, serverBufferAllocator);
     var serverAddress = serverNetwork.start();
 
     serverNetwork.onAccept(asyncServerToClient::complete);
 
-    var clientNetwork = NetworkFactory.newStringDataClientNetwork(clientNetworkConfig, clientBufferAllocator);
+    var clientNetwork = NetworkFactory.stringDataClientNetwork(clientNetworkConfig, clientBufferAllocator);
     clientNetwork
-        .connect(serverAddress)
+        .connectAsync(serverAddress)
         .thenApply(asyncClientToServer::complete);
 
     return new TestNetwork<>(
@@ -108,7 +108,7 @@ public class BaseNetworkTest {
         clientNetwork);
   }
 
-  protected TestNetwork<StringDataSSLConnection> buildStringSSLNetwork(
+  protected TestNetwork<StringDataSslConnection> buildStringSSLNetwork(
       ServerNetworkConfig serverNetworkConfig,
       BufferAllocator serverBufferAllocator,
       SSLContext serverSSLContext,
@@ -116,10 +116,10 @@ public class BaseNetworkTest {
       BufferAllocator clientBufferAllocator,
       SSLContext clientSSLContext) {
 
-    var asyncClientToServer = new CompletableFuture<StringDataSSLConnection>();
-    var asyncServerToClient = new CompletableFuture<StringDataSSLConnection>();
+    var asyncClientToServer = new CompletableFuture<StringDataSslConnection>();
+    var asyncServerToClient = new CompletableFuture<StringDataSslConnection>();
 
-    var serverNetwork = NetworkFactory.newStringDataSSLServerNetwork(
+    var serverNetwork = NetworkFactory.stringDataSslServerNetwork(
         serverNetworkConfig,
         serverBufferAllocator,
         serverSSLContext);
@@ -127,13 +127,13 @@ public class BaseNetworkTest {
     var serverAddress = serverNetwork.start();
     serverNetwork.onAccept(asyncServerToClient::complete);
 
-    var clientNetwork = NetworkFactory.newStringDataSSLClientNetwork(
+    var clientNetwork = NetworkFactory.stringDataSslClientNetwork(
         clientNetworkConfig,
         clientBufferAllocator,
         clientSSLContext);
 
     clientNetwork
-        .connect(serverAddress)
+        .connectAsync(serverAddress)
         .thenApply(asyncClientToServer::complete);
 
     return new TestNetwork<>(
@@ -146,8 +146,8 @@ public class BaseNetworkTest {
   }
 
   protected TestNetwork<DefaultConnection> buildDefaultNetwork(
-      ReadablePacketRegistry<DefaultReadablePacket> serverPacketRegistry,
-      ReadablePacketRegistry<DefaultReadablePacket> clientPacketRegistry) {
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> serverPacketRegistry,
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> clientPacketRegistry) {
     return buildDefaultNetwork(
         ServerNetworkConfig.DEFAULT_SERVER,
         new DefaultBufferAllocator(ServerNetworkConfig.DEFAULT_SERVER),
@@ -159,9 +159,9 @@ public class BaseNetworkTest {
 
   protected TestNetwork<DefaultConnection> buildDefaultNetwork(
       BufferAllocator serverBufferAllocator,
-      ReadablePacketRegistry<DefaultReadablePacket> serverPacketRegistry,
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> serverPacketRegistry,
       BufferAllocator clientBufferAllocator,
-      ReadablePacketRegistry<DefaultReadablePacket> clientPacketRegistry) {
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> clientPacketRegistry) {
     return buildDefaultNetwork(
         ServerNetworkConfig.DEFAULT_SERVER,
         serverBufferAllocator,
@@ -174,15 +174,15 @@ public class BaseNetworkTest {
   protected TestNetwork<DefaultConnection> buildDefaultNetwork(
       ServerNetworkConfig serverNetworkConfig,
       BufferAllocator serverBufferAllocator,
-      ReadablePacketRegistry<DefaultReadablePacket> serverPacketRegistry,
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> serverPacketRegistry,
       NetworkConfig clientNetworkConfig,
       BufferAllocator clientBufferAllocator,
-      ReadablePacketRegistry<DefaultReadablePacket> clientPacketRegistry) {
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> clientPacketRegistry) {
 
     var asyncClientToServer = new CompletableFuture<DefaultConnection>();
     var asyncServerToClient = new CompletableFuture<DefaultConnection>();
 
-    var serverNetwork = NetworkFactory.newDefaultServerNetwork(
+    var serverNetwork = NetworkFactory.defaultServerNetwork(
         serverNetworkConfig,
         serverBufferAllocator,
         serverPacketRegistry);
@@ -190,12 +190,12 @@ public class BaseNetworkTest {
 
     serverNetwork.onAccept(asyncServerToClient::complete);
 
-    var clientNetwork = NetworkFactory.newDefaultClientNetwork(
+    var clientNetwork = NetworkFactory.defaultClientNetwork(
         clientNetworkConfig,
         clientBufferAllocator,
         clientPacketRegistry);
     clientNetwork
-        .connect(serverAddress)
+        .connectAsync(serverAddress)
         .thenApply(asyncClientToServer::complete);
 
     return new TestNetwork<>(

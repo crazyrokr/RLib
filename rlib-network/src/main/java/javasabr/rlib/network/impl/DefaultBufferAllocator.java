@@ -1,13 +1,14 @@
 package javasabr.rlib.network.impl;
 
 import java.nio.ByteBuffer;
-import javasabr.rlib.logger.api.Logger;
-import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.NetworkConfig;
 import javasabr.rlib.reusable.pool.Pool;
 import javasabr.rlib.reusable.pool.PoolFactory;
+import lombok.AccessLevel;
+import lombok.CustomLog;
 import lombok.ToString;
+import lombok.experimental.FieldDefaults;
 
 /**
  * The default byte buffer allocator.
@@ -15,15 +16,15 @@ import lombok.ToString;
  * @author JavaSaBr
  */
 @ToString
+@CustomLog
+@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class DefaultBufferAllocator implements BufferAllocator {
 
-  private static final Logger LOGGER = LoggerManager.getLogger(DefaultBufferAllocator.class);
+  final Pool<ByteBuffer> readBufferPool;
+  final Pool<ByteBuffer> pendingBufferPool;
+  final Pool<ByteBuffer> writeBufferPool;
 
-  protected final Pool<ByteBuffer> readBufferPool;
-  protected final Pool<ByteBuffer> pendingBufferPool;
-  protected final Pool<ByteBuffer> writeBufferPool;
-
-  protected final NetworkConfig config;
+  final NetworkConfig config;
 
   public DefaultBufferAllocator(NetworkConfig config) {
     this.config = config;
@@ -34,72 +35,72 @@ public class DefaultBufferAllocator implements BufferAllocator {
 
   @Override
   public ByteBuffer takeReadBuffer() {
-    var bufferSize = config.getReadBufferSize();
-    LOGGER.debug(bufferSize, size -> "Allocate a new read buffer with size: " + size);
+    int bufferSize = config.readBufferSize();
+    log.debug(bufferSize, "Allocate new read buffer with size:[%s]"::formatted);
     return config.isDirectByteBuffer()
            ? ByteBuffer.allocateDirect(bufferSize)
            : ByteBuffer
                .allocate(bufferSize)
-               .order(config.getByteOrder())
+               .order(config.byteOrder())
                .clear();
   }
 
   @Override
   public ByteBuffer takePendingBuffer() {
-    var bufferSize = config.getPendingBufferSize();
-    LOGGER.debug(bufferSize, size -> "Allocate a new pending buffer with size: " + size);
+    int bufferSize = config.pendingBufferSize();
+    log.debug(bufferSize, "Allocate new pending buffer with size:[%s]"::formatted);
     return config.isDirectByteBuffer()
            ? ByteBuffer.allocateDirect(bufferSize)
            : ByteBuffer
                .allocate(bufferSize)
-               .order(config.getByteOrder())
+               .order(config.byteOrder())
                .clear();
   }
 
   @Override
   public ByteBuffer takeWriteBuffer() {
-    var bufferSize = config.getWriteBufferSize();
-    LOGGER.debug(bufferSize, size -> "Allocate a new write buffer with size: " + size);
+    int bufferSize = config.writeBufferSize();
+    log.debug(bufferSize, "Allocate new write buffer with size:[%s]"::formatted);
     return config.isDirectByteBuffer()
            ? ByteBuffer.allocateDirect(bufferSize)
            : ByteBuffer
                .allocate(bufferSize)
-               .order(config.getByteOrder())
+               .order(config.byteOrder())
                .clear();
   }
 
   @Override
   public ByteBuffer takeBuffer(int bufferSize) {
-    LOGGER.debug(bufferSize, size -> "Allocate a new buffer with size: " + size);
+    log.debug(bufferSize, "Allocate new buffer with size:[%s]"::formatted);
     return config.isDirectByteBuffer()
            ? ByteBuffer.allocateDirect(bufferSize)
            : ByteBuffer
                .allocate(bufferSize)
-               .order(config.getByteOrder())
+               .order(config.byteOrder())
                .clear();
   }
 
   @Override
   public DefaultBufferAllocator putReadBuffer(ByteBuffer buffer) {
-    LOGGER.debug("Skip storing a read buffer");
+    log.debug("Skip storing read buffer");
     return this;
   }
 
   @Override
   public DefaultBufferAllocator putPendingBuffer(ByteBuffer buffer) {
-    LOGGER.debug("Skip storing a pending buffer");
+    log.debug("Skip storing pending buffer");
     return this;
   }
 
   @Override
   public DefaultBufferAllocator putWriteBuffer(ByteBuffer buffer) {
-    LOGGER.debug("Skip storing a write buffer");
+    log.debug("Skip storing write buffer");
     return this;
   }
 
   @Override
   public BufferAllocator putBuffer(ByteBuffer buffer) {
-    LOGGER.debug("Skip storing a mapped byte buffer");
+    log.debug("Skip storing buffer");
     return this;
   }
 }

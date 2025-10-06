@@ -1,0 +1,4 @@
+plugins {
+  id("configure-java")
+  id("configure-publishing")
+}

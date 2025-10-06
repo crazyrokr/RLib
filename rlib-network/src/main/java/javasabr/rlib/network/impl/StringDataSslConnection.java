@@ -1,0 +1,30 @@
+package javasabr.rlib.network.impl;
+
+import java.nio.channels.AsynchronousSocketChannel;
+import javasabr.rlib.network.BufferAllocator;
+import javasabr.rlib.network.Connection;
+import javasabr.rlib.network.Network;
+import javasabr.rlib.network.packet.impl.StringReadablePacket;
+import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
+import javax.net.ssl.SSLContext;
+
+/**
+ * @author JavaSaBr
+ */
+public class StringDataSslConnection extends
+    DefaultDataSslConnection<StringReadablePacket, StringWritableNetworkPacket> {
+
+  public StringDataSslConnection(
+      Network<? extends Connection<StringReadablePacket, StringWritableNetworkPacket>> network,
+      AsynchronousSocketChannel channel,
+      BufferAllocator bufferAllocator,
+      SSLContext sslContext,
+      boolean clientMode) {
+    super(network, channel, bufferAllocator, sslContext, 100, 2, clientMode);
+  }
+
+  @Override
+  protected StringReadablePacket createReadablePacket() {
+    return new StringReadablePacket();
+  }
+}

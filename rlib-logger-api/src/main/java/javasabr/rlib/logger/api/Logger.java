@@ -17,10 +17,10 @@ public interface Logger {
   }
 
   @FunctionalInterface
-  interface N1Factory<F> {
+  interface N1Factory<A> {
 
     @NonNull
-    String make(F arg1);
+    String make(A arg1);
   }
 
   @FunctionalInterface
@@ -31,24 +31,38 @@ public interface Logger {
   }
 
   @FunctionalInterface
-  interface IntN1Factory<F> {
+  interface IntN1Factory<B> {
 
     @NonNull
-    String make(int arg1, F arg2);
+    String make(int arg1, B arg2);
   }
 
   @FunctionalInterface
-  interface N2Factory<F, S> {
+  interface N2Factory<A, B> {
 
     @NonNull
-    String make(F arg1, S arg2);
+    String make(A arg1, B arg2);
   }
 
   @FunctionalInterface
-  interface N1IntFactory<F> {
+  interface N1IntFactory<A> {
 
     @NonNull
-    String make(F arg1, int arg2);
+    String make(A arg1, int arg2);
+  }
+
+  @FunctionalInterface
+  interface N1Int2Factory<A> {
+
+    @NonNull
+    String make(A arg1, int arg2, int arg3);
+  }
+
+  @FunctionalInterface
+  interface N1IntN1Factory<A, C> {
+
+    @NonNull
+    String make(A arg1, int arg2, C arg3);
   }
 
   @FunctionalInterface
@@ -59,17 +73,31 @@ public interface Logger {
   }
 
   @FunctionalInterface
-  interface N3Factory<F, S, T> {
+  interface N3Factory<A, B, C> {
 
     @NonNull
-    String make(F arg1, S arg2, T arg3);
+    String make(A arg1, B arg2, C arg3);
   }
 
   @FunctionalInterface
-  interface N4Factory<F, S, T, FO> {
+  interface Int2N1Factory<C> {
 
     @NonNull
-    String make(F arg1, S arg2, T arg3, FO arg4);
+    String make(int arg1, int arg2, C arg3);
+  }
+
+  @FunctionalInterface
+  interface N1Int2N1Factory<A, D> {
+
+    @NonNull
+    String make(A arg1, int arg2, int arg3, D arg4);
+  }
+
+  @FunctionalInterface
+  interface N4Factory<A, B, C, D> {
+
+    @NonNull
+    String make(A arg1, B arg2, C arg3, D arg4);
   }
 
   /**
@@ -85,19 +113,19 @@ public interface Logger {
     print(LoggerLevel.DEBUG, arg1, factory);
   }
 
-  default <T> void debug(T arg1, @NonNull N1Factory<T> factory) {
+  default <A> void debug(A arg1, @NonNull N1Factory<A> factory) {
     print(LoggerLevel.DEBUG, arg1, factory);
   }
 
-  default <F> void debug(int arg1, F arg2, @NonNull IntN1Factory<F> factory) {
+  default <B> void debug(int arg1, B arg2, @NonNull IntN1Factory<B> factory) {
     print(LoggerLevel.DEBUG, arg1, arg2, factory);
   }
 
-  default <F, S> void debug(F arg1, S arg2, @NonNull N2Factory<F, S> factory) {
+  default <A, B> void debug(A arg1, B arg2, @NonNull N2Factory<A, B> factory) {
     print(LoggerLevel.DEBUG, arg1, arg2, factory);
   }
 
-  default <F> void debug(F arg1, int arg2, @NonNull N1IntFactory<F> factory) {
+  default <A> void debug(A arg1, int arg2, @NonNull N1IntFactory<A> factory) {
     print(LoggerLevel.DEBUG, arg1, arg2, factory);
   }
 
@@ -105,12 +133,44 @@ public interface Logger {
     print(LoggerLevel.DEBUG, arg1, arg2, factory);
   }
 
-  default <F, S, T> void debug(F arg1, S arg2, T arg3, @NonNull N3Factory<F, S, T> factory) {
+  default <A, B, C> void debug(A arg1, B arg2, C arg3, @NonNull N3Factory<A, B, C> factory) {
+    print(LoggerLevel.DEBUG, arg1, arg2, arg3, factory);
+  }
+
+  default <A, C> void debug(A arg1, int arg2, C arg3, @NonNull N1IntN1Factory<A, C> factory) {
+    print(LoggerLevel.DEBUG, arg1, arg2, arg3, factory);
+  }
+
+  default <A, B, C> void debug(A arg1, int arg2, int arg3, @NonNull N1Int2Factory<A> factory) {
     print(LoggerLevel.DEBUG, arg1, arg2, arg3, factory);
   }
 
   default void error(@NonNull String message) {
     print(LoggerLevel.ERROR, message);
+  }
+
+  default <A> void error(A arg1, @NonNull N1Factory<A> factory) {
+    print(LoggerLevel.ERROR, arg1, factory);
+  }
+
+  default void error(int arg1, @NonNull IntFactory factory) {
+    print(LoggerLevel.ERROR, arg1, factory);
+  }
+
+  default <B> void error(int arg1, B arg2, @NonNull IntN1Factory<B> factory) {
+    print(LoggerLevel.ERROR, arg1, arg2, factory);
+  }
+
+  default <A, B> void error(A arg1, B arg2, @NonNull N2Factory<A, B> factory) {
+    print(LoggerLevel.ERROR, arg1, arg2, factory);
+  }
+
+  default <C> void error(int arg1, int arg2, C arg3, @NonNull Int2N1Factory<C> factory) {
+    print(LoggerLevel.ERROR, arg1, arg2, arg3, factory);
+  }
+
+  default <A, D> void error(A arg1, int arg2, int arg3, D arg4, @NonNull N1Int2N1Factory<A, D> factory) {
+    print(LoggerLevel.ERROR, arg1, arg2, arg3, arg4, factory);
   }
 
   default void error(@NonNull Throwable exception) {
@@ -125,11 +185,11 @@ public interface Logger {
     print(LoggerLevel.INFO, arg1, factory);
   }
 
-  default <F, S> void info(F arg1, S arg2, @NonNull N2Factory<F, S> factory) {
+  default <A, B> void info(A arg1, B arg2, @NonNull N2Factory<A, B> factory) {
     print(LoggerLevel.INFO, arg1, arg2, factory);
   }
 
-  default <F, S, T> void info(F arg1, S arg2, T arg3, @NonNull N3Factory<F, S, T> factory) {
+  default <A, B, C> void info(A arg1, B arg2, C arg3, @NonNull N3Factory<A, B, C> factory) {
     print(LoggerLevel.INFO, arg1, arg2, arg3, factory);
   }
 
@@ -138,6 +198,20 @@ public interface Logger {
    */
   default boolean enabled(@NonNull LoggerLevel level) {
     return level.enabled();
+  }
+
+  /**
+   * Check of enabling the warning level.
+   */
+  default boolean warningEnabled() {
+    return enabled(LoggerLevel.WARNING);
+  }
+
+  /**
+   * Check of enabling the debug level.
+   */
+  default boolean debugEnabled() {
+    return enabled(LoggerLevel.DEBUG);
   }
 
   /**
@@ -162,16 +236,20 @@ public interface Logger {
     print(LoggerLevel.WARNING, arg1, factory);
   }
 
-  default <F, S> void warning(F arg1, S arg2, @NonNull N2Factory<F, S> factory) {
+  default <A, B> void warning(A arg1, B arg2, @NonNull N2Factory<A, B> factory) {
     print(LoggerLevel.WARNING, arg1, arg2, factory);
   }
 
-  default <F, S, T, FO> void warning(
-      F arg1,
-      S arg2,
-      T arg3,
-      FO arg4,
-      @NonNull N4Factory<F, S, T, FO> factory) {
+  default <A, B, C> void warning(A arg1, B arg2, C arg3, @NonNull N3Factory<A, B, C> factory) {
+    print(LoggerLevel.WARNING, arg1, arg2, arg3, factory);
+  }
+
+  default <A, B, C, D> void warning(
+      A arg1,
+      B arg2,
+      C arg3,
+      D arg4,
+      @NonNull N4Factory<A, B, C, D> factory) {
     print(LoggerLevel.WARNING, arg1, arg2, arg3, arg4, factory);
   }
 
@@ -179,7 +257,7 @@ public interface Logger {
 
   void print(@NonNull LoggerLevel level, @NonNull Throwable exception);
 
-  default <T> void print(@NonNull LoggerLevel level, T arg1, @NonNull N1Factory<T> factory) {
+  default <A> void print(@NonNull LoggerLevel level, A arg1, @NonNull N1Factory<A> factory) {
     if (enabled(level)) {
       print(level, factory.make(arg1));
     }
@@ -191,31 +269,31 @@ public interface Logger {
     }
   }
 
-  default <F> void print(
+  default <B> void print(
       @NonNull LoggerLevel level,
       int arg1,
-      F arg2,
-      @NonNull IntN1Factory<F> factory) {
+      B arg2,
+      @NonNull IntN1Factory<B> factory) {
     if (enabled(level)) {
       print(level, factory.make(arg1, arg2));
     }
   }
 
-  default <F, S> void print(
+  default <A, B> void print(
       @NonNull LoggerLevel level,
-      F arg1,
-      S arg2,
-      @NonNull N2Factory<F, S> factory) {
+      A arg1,
+      B arg2,
+      @NonNull N2Factory<A, B> factory) {
     if (enabled(level)) {
       print(level, factory.make(arg1, arg2));
     }
   }
 
-  default <F> void print(
+  default <A> void print(
       @NonNull LoggerLevel level,
-      F arg1,
+      A arg1,
       int arg2,
-      @NonNull N1IntFactory<F> factory) {
+      @NonNull N1IntFactory<A> factory) {
     if (enabled(level)) {
       print(level, factory.make(arg1, arg2));
     }
@@ -231,24 +309,69 @@ public interface Logger {
     }
   }
 
-  default <F, S, T> void print(
+  default <A, B, C> void print(
       @NonNull LoggerLevel level,
-      F arg1,
-      S arg2,
-      T arg3,
-      @NonNull N3Factory<F, S, T> factory) {
+      A arg1,
+      B arg2,
+      C arg3,
+      @NonNull N3Factory<A, B, C> factory) {
     if (enabled(level)) {
       print(level, factory.make(arg1, arg2, arg3));
     }
   }
 
-  default <F, S, T, FO> void print(
+  default <A, C> void print(
       @NonNull LoggerLevel level,
-      F arg1,
-      S arg2,
-      T arg3,
-      FO arg4,
-      @NonNull N4Factory<F, S, T, FO> factory) {
+      A arg1,
+      int arg2,
+      C arg3,
+      @NonNull N1IntN1Factory<A, C> factory) {
+    if (enabled(level)) {
+      print(level, factory.make(arg1, arg2, arg3));
+    }
+  }
+
+  default <A> void print(
+      @NonNull LoggerLevel level,
+      A arg1,
+      int arg2,
+      int arg3,
+      @NonNull N1Int2Factory<A> factory) {
+    if (enabled(level)) {
+      print(level, factory.make(arg1, arg2, arg3));
+    }
+  }
+
+  default <C>  void print(
+      @NonNull LoggerLevel level,
+      int arg1,
+      int arg2,
+      C arg3,
+      @NonNull Int2N1Factory<C> factory) {
+    if (enabled(level)) {
+      print(level, factory.make(arg1, arg2, arg3));
+    }
+  }
+
+  default <A, D> void print(
+      @NonNull LoggerLevel level,
+      A arg1,
+      int arg2,
+      int arg3,
+      D arg4,
+      @NonNull N1Int2N1Factory<A, D> factory) {
+    if (enabled(level)) {
+      print(level, factory.make(arg1, arg2, arg3, arg4));
+    }
+  }
+
+  default <A, B, C, D> void print(
+      @NonNull LoggerLevel level,
+      A arg1,
+      B arg2,
+      C arg3,
+      D arg4,
+      @NonNull N4Factory<A, B, C, D> factory) {
     if (enabled(level)) {
       print(level, factory.make(arg1, arg2, arg3, arg4));
     }

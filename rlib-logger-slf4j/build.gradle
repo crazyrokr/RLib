@@ -1,3 +1,8 @@
+plugins {
+  id("configure-java")
+  id("configure-publishing")
+}
+
 dependencies {
   api projects.rlibLoggerApi
   api libs.slf4j.api

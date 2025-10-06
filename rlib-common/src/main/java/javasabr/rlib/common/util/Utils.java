@@ -7,6 +7,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.Callable;
 import javasabr.rlib.common.function.NotNullSafeBiConsumer;
 import javasabr.rlib.common.function.NotNullSafeBiFunction;
 import javasabr.rlib.common.function.NotNullSafeConsumer;
@@ -145,9 +146,9 @@ public final class Utils {
     }
   }
 
-  public static <R> R uncheckedGet(NotNullSafeFactory<R> function) {
+  public static <R> R uncheckedGet(Callable<R> function) {
     try {
-      return function.get();
+      return function.call();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     } catch (Exception e) {

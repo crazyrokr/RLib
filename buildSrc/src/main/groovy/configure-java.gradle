@@ -1,0 +1,110 @@
+plugins {
+  id("java-library")
+  id("java-test-fixtures")
+  id("configure-jacoco")
+}
+
+repositories {
+  mavenCentral()
+}
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21)
+  }
+}
+
+sourceSets {
+  loadTest {
+    compileClasspath += main.output
+    compileClasspath += main.compileClasspath
+    compileClasspath += test.compileClasspath
+    runtimeClasspath += main.output
+    runtimeClasspath += main.compileClasspath
+    runtimeClasspath += test.compileClasspath
+    java {
+      srcDirs = ["src/loadTest/java"]
+    }
+  }
+}
+
+javadoc {
+  failOnError = false
+}
+
+test {
+  useJUnitPlatform()
+  failOnNoDiscoveredTests = false
+}
+
+tasks.register("loadTest", Test) {
+  group("verification")
+  useJUnitPlatform()
+  failOnNoDiscoveredTests = false
+  testClassesDirs = sourceSets.loadTest.output.classesDirs
+  classpath = sourceSets.loadTest.runtimeClasspath
+  minHeapSize = "128m"
+  maxHeapSize = "4G"
+}
+
+dependencies {
+  compileOnly libs.jspecify
+  compileOnly libs.lombok
+  annotationProcessor libs.lombok
+
+  testImplementation libs.junit.api
+  testImplementation libs.junit.jupiter.params
+
+  testCompileOnly libs.lombok
+  testCompileOnly libs.jspecify
+  testRuntimeOnly libs.junit.engine
+  testRuntimeOnly libs.junit.platform.launcher
+  testAnnotationProcessor libs.lombok
+
+  loadTestCompileOnly libs.lombok
+  loadTestCompileOnly libs.jspecify
+  loadTestRuntimeOnly libs.junit.engine
+  loadTestRuntimeOnly libs.junit.platform.launcher
+  loadTestAnnotationProcessor libs.lombok
+}
+
+tasks.withType(JavaCompile).configureEach {
+  options.encoding = "UTF-8"
+}
+
+tasks.withType(Javadoc).configureEach {
+  options.encoding = "UTF-8"
+}
+
+tasks.register("sourcesJar", Jar) {
+  dependsOn "classes"
+  group "build"
+  archiveClassifier = "sources"
+  archiveBaseName = jar.archiveBaseName
+  from sourceSets.main.allSource
+}
+
+tasks.register("javadocJar", Jar) {
+  dependsOn "javadoc"
+  group "build"
+  archiveClassifier = "javadoc"
+  archiveBaseName = jar.archiveBaseName
+  from sourceSets.main.allSource
+}
+
+configurations {
+  testArtifacts.extendsFrom testRuntime
+}
+
+tasks.register('testJar', Jar) {
+  archiveClassifier = "test"
+  from sourceSets.test.output
+}
+
+artifacts {
+  testArtifacts testJar
+}
+
+tasks.withType(Test).configureEach {
+  maxParallelForks = Runtime.runtime.availableProcessors()
+}

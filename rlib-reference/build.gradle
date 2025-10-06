@@ -1,3 +1,7 @@
+plugins {
+  id("configure-java")
+  id("configure-publishing")
+}
 
 dependencies {
   compileOnly projects.rlibReusable

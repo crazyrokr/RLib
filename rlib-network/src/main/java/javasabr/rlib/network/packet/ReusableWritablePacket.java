@@ -8,7 +8,7 @@ import javasabr.rlib.reusable.pool.Pool;
  *
  * @author JavaSaBr
  */
-public interface ReusableWritablePacket extends WritablePacket, Reusable {
+public interface ReusableWritablePacket extends WritableNetworkPacket, Reusable {
 
   /**
    * Handle completion of packet sending.
