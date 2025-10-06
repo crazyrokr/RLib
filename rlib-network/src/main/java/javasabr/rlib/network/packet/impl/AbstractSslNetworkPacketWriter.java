@@ -85,7 +85,7 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
       return super.tryToSendNextPacketImpl();
     }
 
-    ByteBuffer dataToSend = doHandshake(SslWritableNetworkPacket.getInstance());
+    ByteBuffer dataToSend = doHandshake(status);
     if (dataToSend != null) {
       return writeBuffer(dataToSend, null);
     }
@@ -95,49 +95,38 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
 
   @Override
   protected ByteBuffer serialize(WritableNetworkPacket packet) {
-    HandshakeStatus status = sslEngine.getHandshakeStatus();
-    if (SslUtils.isReadyToCrypt(status)) {
-      if (packet instanceof SslWritableNetworkPacket) {
-        return EMPTY_BUFFER;
-      }
+    if (packet instanceof SslWritableNetworkPacket) {
+      return EMPTY_BUFFER;
+    }
 
-      ByteBuffer serialized = super.serialize(packet);
+    ByteBuffer serialized = super.serialize(packet);
+    log.debug(remoteAddress(), serialized, (address, buff) ->
+        "[%s] Try to encrypt data:\n%s".formatted(address, hexDump(buff)));
 
-      log.debug(remoteAddress(), serialized, (address, buff) ->
-          "[%s] Try to encrypt data:\n%s".formatted(address, hexDump(buff)));
+    ByteBuffer bufferToSend = sslNetworkBuffer();
+    SSLEngineResult result = tryEncrypt(serialized, bufferToSend);
 
-      ByteBuffer bufferToSend = sslNetworkBuffer();
-      SSLEngineResult result = tryEncrypt(serialized, bufferToSend);
-
-      if (result.getStatus() == SSLEngineResult.Status.OK && serialized.hasRemaining()) {
-        int tempBufferSize = (int) ((bufferToSend.limit() + serialized.remaining()) * 1.2);
-        ByteBuffer tempBuffer = bufferAllocator.takeBuffer(tempBufferSize);
-        tempBuffer.put(bufferToSend.flip());
-        while (serialized.hasRemaining()) {
-          result = tryEncrypt(serialized, bufferToSend);
-          if (result.getStatus() != SSLEngineResult.Status.OK) {
-            break;
-          }
-          tempBuffer.put(bufferToSend.flip());
+    if (result.getStatus() == SSLEngineResult.Status.OK && serialized.hasRemaining()) {
+      int tempBufferSize = (int) ((bufferToSend.limit() + serialized.remaining()) * 1.2);
+      ByteBuffer tempBuffer = bufferAllocator.takeBuffer(tempBufferSize);
+      tempBuffer.put(bufferToSend.flip());
+      while (serialized.hasRemaining()) {
+        result = tryEncrypt(serialized, bufferToSend);
+        if (result.getStatus() != SSLEngineResult.Status.OK) {
+          break;
         }
-        bufferToSend = tempBuffer;
-        this.sslTempBuffer = tempBuffer;
+        tempBuffer.put(bufferToSend.flip());
       }
-
-      return switch (result.getStatus()) {
-        case BUFFER_UNDERFLOW -> increaseAndTryAgain(packet);
-        case BUFFER_OVERFLOW -> throw new IllegalStateException("Unexpected ssl engine result");
-        case OK -> bufferToSend.flip();
-        case CLOSED -> closeAndReturn();
-      };
+      bufferToSend = tempBuffer;
+      this.sslTempBuffer = tempBuffer;
     }
 
-    ByteBuffer dataToSend = doHandshake(packet);
-    if (dataToSend != null) {
-      return dataToSend;
-    }
-
-    throw new IllegalStateException();
+    return switch (result.getStatus()) {
+      case BUFFER_UNDERFLOW -> increaseAndTryAgain(packet);
+      case BUFFER_OVERFLOW -> throw new IllegalStateException("Unexpected ssl engine result");
+      case OK -> bufferToSend.flip();
+      case CLOSED -> closeAndReturn();
+    };
   }
 
   protected ByteBuffer closeAndReturn() {
@@ -161,17 +150,12 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
   }
 
   @Nullable
-  protected ByteBuffer doHandshake(WritableNetworkPacket packet) {
-    if (!(packet instanceof SslWritableNetworkPacket)) {
-      log.debug(remoteAddress(), packet, "[%s] Return packet:[%s] to queue as first"::formatted);
-      queueAtFirst.accept(packet);
-    }
-
-    HandshakeStatus handshakeStatus = sslEngine.getHandshakeStatus();
+  protected ByteBuffer doHandshake(HandshakeStatus handshakeStatus) {
     while (SslUtils.needToProcess(handshakeStatus)) {
-      SSLEngineResult result;
+      log.debug(remoteAddress(), handshakeStatus, "[%s] Do handshake with status:[%s] "::formatted);
       switch (handshakeStatus) {
         case NEED_WRAP: {
+          SSLEngineResult result;
           try {
             result = sslEngine.wrap(EMPTY_BUFFERS, sslNetworkBuffer.clear());
             handshakeStatus = result.getHandshakeStatus();
@@ -182,16 +166,11 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
             handshakeStatus = sslEngine.getHandshakeStatus();
             break;
           }
-
           switch (result.getStatus()) {
             case OK:
-              sslNetworkBuffer.flip();
-/*              if (handshakeStatus == HandshakeStatus.NEED_WRAP) {
-                log.debug("Send command to wrap data again");
-                queueAtFirst.accept(SslWritableNetworkPacket.getInstance());
-              }*/
-              log.debug(sslNetworkBuffer, result, (buf, res) -> "Send wrapped data:\n" + hexDump(buf, res));
-              return sslNetworkBuffer;
+              log.debug(remoteAddress(), sslNetworkBuffer, result,
+                  (address, buf, res) -> "[%s] Send wrapped data:\n%s".formatted(address, hexDump(buf, res)));
+              return sslNetworkBuffer.flip();
             case BUFFER_OVERFLOW: {
               log.debug(remoteAddress(), "[%s] Increase network buffer"::formatted);
               increaseNetworkBuffer();

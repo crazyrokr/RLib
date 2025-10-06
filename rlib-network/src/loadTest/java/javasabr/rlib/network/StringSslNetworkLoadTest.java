@@ -22,6 +22,7 @@ import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.StringDataConnection;
 import javasabr.rlib.network.impl.StringDataSslConnection;
 import javasabr.rlib.network.packet.impl.AbstractSslNetworkPacketReader;
+import javasabr.rlib.network.packet.impl.AbstractSslNetworkPacketWriter;
 import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 import javasabr.rlib.network.server.ServerNetwork;
 import javasabr.rlib.network.util.NetworkUtils;
@@ -82,7 +83,7 @@ public class StringSslNetworkLoadTest {
             int delay = random.nextInt(MAX_SEND_DELAY);
             ScheduledFuture<?> schedule = executor.schedule(
                 () -> {
-                  StringWritableNetworkPacket message = newMessage(10, 100); // 10240
+                  StringWritableNetworkPacket message = newMessage(10, 10240); // 10240
                   connection.send(message);
                 }, delay, TimeUnit.MILLISECONDS);
             tasks.add(schedule);
@@ -123,6 +124,7 @@ public class StringSslNetworkLoadTest {
   void testServerWithMultiplyClients() {
     LoggerManager.enable(StringSslNetworkLoadTest.class, LoggerLevel.INFO);
     //LoggerManager.enable(AbstractSslNetworkPacketReader.class, LoggerLevel.DEBUG);
+    //LoggerManager.enable(AbstractSslNetworkPacketWriter.class, LoggerLevel.DEBUG);
 
     var serverConfig = SimpleServerNetworkConfig
         .builder()
@@ -135,8 +137,8 @@ public class StringSslNetworkLoadTest {
     var serverAllocator = new DefaultBufferAllocator(serverConfig);
     ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
-    int clientCount = 1;
-    int messagesPerIteration = 20;
+    int clientCount = 100;
+    int messagesPerIteration = 2000;
     int expectedMessages = clientCount * messagesPerIteration * MAX_ITERATIONS;
 
     var finalWaiter = new CountDownLatch(2);
@@ -154,7 +156,7 @@ public class StringSslNetworkLoadTest {
           statistics
               .receivedClientPackersPerSecond()
               .accumulate(1);
-          //connection.send(new StringWritableNetworkPacket("Echo: " + packet.data()));
+          connection.send(new StringWritableNetworkPacket("Echo: " + packet.data()));
           statistics
               .sentEchoPackersPerSecond()
               .accumulate(1);

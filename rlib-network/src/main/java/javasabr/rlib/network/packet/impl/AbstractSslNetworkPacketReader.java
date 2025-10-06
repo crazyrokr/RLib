@@ -92,6 +92,8 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
   }
 
   protected ByteBuffer moveDataToNetworkBuffer(ByteBuffer readingBuffer) {
+    log.debug(remoteAddress(), readingBuffer,
+        (address, buf) -> "[%s] Append new part of received data:\n%s".formatted(address, hexDump(buf)));
     ByteBuffer sslNetworkBuffer = sslNetworkBuffer();
     int availableSpace = sslNetworkBuffer.capacity() - sslNetworkBuffer.limit();
     if (availableSpace >= readingBuffer.limit()) {
@@ -100,16 +102,18 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
       sslNetworkBuffer = increaseNetworkBuffer(readingBuffer.limit());
       BufferUtils.appendAndClear(sslNetworkBuffer, readingBuffer);
     }
+    log.debug(remoteAddress(), sslNetworkBuffer,
+        (address, buf) -> "[%s] Result pending received network data:\n%s".formatted(address, hexDump(buf)));
     return sslNetworkBuffer;
   }
 
   protected int doHandshake(ByteBuffer networkBuffer, int receivedBytes) {
     HandshakeStatus handshakeStatus = sslEngine.getHandshakeStatus();
     while (SslUtils.needToProcess(handshakeStatus)) {
-      log.debug(handshakeStatus, "Do handshake with status:[%s] "::formatted);
-      SSLEngineResult result;
+      log.debug(remoteAddress(), handshakeStatus, "[%s] Do handshake with status:[%s] "::formatted);
       switch (handshakeStatus) {
         case NEED_UNWRAP: {
+          SSLEngineResult result;
           if (receivedBytes == -1) {
             if (sslEngine.isInboundDone() && sslEngine.isOutboundDone()) {
               return SKIP_READ_PACKETS;
@@ -128,10 +132,11 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
             return SKIP_READ_PACKETS;
           }
           try {
-            log.debug(networkBuffer, buff -> "Try to unwrap data:\n" + hexDump(buff));
+            log.debug(remoteAddress(), networkBuffer,
+                (address, buff) -> "[%s] Try to unwrap data:\n%s".formatted(address, hexDump(buff)));
             result = sslEngine.unwrap(networkBuffer, EMPTY_BUFFERS);
             handshakeStatus = result.getHandshakeStatus();
-            log.debug(handshakeStatus, "Handshake status:[%s] after unwrapping"::formatted);
+            log.debug(remoteAddress(), handshakeStatus, "[%s] Handshake status:[%s] after unwrapping"::formatted);
           } catch (SSLException sslException) {
             log.error("A problem was encountered while processing the data that caused the "
                 + "SSLEngine to abort. Will try to properly close connection...");
@@ -147,9 +152,13 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
               throw new IllegalStateException("Unexpected ssl engine result");
             }
             case BUFFER_UNDERFLOW: {
-              log.debug("Increase ssl network buffer");
-              increaseNetworkBuffer(0);
-              break;
+              log.debug(remoteAddress(), "[%s] Wait for more received data..."::formatted);
+              if (networkBuffer.position() > 0) {
+                networkBuffer
+                    .compact()
+                    .limit(networkBuffer.position());
+              }
+              return SKIP_READ_PACKETS;
             }
             case CLOSED: {
               if (sslEngine.isOutboundDone()) {
@@ -174,7 +183,7 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
         }
         case NEED_TASK: {
           handshakeStatus = SslUtils.executeSslTasks(sslEngine);
-          log.debug(handshakeStatus, "Handshake status:[%s] after engine tasks"::formatted);
+          log.debug(remoteAddress(), handshakeStatus, "[%s] Handshake status:[%s] after engine tasks"::formatted);
           if (handshakeStatus == HandshakeStatus.NEED_UNWRAP && !networkBuffer.hasRemaining()) {
             cleanNetworkBuffer(networkBuffer);
             return SKIP_READ_PACKETS;
@@ -204,7 +213,8 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
     while (receivedBuffer.hasRemaining()) {
       SSLEngineResult result;
       try {
-        log.debug(receivedBuffer, buf -> "Try to decrypt data:\n" + hexDump(buf));
+        log.debug(remoteAddress(), receivedBuffer,
+            (address, buf) -> "[%s] Try to decrypt data:\n%s".formatted(address, hexDump(buf)));
         result = sslEngine.unwrap(receivedBuffer, sslDataBuffer.clear());
       } catch (SSLException e) {
         throw new IllegalStateException(e);
@@ -212,15 +222,18 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
       switch (result.getStatus()) {
         case OK: {
           sslDataBuffer.flip();
-          log.debug(sslDataBuffer, buf -> "Decrypted data:\n" + hexDump(buf));
+          log.debug(remoteAddress(), sslDataBuffer,
+              (address, buf) -> "[%s] Decrypted data:\n%s".formatted(address, hexDump(buf)));
           total += readPackets(sslDataBuffer, sslDataPendingBuffer);
           break;
         }
         case BUFFER_OVERFLOW: {
+          log.debug(remoteAddress(), "Increase SSL data buffer and try again..."::formatted);
           increaseDataBuffer();
           return decryptAndRead(receivedBuffer);
         }
         case BUFFER_UNDERFLOW: {
+          log.debug(remoteAddress(), "[%s] Wait for more received data..."::formatted);
           if (receivedBuffer.position() > 0) {
             receivedBuffer
                 .compact()
@@ -233,16 +246,13 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
           return SKIP_READ_PACKETS;
         }
         default: {
-          if (receivedBuffer.position() > 0) {
-            receivedBuffer.compact();
-            return total;
-          }
           throw new IllegalStateException("Invalid SSL status: " + result.getStatus());
         }
       }
     }
 
-    receivedBuffer.clear();
+    log.debug(remoteAddress(), "[%s] Clear SSL network buffer"::formatted);
+    cleanNetworkBuffer(receivedBuffer);
     return total;
   }
 
