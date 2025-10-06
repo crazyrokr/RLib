@@ -1,4 +1,5 @@
 plugins {
+  id("configure-java")
   id("jacoco-report-aggregation")
 }
 
