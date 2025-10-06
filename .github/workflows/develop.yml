@@ -39,11 +39,11 @@ jobs:
           summary: true
           detailed_summary: true
           require_passed_tests: true
+          include_passed: true
 
       - name: Publish Test Report 2
         uses: dorny/test-reporter@v2
         with:
-          artifact: test-results
           name: JUnit Tests
           path: '**/build/test-results/test/TEST-*.xml'
           reporter: java-junit
