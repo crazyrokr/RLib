@@ -10,6 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
+      checks: write
       contents: write
       pull-requests: write
     steps:
@@ -29,6 +30,16 @@ jobs:
 
       - name: Run tests for all modules
         run: ./gradlew test
+
+      - name: Generate test report
+        uses: mikepenz/action-junit-report@v5
+        if: success() || failure() # always run even if the previous step fails
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'
+          summary: true
+          detailed_summary: true
+          require_passed_tests: true
+          include_passed: true
 
       - name: Generate jacoco reports
         run: ./gradlew jacocoTestReport
