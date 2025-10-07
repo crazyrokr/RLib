@@ -59,6 +59,13 @@ public abstract class AbstractWritableNetworkPacket extends AbstractNetworkPacke
   }
 
   /**
+   * Write 8 bytes to the buffer.
+   */
+  protected void writeDouble(ByteBuffer buffer, double value) {
+    buffer.putDouble(value);
+  }
+
+  /**
    * Write 4 bytes to the buffer.
    */
   protected void writeInt(ByteBuffer buffer, int value) {
@@ -78,6 +85,29 @@ public abstract class AbstractWritableNetworkPacket extends AbstractNetworkPacke
   protected void writeShort(ByteBuffer buffer, int value) {
     buffer.putShort((short) value);
   }
+
+  /**
+   * Writes bytes to the buffer.
+   */
+  protected void writeBytes(ByteBuffer buffer, byte[] bytes) {
+    buffer.put(bytes);
+  }
+
+  /**
+   * Writes bytes to the buffer.
+   */
+  protected void writeBytes(ByteBuffer buffer, byte[] bytes, int offset, int length) {
+    buffer.put(bytes, offset, length);
+  }
+
+  /**
+   * Writes bytes to the buffer.
+   */
+  protected void writeByteArray(ByteBuffer buffer, byte[] bytes) {
+    buffer.putInt(bytes.length);
+    buffer.put(bytes);
+  }
+
 
   /**
    * Writes the string to the buffer.

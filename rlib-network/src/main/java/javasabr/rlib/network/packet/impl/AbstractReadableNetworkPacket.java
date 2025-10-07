@@ -46,6 +46,23 @@ public abstract class AbstractReadableNetworkPacket
   }
 
   /**
+   * Reads 1 byte from the buffer.
+   */
+  protected int readByteUnsigned(ByteBuffer buffer) {
+    return buffer.get() & 0xFF;
+  }
+
+  /**
+   * Fills byte array with data from the buffer.
+   */
+  protected byte[] readByteArray(ByteBuffer buffer) {
+    int size = readInt(buffer);
+    byte[] result = new byte[size];
+    buffer.get(result);
+    return result;
+  }
+
+  /**
    * Fills byte array with data from the buffer.
    */
   protected void readBytes(ByteBuffer buffer, byte[] array) {
@@ -81,6 +98,14 @@ public abstract class AbstractReadableNetworkPacket
   }
 
   /**
+   * Reads 4 bytes from buffer.
+   */
+  protected long readIntUnsigned(ByteBuffer buffer) {
+    return buffer.getInt() & 0xFFFFFFFFL;
+  }
+
+
+  /**
    * Reads 8 bytes from buffer.
    */
   protected long readLong(ByteBuffer buffer) {
@@ -92,6 +117,13 @@ public abstract class AbstractReadableNetworkPacket
    */
   protected int readShort(ByteBuffer buffer) {
     return buffer.getShort();
+  }
+
+  /**
+   * Reads 2 bytes from buffer.
+   */
+  protected int readShortUnsigned(ByteBuffer buffer) {
+    return buffer.getShort() & 0xFFFF;
   }
 
   /**
