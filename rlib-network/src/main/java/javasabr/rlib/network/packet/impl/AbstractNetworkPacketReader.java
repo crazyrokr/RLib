@@ -27,8 +27,9 @@ import org.jspecify.annotations.Nullable;
 @CustomLog
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacket, C extends Connection<R, ?>>
-    implements NetworkPacketReader {
+public abstract class AbstractNetworkPacketReader<
+    R extends ReadableNetworkPacket<C>,
+    C extends Connection<R, ?, C>> implements NetworkPacketReader {
 
   final CompletionHandler<Integer, ByteBuffer> readChannelHandler = new CompletionHandler<>() {
 
@@ -287,7 +288,7 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
   }
 
   protected void readAndHandlePacket(ByteBuffer bufferToRead, int remainingDataLength, R packetInstance) {
-    if (packetInstance.read(bufferToRead, remainingDataLength)) {
+    if (packetInstance.read(connection, bufferToRead, remainingDataLength)) {
       packetHandler.accept(packetInstance);
     } else {
       log.error(remoteAddress(), packetInstance,

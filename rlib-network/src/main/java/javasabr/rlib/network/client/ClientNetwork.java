@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
  *
  * @author JavaSaBr
  */
-public interface ClientNetwork<C extends Connection<?, ?>> extends Network<C> {
+public interface ClientNetwork<C extends Connection<?, ?, C>> extends Network<C> {
 
   /**
    * Connect to a server by the address.

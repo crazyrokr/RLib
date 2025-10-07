@@ -28,8 +28,9 @@ import lombok.experimental.FieldDefaults;
 @CustomLog
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPacket, C extends Connection<R, ?>>
-    extends AbstractNetworkPacketReader<R, C> {
+public abstract class AbstractSslNetworkPacketReader<
+    R extends ReadableNetworkPacket<C>,
+    C extends Connection<R, ?, C>> extends AbstractNetworkPacketReader<R, C> {
 
   private static final ByteBuffer[] EMPTY_BUFFERS = {
       NetworkUtils.EMPTY_BUFFER
@@ -38,7 +39,7 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
   private static final int SKIP_READ_PACKETS = -1;
 
   final SSLEngine sslEngine;
-  final Consumer<WritableNetworkPacket> packetWriter;
+  final Consumer<WritableNetworkPacket<C>> packetWriter;
 
   @Getter(value = AccessLevel.PROTECTED)
   volatile ByteBuffer sslNetworkBuffer;
@@ -54,7 +55,7 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
       Runnable updateActivityFunction,
       Consumer<? super R> readPacketHandler,
       SSLEngine sslEngine,
-      Consumer<WritableNetworkPacket> packetWriter,
+      Consumer<WritableNetworkPacket<C>> packetWriter,
       int maxPacketsByRead) {
     super(connection, channel, bufferAllocator, updateActivityFunction, readPacketHandler, maxPacketsByRead);
     this.sslEngine = sslEngine;

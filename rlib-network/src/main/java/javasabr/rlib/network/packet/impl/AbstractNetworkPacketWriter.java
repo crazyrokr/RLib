@@ -31,18 +31,19 @@ import org.jspecify.annotations.Nullable;
 @RequiredArgsConstructor
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacket, C extends Connection<?, W>>
-    implements NetworkPacketWriter {
+public abstract class AbstractNetworkPacketWriter<
+    W extends WritableNetworkPacket<C>,
+    C extends Connection<?, W, C>> implements NetworkPacketWriter {
 
-  final CompletionHandler<Integer, @Nullable WritableNetworkPacket> writeHandler = new CompletionHandler<>() {
+  final CompletionHandler<Integer, @Nullable WritableNetworkPacket<C>> writeHandler = new CompletionHandler<>() {
 
     @Override
-    public void completed(Integer result, @Nullable WritableNetworkPacket packet) {
+    public void completed(Integer result, @Nullable WritableNetworkPacket<C> packet) {
       handleSuccessfulWritingData(result, packet);
     }
 
     @Override
-    public void failed(Throwable exc, @Nullable WritableNetworkPacket packet) {
+    public void failed(Throwable exc, @Nullable WritableNetworkPacket<C> packet) {
       handleFailedWritingData(exc, packet);
     }
   };
@@ -64,18 +65,18 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
   volatile ByteBuffer writingBuffer = EMPTY_BUFFER;
 
   final Runnable updateActivityFunction;
-  final Supplier<@Nullable WritableNetworkPacket> writablePacketProvider;
-  final ObjBoolConsumer<WritableNetworkPacket> sentPacketHandler;
-  final Consumer<WritableNetworkPacket> serializedToChannelPacketHandler;
+  final Supplier<@Nullable WritableNetworkPacket<C>> writablePacketProvider;
+  final ObjBoolConsumer<WritableNetworkPacket<C>> sentPacketHandler;
+  final Consumer<WritableNetworkPacket<C>> serializedToChannelPacketHandler;
 
   public AbstractNetworkPacketWriter(
       C connection,
       AsynchronousSocketChannel socketChannel,
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
-      Supplier<@Nullable WritableNetworkPacket> packetProvider,
-      Consumer<WritableNetworkPacket> serializedToChannelPacketHandler,
-      ObjBoolConsumer<WritableNetworkPacket> sentPacketHandler) {
+      Supplier<@Nullable WritableNetworkPacket<C>> packetProvider,
+      Consumer<WritableNetworkPacket<C>> serializedToChannelPacketHandler,
+      ObjBoolConsumer<WritableNetworkPacket<C>> sentPacketHandler) {
     this.connection = connection;
     this.socketChannel = socketChannel;
     this.bufferAllocator = bufferAllocator;
@@ -125,7 +126,9 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
     return false;
   }
 
-  protected boolean writeBuffer(ByteBuffer resultBuffer, @Nullable WritableNetworkPacket nextPacket) {
+  protected boolean writeBuffer(
+      ByteBuffer resultBuffer,
+      @Nullable WritableNetworkPacket<C> nextPacket) {
     if (resultBuffer.limit() == 0) {
       return false;
     }
@@ -141,15 +144,15 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
    * @param packet the network packet.
    * @return the final byte buffer with data.
    */
-  protected ByteBuffer serialize(WritableNetworkPacket packet) {
+  protected ByteBuffer serialize(WritableNetworkPacket<C> packet) {
 
     if (packet instanceof WritablePacketWrapper) {
-      packet = ((WritablePacketWrapper<?, ?>) packet).getPacket();
+      packet = ((WritablePacketWrapper<?, ?, C>) packet).getPacket();
     }
 
     W resultPacket = (W) packet;
 
-    int expectedLength = packet.expectedLength();
+    int expectedLength = packet.expectedLength(connection);
     int totalSize = expectedLength == -1 ? -1 : totalSize(packet, expectedLength);
 
     // if the packet is too big to use a write buffer
@@ -185,7 +188,7 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
    *
    * @return the total size or -1.
    */
-  protected abstract int totalSize(WritableNetworkPacket packet, int expectedLength);
+  protected abstract int totalSize(WritableNetworkPacket<C> packet, int expectedLength);
 
   /**
    * Serializes the packet to the buffers.
@@ -251,7 +254,7 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
       int totalSize,
       ByteBuffer firstBuffer,
       ByteBuffer secondBuffer) {
-    return packet.write(firstBuffer);
+    return packet.write(connection, firstBuffer);
   }
 
   /**
@@ -339,7 +342,7 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
    * @param wroteBytes the count of wrote bytes.
    * @param packet the sent packet.
    */
-  protected void handleSuccessfulWritingData(Integer wroteBytes, @Nullable WritableNetworkPacket packet) {
+  protected void handleSuccessfulWritingData(Integer wroteBytes, @Nullable WritableNetworkPacket<C> packet) {
     updateActivityFunction.run();
 
     if (wroteBytes == -1) {
@@ -376,7 +379,7 @@ public abstract class AbstractNetworkPacketWriter<W extends WritableNetworkPacke
    * @param exception the exception.
    * @param packet the packet.
    */
-  protected void handleFailedWritingData(Throwable exception, @Nullable WritableNetworkPacket packet) {
+  protected void handleFailedWritingData(Throwable exception, @Nullable WritableNetworkPacket<C> packet) {
     log.error(new RuntimeException("Failed writing packet:" + packet, exception));
     if (exception instanceof IOException) {
       connection.close();

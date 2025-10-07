@@ -16,7 +16,9 @@ class NetworkPacketTest {
   @Builder
   @ToString
   @EqualsAndHashCode(exclude = {"byteArrayField", "bytesField1", "bytesField2"})
-  private static class TestReadablePacket extends AbstractReadableNetworkPacket {
+  private static class TestReadablePacket
+      extends AbstractReadableNetworkPacket<Connection> {
+
     private int byteField;
     private int byteUnsignedField;
     private int shortField;
@@ -32,8 +34,8 @@ class NetworkPacketTest {
     private String stringField;
 
     @Override
-    protected void readImpl(ByteBuffer buffer) {
-      super.readImpl(buffer);
+    protected void readImpl(Connection connection, ByteBuffer buffer) {
+      super.readImpl(connection, buffer);
       byteField = readByte(buffer);
       byteUnsignedField = readByteUnsigned(buffer);
       shortField = readShort(buffer);
@@ -55,7 +57,9 @@ class NetworkPacketTest {
   }
 
   @Builder
-  private static class TestWritablePacket extends AbstractWritableNetworkPacket {
+  private static class TestWritablePacket
+      extends AbstractWritableNetworkPacket<Connection> {
+
     private int byteField;
     private int byteUnsignedField;
     private int shortField;
@@ -71,8 +75,8 @@ class NetworkPacketTest {
     private String stringField;
 
     @Override
-    protected void writeImpl(ByteBuffer buffer) {
-      super.writeImpl(buffer);
+    protected void writeImpl(Connection connection, ByteBuffer buffer) {
+      super.writeImpl(connection, buffer);
       writeByte(buffer, byteField);
       writeByte(buffer, byteUnsignedField);
       writeShort(buffer, shortField);
@@ -122,7 +126,7 @@ class NetworkPacketTest {
                        105, 0, 110, 0, 103};
 
     // when:
-    packet.write(buffer);
+    packet.write(BaseNetworkTest.MOCK_CONNECTION, buffer);
     buffer.flip();
 
     // then:
@@ -162,7 +166,7 @@ class NetworkPacketTest {
         .build();
 
     // when:
-    packet.read(ByteBuffer.wrap(data), data.length);
+    packet.read(BaseNetworkTest.MOCK_CONNECTION, ByteBuffer.wrap(data), data.length);
 
     // then:
     Assertions.assertEquals(expected, packet);

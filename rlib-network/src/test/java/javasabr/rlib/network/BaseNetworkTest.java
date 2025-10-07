@@ -1,24 +1,67 @@
 package javasabr.rlib.network;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.DefaultConnection;
 import javasabr.rlib.network.impl.StringDataConnection;
 import javasabr.rlib.network.impl.StringDataSslConnection;
+import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javasabr.rlib.network.packet.impl.DefaultReadableNetworkPacket;
 import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
 import javasabr.rlib.network.server.ServerNetwork;
 import javax.net.ssl.SSLContext;
 import lombok.AllArgsConstructor;
+import reactor.core.publisher.Flux;
 
 /**
  * @author JavaSaBr
  */
 public class BaseNetworkTest {
+  public static final Connection MOCK_CONNECTION = new Connection() {
+    @Override
+    public String remoteAddress() {
+      return "";
+    }
+
+    @Override
+    public long lastActivity() {
+      return 0;
+    }
+
+    @Override
+    public void close() {}
+
+    @Override
+    public boolean closed() {
+      return false;
+    }
+
+    @Override
+    public void send(WritableNetworkPacket packet) {}
+
+    @Override
+    public CompletableFuture<Boolean> sendWithFeedback(WritableNetworkPacket packet) {
+      return CompletableFuture.completedFuture(false);
+    }
+
+    @Override
+    public Flux<ReceivedPacketEvent> receivedEvents() {
+      return Flux.empty();
+    }
+
+    @Override
+    public Flux receivedPackets() {
+      return Flux.empty();
+    }
+
+    @Override
+    public void onReceive(BiConsumer consumer) {}
+  };
 
   @AllArgsConstructor
-  public static class TestNetwork<C extends Connection<?, ?>> implements AutoCloseable {
+  public static class TestNetwork<C extends Connection<?, ?, C>> implements AutoCloseable {
 
     public final ServerNetworkConfig serverNetworkConfig;
     public final NetworkConfig clientNetworkConfig;
@@ -146,8 +189,8 @@ public class BaseNetworkTest {
   }
 
   protected TestNetwork<DefaultConnection> buildDefaultNetwork(
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> serverPacketRegistry,
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> clientPacketRegistry) {
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> serverPacketRegistry,
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> clientPacketRegistry) {
     return buildDefaultNetwork(
         ServerNetworkConfig.DEFAULT_SERVER,
         new DefaultBufferAllocator(ServerNetworkConfig.DEFAULT_SERVER),
@@ -159,9 +202,9 @@ public class BaseNetworkTest {
 
   protected TestNetwork<DefaultConnection> buildDefaultNetwork(
       BufferAllocator serverBufferAllocator,
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> serverPacketRegistry,
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> serverPacketRegistry,
       BufferAllocator clientBufferAllocator,
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> clientPacketRegistry) {
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> clientPacketRegistry) {
     return buildDefaultNetwork(
         ServerNetworkConfig.DEFAULT_SERVER,
         serverBufferAllocator,
@@ -174,10 +217,10 @@ public class BaseNetworkTest {
   protected TestNetwork<DefaultConnection> buildDefaultNetwork(
       ServerNetworkConfig serverNetworkConfig,
       BufferAllocator serverBufferAllocator,
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> serverPacketRegistry,
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> serverPacketRegistry,
       NetworkConfig clientNetworkConfig,
       BufferAllocator clientBufferAllocator,
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> clientPacketRegistry) {
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> clientPacketRegistry) {
 
     var asyncClientToServer = new CompletableFuture<DefaultConnection>();
     var asyncServerToClient = new CompletableFuture<DefaultConnection>();

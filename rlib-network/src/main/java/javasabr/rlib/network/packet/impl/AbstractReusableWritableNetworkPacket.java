@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import javasabr.rlib.common.util.ClassUtils;
+import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.packet.ReusableWritablePacket;
 import javasabr.rlib.reusable.pool.Pool;
 import javasabr.rlib.reusable.pool.PoolFactory;
@@ -23,8 +24,8 @@ import org.jspecify.annotations.Nullable;
  */
 @CustomLog
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractReusableWritableNetworkPacket extends AbstractWritableNetworkPacket
-    implements ReusableWritablePacket {
+public abstract class AbstractReusableWritableNetworkPacket<C extends Connection>
+    extends AbstractWritableNetworkPacket<C> implements ReusableWritablePacket<C> {
 
   protected static final ThreadLocal<Map<Class<? super ReusableWritablePacket>, Pool<ReusableWritablePacket>>>
       LOCAL_POOLS = ThreadLocal.withInitial(HashMap::new);
@@ -45,7 +46,7 @@ public abstract class AbstractReusableWritableNetworkPacket extends AbstractWrit
   }
 
   @Override
-  public boolean write(ByteBuffer buffer) {
+  public boolean write(C connection, ByteBuffer buffer) {
 
     if (counter.get() < 1) {
       log.warning(this, arg ->
@@ -55,7 +56,7 @@ public abstract class AbstractReusableWritableNetworkPacket extends AbstractWrit
 
     notifyStartedWriting();
     try {
-      super.write(buffer);
+      super.write(connection, buffer);
     } finally {
       notifyFinishedWriting();
     }

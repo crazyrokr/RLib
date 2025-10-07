@@ -2,7 +2,6 @@ package javasabr.rlib.network.impl;
 
 import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.Network;
 import javasabr.rlib.network.packet.NetworkPacketReader;
 import javasabr.rlib.network.packet.NetworkPacketWriter;
@@ -21,8 +20,10 @@ import lombok.experimental.FieldDefaults;
 @Getter(AccessLevel.PROTECTED)
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class DefaultDataConnection<R extends ReadableNetworkPacket, W extends WritableNetworkPacket>
-    extends AbstractConnection<R, W> {
+public abstract class DefaultDataConnection<
+    R extends ReadableNetworkPacket<C>,
+    W extends WritableNetworkPacket<C>,
+    C extends DefaultDataConnection<R, W, C>> extends AbstractConnection<R, W, C> {
 
   final NetworkPacketReader packetReader;
   final NetworkPacketWriter packetWriter;
@@ -30,7 +31,7 @@ public abstract class DefaultDataConnection<R extends ReadableNetworkPacket, W e
   final int packetLengthHeaderSize;
 
   public DefaultDataConnection(
-      Network<? extends Connection<R, W>> network,
+      Network<C> network,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       int maxPacketsByRead,
@@ -43,7 +44,7 @@ public abstract class DefaultDataConnection<R extends ReadableNetworkPacket, W e
 
   protected NetworkPacketReader createPacketReader() {
     return new DefaultNetworkPacketReader<>(
-        this,
+        (C) this,
         channel,
         bufferAllocator,
         this::updateLastActivity,
@@ -54,8 +55,8 @@ public abstract class DefaultDataConnection<R extends ReadableNetworkPacket, W e
   }
 
   protected NetworkPacketWriter createPacketWriter() {
-    return new DefaultNetworkPacketWriter<W, Connection<R, W>>(
-        this,
+    return new DefaultNetworkPacketWriter<>(
+        (C) this,
         channel,
         bufferAllocator,
         this::updateLastActivity,

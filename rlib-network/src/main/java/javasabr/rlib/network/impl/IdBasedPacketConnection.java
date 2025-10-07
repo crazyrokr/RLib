@@ -2,7 +2,6 @@ package javasabr.rlib.network.impl;
 
 import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.Network;
 import javasabr.rlib.network.packet.IdBasedReadableNetworkPacket;
 import javasabr.rlib.network.packet.IdBasedWritableNetworkPacket;
@@ -22,21 +21,23 @@ import lombok.experimental.FieldDefaults;
 @Getter(AccessLevel.PROTECTED)
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class IdBasedPacketConnection<R extends IdBasedReadableNetworkPacket<R>, W extends IdBasedWritableNetworkPacket>
-    extends AbstractConnection<R, W> {
+public class IdBasedPacketConnection<
+    R extends IdBasedReadableNetworkPacket<R, C>,
+    W extends IdBasedWritableNetworkPacket<C>,
+    C extends IdBasedPacketConnection<R, W, C>> extends AbstractConnection<R, W, C> {
 
   final NetworkPacketReader packetReader;
   final NetworkPacketWriter packetWriter;
-  final ReadableNetworkPacketRegistry<R> packetRegistry;
+  final ReadableNetworkPacketRegistry<R, C> packetRegistry;
 
   final int packetLengthHeaderSize;
   final int packetIdHeaderSize;
 
   public IdBasedPacketConnection(
-      Network<? extends Connection<R, W>> network,
+      Network<C> network,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
-      ReadableNetworkPacketRegistry<R> packetRegistry,
+      ReadableNetworkPacketRegistry<R, C> packetRegistry,
       int maxPacketsByRead,
       int packetLengthHeaderSize,
       int packetIdHeaderSize) {
@@ -50,7 +51,7 @@ public class IdBasedPacketConnection<R extends IdBasedReadableNetworkPacket<R>, 
 
   protected NetworkPacketReader createPacketReader() {
     return new IdBasedPacketReader<>(
-        this,
+        (C) this,
         channel,
         bufferAllocator,
         this::updateLastActivity,
@@ -63,11 +64,11 @@ public class IdBasedPacketConnection<R extends IdBasedReadableNetworkPacket<R>, 
 
   protected NetworkPacketWriter createPacketWriter() {
     return new IdBasedNetworkPacketWriter<>(
-        this,
+        (C) this,
         channel,
         bufferAllocator,
         this::updateLastActivity,
-        this::nextPacketToWrite,
+        () -> nextPacketToWrite(),
         this::serializedPacket,
         this::handleSentPacket,
         packetLengthHeaderSize,

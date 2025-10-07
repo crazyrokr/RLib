@@ -11,11 +11,12 @@ import reactor.core.publisher.Flux;
  *
  * @author JavaSaBr
  */
-public interface Connection<R extends ReadableNetworkPacket, W extends WritableNetworkPacket> {
+public interface Connection<
+    R extends ReadableNetworkPacket<C>,
+    W extends WritableNetworkPacket<C>,
+    C extends Connection<R, W, C>> {
 
-  record ReceivedPacketEvent<C extends Connection<?, ?>, R extends ReadableNetworkPacket>(
-      C connection, R packet) {
-
+  record ReceivedPacketEvent<C, R>(C connection, R packet) {
     @Override
     public String toString() {
       return "[" + connection + "|" + packet + ']';
@@ -57,12 +58,12 @@ public interface Connection<R extends ReadableNetworkPacket, W extends WritableN
   /**
    * Register a consumer to handle received packets.
    */
-  void onReceive(BiConsumer<? super Connection<R, W>, ? super R> consumer);
+  void onReceive(BiConsumer<C, ? super R> consumer);
 
   /**
    * Get a stream of received packet events.
    */
-  Flux<ReceivedPacketEvent<? extends Connection<R, W>, ? extends R>> receivedEvents();
+  Flux<ReceivedPacketEvent<C, ? extends R>> receivedEvents();
 
   /**
    * Get a stream of received packets.

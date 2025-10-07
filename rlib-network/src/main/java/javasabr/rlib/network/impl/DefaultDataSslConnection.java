@@ -2,7 +2,6 @@ package javasabr.rlib.network.impl;
 
 import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.Network;
 import javasabr.rlib.network.packet.NetworkPacketReader;
 import javasabr.rlib.network.packet.NetworkPacketWriter;
@@ -22,8 +21,10 @@ import lombok.experimental.FieldDefaults;
 @Getter(AccessLevel.PROTECTED)
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class DefaultDataSslConnection<R extends ReadableNetworkPacket, W extends WritableNetworkPacket>
-    extends AbstractSslConnection<R, W> {
+public abstract class DefaultDataSslConnection<
+    R extends ReadableNetworkPacket<C>,
+    W extends WritableNetworkPacket<C>,
+    C extends DefaultDataSslConnection<R, W, C>> extends AbstractSslConnection<R, W, C> {
 
   final NetworkPacketReader packetReader;
   final NetworkPacketWriter packetWriter;
@@ -31,7 +32,7 @@ public abstract class DefaultDataSslConnection<R extends ReadableNetworkPacket, 
   final int packetLengthHeaderSize;
 
   public DefaultDataSslConnection(
-      Network<? extends Connection<R, W>> network,
+      Network<C> network,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       SSLContext sslContext,
@@ -46,7 +47,7 @@ public abstract class DefaultDataSslConnection<R extends ReadableNetworkPacket, 
 
   protected NetworkPacketReader createPacketReader() {
     return new DefaultSslNetworkPacketReader<>(
-        this,
+        (C) this,
         channel,
         bufferAllocator,
         this::updateLastActivity,
@@ -59,8 +60,8 @@ public abstract class DefaultDataSslConnection<R extends ReadableNetworkPacket, 
   }
 
   protected NetworkPacketWriter createPacketWriter() {
-    return new DefaultSslNetworkPacketWriter<W, Connection<R, W>>(
-        this,
+    return new DefaultSslNetworkPacketWriter<>(
+        (C) this,
         channel,
         bufferAllocator,
         this::updateLastActivity,

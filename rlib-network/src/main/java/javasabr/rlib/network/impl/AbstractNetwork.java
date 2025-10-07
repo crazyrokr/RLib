@@ -18,7 +18,7 @@ import lombok.experimental.FieldDefaults;
 @CustomLog
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
-public abstract class AbstractNetwork<C extends Connection<?, ?>> implements Network<C> {
+public abstract class AbstractNetwork<C extends Connection<?, ?, C>> implements Network<C> {
   NetworkConfig config;
   BiFunction<Network<C>, AsynchronousSocketChannel, C> channelToConnection;
 }

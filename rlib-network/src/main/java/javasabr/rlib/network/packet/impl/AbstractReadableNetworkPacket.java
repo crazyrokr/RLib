@@ -16,27 +16,27 @@ import lombok.NoArgsConstructor;
  */
 @CustomLog
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractReadableNetworkPacket
-    extends AbstractNetworkPacket implements ReadableNetworkPacket {
+public abstract class AbstractReadableNetworkPacket<C extends Connection>
+    extends AbstractNetworkPacket<C> implements ReadableNetworkPacket<C> {
 
   @Override
-  public boolean read(ByteBuffer buffer, int remainingDataLength) {
+  public boolean read(C connection, ByteBuffer buffer, int remainingDataLength) {
     int oldLimit = buffer.limit();
     int oldPosition = buffer.position();
     try {
       buffer.limit(oldPosition + remainingDataLength);
-      readImpl(buffer);
+      readImpl(connection, buffer);
       return true;
     } catch (Exception e) {
       buffer.position(oldPosition);
-      handleException(buffer, e);
+      handleException(connection, buffer, e);
       return false;
     } finally {
       buffer.limit(oldLimit);
     }
   }
 
-  protected void readImpl(ByteBuffer buffer) {}
+  protected void readImpl(C connection, ByteBuffer buffer) {}
 
   /**
    * Reads 1 byte from the buffer.

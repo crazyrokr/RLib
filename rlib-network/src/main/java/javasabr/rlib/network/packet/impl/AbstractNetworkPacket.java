@@ -3,6 +3,7 @@ package javasabr.rlib.network.packet.impl;
 import static javasabr.rlib.network.util.NetworkUtils.hexDump;
 
 import java.nio.ByteBuffer;
+import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.packet.NetworkPacket;
 import lombok.CustomLog;
 
@@ -12,12 +13,12 @@ import lombok.CustomLog;
  * @author JavaSaBr
  */
 @CustomLog
-public abstract class AbstractNetworkPacket implements NetworkPacket {
+public abstract class AbstractNetworkPacket<C extends Connection> implements NetworkPacket<C> {
 
   /**
    * Handles packet data exception.
    */
-  protected void handleException(ByteBuffer buffer, Exception exception) {
+  protected void handleException(C connection, ByteBuffer buffer, Exception exception) {
     log.warning(exception);
     if (!log.warningEnabled()) {
       return;
@@ -33,7 +34,8 @@ public abstract class AbstractNetworkPacket implements NetworkPacket {
       hexDump = hexDump(buffer.array(), buffer.position(), buffer.limit());
     }
 
-    log.warning(name(), buffer, hexDump, "[%s] -> buffer:[%s]\n[%s]"::formatted);
+    log.warning(connection.remoteAddress(), name(), buffer, hexDump,
+        "[%s] Hexdump for:[%s] -> buffer:[%s]\n[%s]"::formatted);
   }
 
   @Override

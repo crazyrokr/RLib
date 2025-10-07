@@ -2,7 +2,6 @@ package javasabr.rlib.network.impl;
 
 import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.Network;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import javasabr.rlib.network.packet.WritableNetworkPacket;
@@ -13,13 +12,15 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractSslConnection<R extends ReadableNetworkPacket, W extends WritableNetworkPacket>
-    extends AbstractConnection<R, W> {
+public abstract class AbstractSslConnection<
+    R extends ReadableNetworkPacket<C>,
+    W extends WritableNetworkPacket<C>,
+    C extends AbstractSslConnection<R, W, C>> extends AbstractConnection<R, W, C> {
 
   final SSLEngine sslEngine;
 
   public AbstractSslConnection(
-      Network<? extends Connection<R, W>> network,
+      Network<C> network,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       SSLContext sslContext,
@@ -36,7 +37,7 @@ public abstract class AbstractSslConnection<R extends ReadableNetworkPacket, W e
   }
 
   @Override
-  protected void sendImpl(WritableNetworkPacket packet) {
+  protected void sendImpl(WritableNetworkPacket<C> packet) {
     super.sendImpl(packet);
     packetReader().startRead();
   }

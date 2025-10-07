@@ -49,8 +49,8 @@ public class DefaultNetworkTest extends BaseNetworkTest {
       private final String message;
 
       @Override
-      protected void writeImpl(ByteBuffer buffer) {
-        super.writeImpl(buffer);
+      protected void writeImpl(DefaultConnection connection, ByteBuffer buffer) {
+        super.writeImpl(connection, buffer);
         writeString(buffer, message);
       }
     }
@@ -67,7 +67,7 @@ public class DefaultNetworkTest extends BaseNetworkTest {
       private volatile String message;
 
       @Override
-      protected void readImpl(ByteBuffer buffer) {
+      protected void readImpl(DefaultConnection connection, ByteBuffer buffer) {
         message = readString(buffer, Integer.MAX_VALUE);
       }
 
@@ -85,8 +85,8 @@ public class DefaultNetworkTest extends BaseNetworkTest {
       private volatile LocalDateTime localDateTime;
 
       @Override
-      protected void readImpl(ByteBuffer buffer) {
-        super.readImpl(buffer);
+      protected void readImpl(DefaultConnection connection, ByteBuffer buffer) {
+        super.readImpl(connection, buffer);
         localDateTime = LocalDateTime.ofEpochSecond(readLong(buffer), 0, ZoneOffset.ofTotalSeconds(readInt(buffer)));
       }
 
@@ -106,8 +106,8 @@ public class DefaultNetworkTest extends BaseNetworkTest {
       private volatile String message;
 
       @Override
-      protected void readImpl(ByteBuffer buffer) {
-        super.readImpl(buffer);
+      protected void readImpl(DefaultConnection connection, ByteBuffer buffer) {
+        super.readImpl(connection, buffer);
         message = readString(buffer, Integer.MAX_VALUE);
       }
 
@@ -133,8 +133,8 @@ public class DefaultNetworkTest extends BaseNetworkTest {
       private final String message;
 
       @Override
-      protected void writeImpl(ByteBuffer buffer) {
-        super.writeImpl(buffer);
+      protected void writeImpl(DefaultConnection connection, ByteBuffer buffer) {
+        super.writeImpl(connection, buffer);
         writeString(buffer, "Echo: " + message);
       }
     }
@@ -143,8 +143,8 @@ public class DefaultNetworkTest extends BaseNetworkTest {
     class ResponseServerTime extends DefaultWritableNetworkPacket {
 
       @Override
-      protected void writeImpl(ByteBuffer buffer) {
-        super.writeImpl(buffer);
+      protected void writeImpl(DefaultConnection connection, ByteBuffer buffer) {
+        super.writeImpl(connection, buffer);
         var dateTime = ZonedDateTime.now();
         writeLong(buffer, dateTime.toEpochSecond());
         writeInt(buffer, dateTime.getOffset().getTotalSeconds());
@@ -159,11 +159,11 @@ public class DefaultNetworkTest extends BaseNetworkTest {
     //LoggerManager.enable(DefaultNetworkTest.class, LoggerLevel.INFO);
     //LoggerManager.enable(AbstractNetworkPacketReader.class, LoggerLevel.DEBUG);
 
-    ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> serverPackets = ReadableNetworkPacketRegistry.of(
+    ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> serverPackets = ReadableNetworkPacketRegistry.of(
         DefaultReadableNetworkPacket.class,
         ServerPackets.RequestEchoMessage.class,
         ServerPackets.RequestServerTime.class);
-    ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> clientPackets = ReadableNetworkPacketRegistry.of(
+    ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> clientPackets = ReadableNetworkPacketRegistry.of(
         DefaultReadableNetworkPacket.class,
         ClientPackets.ResponseEchoMessage.class,
         ClientPackets.ResponseServerTime.class);

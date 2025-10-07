@@ -15,10 +15,11 @@ import org.jspecify.annotations.Nullable;
  * @author JavaSaBr
  */
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class IdBasedPacketReader<R extends IdBasedReadableNetworkPacket<R>, C extends Connection<R, ?>> extends
-    AbstractNetworkPacketReader<R, C> {
+public class IdBasedPacketReader<
+    R extends IdBasedReadableNetworkPacket<R, C>,
+    C extends Connection<R, ?, C>> extends AbstractNetworkPacketReader<R, C> {
 
-  final ReadableNetworkPacketRegistry<R> packetRegistry;
+  final ReadableNetworkPacketRegistry<R, C> packetRegistry;
   final int packetLengthHeaderSize;
   final int packetIdHeaderSize;
 
@@ -31,7 +32,7 @@ public class IdBasedPacketReader<R extends IdBasedReadableNetworkPacket<R>, C ex
       int packetLengthHeaderSize,
       int maxPacketsByRead,
       int packetIdHeaderSize,
-      ReadableNetworkPacketRegistry<R> packetRegistry) {
+      ReadableNetworkPacketRegistry<R, C> packetRegistry) {
     super(connection, channel, bufferAllocator, updateActivityFunction, packetHandler, maxPacketsByRead);
     this.packetLengthHeaderSize = packetLengthHeaderSize;
     this.packetIdHeaderSize = packetIdHeaderSize;

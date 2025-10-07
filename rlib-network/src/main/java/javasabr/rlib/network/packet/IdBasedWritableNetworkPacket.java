@@ -1,7 +1,10 @@
 package javasabr.rlib.network.packet;
 
+import javasabr.rlib.network.Connection;
+
 /**
  * @author JavaSaBr
  */
-public interface IdBasedWritableNetworkPacket extends WritableNetworkPacket, IdBasedNetworkPacket {
+public interface IdBasedWritableNetworkPacket<C extends Connection>
+    extends WritableNetworkPacket<C>, IdBasedNetworkPacket<C> {
 }

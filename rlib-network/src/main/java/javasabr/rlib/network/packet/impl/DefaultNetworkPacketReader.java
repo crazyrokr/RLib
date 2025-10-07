@@ -15,8 +15,9 @@ import org.jspecify.annotations.Nullable;
  * @author JavaSaBR
  */
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class DefaultNetworkPacketReader<R extends ReadableNetworkPacket, C extends Connection<R, ?>>
-    extends AbstractNetworkPacketReader<R, C> {
+public class DefaultNetworkPacketReader<
+    R extends ReadableNetworkPacket<C>,
+    C extends Connection<R, ?, C>> extends AbstractNetworkPacketReader<R, C> {
 
   final IntFunction<R> readablePacketFactory;
   final int packetLengthHeaderSize;

@@ -1,6 +1,7 @@
 package javasabr.rlib.network.packet.impl;
 
 import java.nio.ByteBuffer;
+import javasabr.rlib.network.Connection;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -14,18 +15,18 @@ import lombok.experimental.FieldDefaults;
 @RequiredArgsConstructor
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class StringWritableNetworkPacket extends AbstractWritableNetworkPacket {
+public class StringWritableNetworkPacket<C extends Connection> extends AbstractWritableNetworkPacket<C> {
 
   String data;
 
   @Override
-  protected void writeImpl(ByteBuffer buffer) {
-    super.writeImpl(buffer);
+  protected void writeImpl(C connection, ByteBuffer buffer) {
+    super.writeImpl(connection, buffer);
     writeString(buffer, data);
   }
 
   @Override
-  public int expectedLength() {
+  public int expectedLength(C connection) {
     return 4 + data.length() * 2;
   }
 

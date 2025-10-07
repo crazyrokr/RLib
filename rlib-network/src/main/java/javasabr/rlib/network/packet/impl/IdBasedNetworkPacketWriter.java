@@ -20,8 +20,9 @@ import org.jspecify.annotations.Nullable;
  * @author JavaSaBr
  */
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class IdBasedNetworkPacketWriter<W extends IdBasedWritableNetworkPacket, C extends Connection<?, W>>
-    extends DefaultNetworkPacketWriter<W, C> {
+public class IdBasedNetworkPacketWriter<
+    W extends IdBasedWritableNetworkPacket<C>,
+    C extends Connection<?, W, C>> extends DefaultNetworkPacketWriter<W, C> {
 
   final int packetIdHeaderSize;
 
@@ -30,9 +31,9 @@ public class IdBasedNetworkPacketWriter<W extends IdBasedWritableNetworkPacket, 
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
-      Supplier<@Nullable WritableNetworkPacket> packetProvider,
-      Consumer<WritableNetworkPacket> serializedToChannelPacketHandler,
-      ObjBoolConsumer<WritableNetworkPacket> sentPacketHandler,
+      Supplier<@Nullable WritableNetworkPacket<C>> packetProvider,
+      Consumer<WritableNetworkPacket<C>> serializedToChannelPacketHandler,
+      ObjBoolConsumer<WritableNetworkPacket<C>> sentPacketHandler,
       int packetLengthHeaderSize,
       int packetIdHeaderSize) {
     super(

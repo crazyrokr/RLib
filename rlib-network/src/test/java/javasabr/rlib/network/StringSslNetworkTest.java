@@ -106,11 +106,10 @@ public class StringSslNetworkTest extends BaseNetworkTest {
     SSLSocketFactory sslSocketFactory = clientSslContext.getSocketFactory();
     SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(serverAddress.getHostName(), serverAddress.getPort());
 
-    StringWritableNetworkPacket writableNetworkPacket = new StringWritableNetworkPacket("Hello SSL");
-
+    var writableNetworkPacket = new StringWritableNetworkPacket<StringDataSslConnection>("Hello SSL");
     var buffer = ByteBuffer.allocate(1024);
     buffer.position(2);
-    writableNetworkPacket.write(buffer);
+    writableNetworkPacket.write(null, buffer);
     buffer.putShort(0, (short) buffer.position());
     buffer.flip();
 
@@ -128,8 +127,8 @@ public class StringSslNetworkTest extends BaseNetworkTest {
         .flip();
     short packetLength = buffer.getShort();
 
-    StringReadablePacket response = new StringReadablePacket();
-    response.read(buffer, packetLength - 2);
+    StringReadablePacket<StringDataSslConnection> response = new StringReadablePacket<>();
+    response.read(null, buffer, packetLength - 2);
 
     log.info(response.data(), "Response:[%s]"::formatted);
 
@@ -159,7 +158,7 @@ public class StringSslNetworkTest extends BaseNetworkTest {
 
     clientNetwork
         .connectReactive(new InetSocketAddress("localhost", serverPort))
-        .doOnNext(connection -> connection.send(new StringWritableNetworkPacket("Hello SSL")))
+        .doOnNext(connection -> connection.send(new StringWritableNetworkPacket<>("Hello SSL")))
         .doOnError(Throwable::printStackTrace)
         .flatMapMany(Connection::receivedEvents)
         .subscribe(event -> {
@@ -180,18 +179,17 @@ public class StringSslNetworkTest extends BaseNetworkTest {
 
     var dataLength = buffer.getShort();
 
-    var receivedPacket = new StringReadablePacket();
-    receivedPacket.read(buffer, dataLength);
+    var receivedPacket = new StringReadablePacket<StringDataSslConnection>();
+    receivedPacket.read(null, buffer, dataLength);
 
     Assertions.assertEquals("Hello SSL", receivedPacket.data());
 
     log.info(receivedPacket.data(), "Received from client:[%s]"::formatted);
 
-    StringWritableNetworkPacket writableNetworkPacket = new StringWritableNetworkPacket("Echo: Hello SSL");
-
+    var writableNetworkPacket = new StringWritableNetworkPacket<StringDataSslConnection>("Echo: Hello SSL");
     buffer.clear();
     buffer.position(2);
-    writableNetworkPacket.write(buffer);
+    writableNetworkPacket.write(null, buffer);
     buffer.putShort(0, (short) buffer.position());
     buffer.flip();
 
@@ -235,7 +233,7 @@ public class StringSslNetworkTest extends BaseNetworkTest {
         .subscribe(event -> {
           var message = event.packet().data();
           log.info(message, "Received from client:[%s]"::formatted);
-          event.connection().send(new StringWritableNetworkPacket("Echo: " + message));
+          event.connection().send(new StringWritableNetworkPacket<>("Echo: " + message));
         });
 
     SSLContext clientSslContext = NetworkUtils.createAllTrustedClientSslContext();
@@ -307,10 +305,10 @@ public class StringSslNetworkTest extends BaseNetworkTest {
             var length = value % 3 == 0 ? bufferSize : random.nextInt(0, bufferSize / 2 - 1);
             return StringUtils.generate(length);
           })
-          .peek(message -> clientToServer.send(new StringWritableNetworkPacket(message)))
+          .peek(message -> clientToServer.send(new StringWritableNetworkPacket<>(message)))
           .toList();
 
-      List<? extends StringReadablePacket> receivedPackets =
+      List<? extends StringReadablePacket<StringDataSslConnection>> receivedPackets =
           ObjectUtils.notNull(pendingPacketsOnServer.blockFirst(Duration.ofSeconds(5000)));
 
       Assertions.assertEquals(packetCount, receivedPackets.size(), "Didn't receive all packets");
@@ -327,7 +325,7 @@ public class StringSslNetworkTest extends BaseNetworkTest {
     }
   }
 
-  private static StringWritableNetworkPacket newMessage(int minMessageLength, int maxMessageLength) {
-    return new StringWritableNetworkPacket(StringUtils.generate(minMessageLength, maxMessageLength));
+  private static StringWritableNetworkPacket<StringDataSslConnection> newMessage(int minMessageLength, int maxMessageLength) {
+    return new StringWritableNetworkPacket<>(StringUtils.generate(minMessageLength, maxMessageLength));
   }
 }

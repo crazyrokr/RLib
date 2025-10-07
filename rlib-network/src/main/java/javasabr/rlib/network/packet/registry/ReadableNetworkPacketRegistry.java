@@ -4,6 +4,7 @@ import javasabr.rlib.classpath.ClassPathScanner;
 import javasabr.rlib.classpath.ClassPathScannerFactory;
 import javasabr.rlib.collections.array.Array;
 import javasabr.rlib.collections.array.ArrayCollectors;
+import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.annotation.NetworkPacketDescription;
 import javasabr.rlib.network.packet.IdBasedReadableNetworkPacket;
 import javasabr.rlib.network.packet.registry.impl.IdBasedReadableNetworkPacketRegistry;
@@ -13,26 +14,26 @@ import javasabr.rlib.network.packet.registry.impl.IdBasedReadableNetworkPacketRe
  *
  * @author JavaSaBr
  */
-public interface ReadableNetworkPacketRegistry<R extends IdBasedReadableNetworkPacket<R>> {
+public interface ReadableNetworkPacketRegistry<R extends IdBasedReadableNetworkPacket<R, C>, C extends Connection> {
 
   /**
    * Creates a new empty readable packet registry.
    */
-  static ReadableNetworkPacketRegistry<?> empty() {
+  static ReadableNetworkPacketRegistry<?, ?> empty() {
     return new IdBasedReadableNetworkPacketRegistry<>(IdBasedReadableNetworkPacket.class);
   }
 
   /**
    * Create a new empty readable packet registry.
    */
-  static <T extends IdBasedReadableNetworkPacket<T>> ReadableNetworkPacketRegistry<T> empty(Class<T> type) {
+  static <T extends IdBasedReadableNetworkPacket<T, C>, C extends Connection> ReadableNetworkPacketRegistry<T, C> empty(Class<T> type) {
     return new IdBasedReadableNetworkPacketRegistry<>(type);
   }
 
   /**
    * Creates a new class path scanning based readable packet registry.
    */
-  static ReadableNetworkPacketRegistry<?> classPathBased() {
+  static ReadableNetworkPacketRegistry<?, ?> classPathBased() {
 
     var scanner = ClassPathScannerFactory.newDefaultScanner();
     scanner.useSystemClassPath(true);
@@ -44,7 +45,7 @@ public interface ReadableNetworkPacketRegistry<R extends IdBasedReadableNetworkP
   /**
    * Creates a new class path scanning based readable packet registry by scanning the main class.
    */
-  static ReadableNetworkPacketRegistry<?> classPathBased(Class<?> mainClass) {
+  static ReadableNetworkPacketRegistry<?, ?> classPathBased(Class<?> mainClass) {
 
     var scanner = ClassPathScannerFactory.newManifestScanner(mainClass);
     scanner.useSystemClassPath(false);
@@ -56,8 +57,7 @@ public interface ReadableNetworkPacketRegistry<R extends IdBasedReadableNetworkP
   /**
    * Creates a new class path scanning based readable packet registry.
    */
-  static ReadableNetworkPacketRegistry<?> of(ClassPathScanner scanner) {
-
+  static ReadableNetworkPacketRegistry<?, ?> of(ClassPathScanner scanner) {
     var result = scanner
         .findImplementations(IdBasedReadableNetworkPacket.class)
         .stream()
@@ -71,7 +71,7 @@ public interface ReadableNetworkPacketRegistry<R extends IdBasedReadableNetworkP
    * Creates a new readable packet registry.
    */
   @SafeVarargs
-  static <T extends IdBasedReadableNetworkPacket<T>> ReadableNetworkPacketRegistry<T> of(
+  static <T extends IdBasedReadableNetworkPacket<T, C>, C extends Connection> ReadableNetworkPacketRegistry<T, C> of(
       Class<T> type,
       Class<? extends T>... classes) {
     return new IdBasedReadableNetworkPacketRegistry<>(type)
@@ -81,7 +81,7 @@ public interface ReadableNetworkPacketRegistry<R extends IdBasedReadableNetworkP
   /**
    * Creates a new readable packet registry.
    */
-  static <T extends IdBasedReadableNetworkPacket<T>> ReadableNetworkPacketRegistry<T> of(
+  static <T extends IdBasedReadableNetworkPacket<T, C>, C extends Connection> ReadableNetworkPacketRegistry<T, C> of(
       Class<T> type,
       Array<Class<? extends T>> classes) {
     return new IdBasedReadableNetworkPacketRegistry<>(type)

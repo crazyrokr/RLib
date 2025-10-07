@@ -33,7 +33,8 @@ import reactor.core.publisher.Mono;
 @CustomLog
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class DefaultClientNetwork<C extends Connection<?, ?>> extends AbstractNetwork<C> implements ClientNetwork<C> {
+public class DefaultClientNetwork<C extends Connection<?, ?, C>> extends AbstractNetwork<C>
+    implements ClientNetwork<C> {
 
   final AtomicBoolean connecting;
 

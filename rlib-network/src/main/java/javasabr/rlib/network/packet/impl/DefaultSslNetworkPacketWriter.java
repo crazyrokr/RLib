@@ -17,8 +17,9 @@ import org.jspecify.annotations.Nullable;
  * @author JavaSaBr
  */
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class DefaultSslNetworkPacketWriter<W extends WritableNetworkPacket, C extends Connection<?, W>> extends
-    AbstractSslNetworkPacketWriter<W, C> {
+public class DefaultSslNetworkPacketWriter<
+    W extends WritableNetworkPacket<C>,
+    C extends Connection<?, W, C>> extends AbstractSslNetworkPacketWriter<W, C> {
 
   final int packetLengthHeaderSize;
 
@@ -27,11 +28,11 @@ public class DefaultSslNetworkPacketWriter<W extends WritableNetworkPacket, C ex
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
-      Supplier<@Nullable WritableNetworkPacket> nextWritePacketSupplier,
-      Consumer<WritableNetworkPacket> serializedToChannelPacketHandler,
-      ObjBoolConsumer<WritableNetworkPacket> sentPacketHandler,
+      Supplier<@Nullable WritableNetworkPacket<C>> nextWritePacketSupplier,
+      Consumer<WritableNetworkPacket<C>> serializedToChannelPacketHandler,
+      ObjBoolConsumer<WritableNetworkPacket<C>> sentPacketHandler,
       SSLEngine sslEngine,
-      Consumer<WritableNetworkPacket> queueAtFirst,
+      Consumer<WritableNetworkPacket<C>> queueAtFirst,
       int packetLengthHeaderSize) {
     super(
         connection,
@@ -47,7 +48,7 @@ public class DefaultSslNetworkPacketWriter<W extends WritableNetworkPacket, C ex
   }
 
   @Override
-  protected int totalSize(WritableNetworkPacket packet, int expectedLength) {
+  protected int totalSize(WritableNetworkPacket<C> packet, int expectedLength) {
     return expectedLength + packetLengthHeaderSize;
   }
 

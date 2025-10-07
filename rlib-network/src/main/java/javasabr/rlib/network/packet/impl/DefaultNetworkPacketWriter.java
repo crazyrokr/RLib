@@ -16,8 +16,9 @@ import org.jspecify.annotations.Nullable;
  * @author JavaSaBr
  */
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class DefaultNetworkPacketWriter<W extends WritableNetworkPacket, C extends Connection<?, W>>
-    extends AbstractNetworkPacketWriter<W, C> {
+public class DefaultNetworkPacketWriter<
+    W extends WritableNetworkPacket<C>,
+    C extends Connection<?, W, C>> extends AbstractNetworkPacketWriter<W, C> {
 
   final int packetLengthHeaderSize;
 
@@ -26,9 +27,9 @@ public class DefaultNetworkPacketWriter<W extends WritableNetworkPacket, C exten
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
-      Supplier<@Nullable WritableNetworkPacket> packetProvider,
-      Consumer<WritableNetworkPacket> serializedToChannelPacketHandler,
-      ObjBoolConsumer<WritableNetworkPacket> sentPacketHandler,
+      Supplier<@Nullable WritableNetworkPacket<C>> packetProvider,
+      Consumer<WritableNetworkPacket<C>> serializedToChannelPacketHandler,
+      ObjBoolConsumer<WritableNetworkPacket<C>> sentPacketHandler,
       int packetLengthHeaderSize) {
     super(
         connection,
@@ -42,7 +43,7 @@ public class DefaultNetworkPacketWriter<W extends WritableNetworkPacket, C exten
   }
 
   @Override
-  protected int totalSize(WritableNetworkPacket packet, int expectedLength) {
+  protected int totalSize(WritableNetworkPacket<C> packet, int expectedLength) {
     return expectedLength + packetLengthHeaderSize;
   }
 

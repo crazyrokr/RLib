@@ -83,7 +83,7 @@ public class StringSslNetworkLoadTest {
             int delay = random.nextInt(MAX_SEND_DELAY);
             ScheduledFuture<?> schedule = executor.schedule(
                 () -> {
-                  StringWritableNetworkPacket message = newMessage(10, 10240); // 10240
+                  var message = newMessage(10, 10240); // 10240
                   connection.send(message);
                 }, delay, TimeUnit.MILLISECONDS);
             tasks.add(schedule);
@@ -156,7 +156,7 @@ public class StringSslNetworkLoadTest {
           statistics
               .receivedClientPackersPerSecond()
               .accumulate(1);
-          connection.send(new StringWritableNetworkPacket("Echo: " + packet.data()));
+          connection.send(new StringWritableNetworkPacket<>("Echo: " + packet.data()));
           statistics
               .sentEchoPackersPerSecond()
               .accumulate(1);
@@ -215,7 +215,9 @@ public class StringSslNetworkLoadTest {
     }, 1, 1, TimeUnit.SECONDS);
   }
 
-  private static StringWritableNetworkPacket newMessage(int minMessageLength, int maxMessageLength) {
-    return new StringWritableNetworkPacket(StringUtils.generate(minMessageLength, maxMessageLength));
+  private static StringWritableNetworkPacket<StringDataSslConnection> newMessage(
+      int minMessageLength,
+      int maxMessageLength) {
+    return new StringWritableNetworkPacket<>(StringUtils.generate(minMessageLength, maxMessageLength));
   }
 }

@@ -6,8 +6,9 @@ import javasabr.rlib.network.Connection;
 /**
  * @author JavaSaBr
  */
-public interface IdBasedReadableNetworkPacket<S extends IdBasedReadableNetworkPacket<S>>
-    extends ReadableNetworkPacket, IdBasedNetworkPacket {
+public interface IdBasedReadableNetworkPacket<
+    S extends IdBasedReadableNetworkPacket<S, C>,
+    C extends Connection> extends ReadableNetworkPacket<C>, IdBasedNetworkPacket<C> {
 
   /**
    * Create a new instance of this type.

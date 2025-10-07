@@ -27,15 +27,16 @@ import org.jspecify.annotations.Nullable;
 @CustomLog
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPacket, C extends Connection<?, W>>
-    extends AbstractNetworkPacketWriter<W, C> {
+public abstract class AbstractSslNetworkPacketWriter<
+    W extends WritableNetworkPacket<C>,
+    C extends Connection<?, W, C>> extends AbstractNetworkPacketWriter<W, C> {
 
   private static final ByteBuffer[] EMPTY_BUFFERS = {
       NetworkUtils.EMPTY_BUFFER
   };
 
   final SSLEngine sslEngine;
-  final Consumer<WritableNetworkPacket> queueAtFirst;
+  final Consumer<WritableNetworkPacket<C>> queueAtFirst;
 
   @Getter(AccessLevel.PROTECTED)
   @Nullable
@@ -49,11 +50,11 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
-      Supplier<WritableNetworkPacket> packetProvider,
-      Consumer<WritableNetworkPacket> serializedToChannelPacketHandler,
-      ObjBoolConsumer<WritableNetworkPacket> sentPacketHandler,
+      Supplier<WritableNetworkPacket<C>> packetProvider,
+      Consumer<WritableNetworkPacket<C>> serializedToChannelPacketHandler,
+      ObjBoolConsumer<WritableNetworkPacket<C>> sentPacketHandler,
       SSLEngine sslEngine,
-      Consumer<WritableNetworkPacket> queueAtFirst) {
+      Consumer<WritableNetworkPacket<C>> queueAtFirst) {
     super(
         connection,
         channel,
@@ -94,7 +95,7 @@ public abstract class AbstractSslNetworkPacketWriter<W extends WritableNetworkPa
   }
 
   @Override
-  protected ByteBuffer serialize(WritableNetworkPacket packet) {
+  protected ByteBuffer serialize(WritableNetworkPacket<C> packet) {
     if (packet instanceof SslWrapRequestPacket) {
       return EMPTY_BUFFER;
     }
