@@ -19,6 +19,8 @@ import javasabr.rlib.network.ServerNetworkConfig.SimpleServerNetworkConfig;
 import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.StringDataConnection;
+import javasabr.rlib.network.impl.StringDataSslConnection;
+import javasabr.rlib.network.packet.impl.StringReadableNetworkPacket;
 import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 import javasabr.rlib.network.server.ServerNetwork;
 import lombok.CustomLog;
@@ -141,10 +143,11 @@ public class StringNetworkLoadTest {
 
     serverNetwork.onAccept(accepted -> accepted
         .onReceive((connection, packet) -> {
+          StringReadableNetworkPacket<StringDataConnection> receivedPacket = (StringReadableNetworkPacket<StringDataConnection>) packet;
           statistics
               .receivedClientPackersPerSecond()
               .accumulate(1);
-          connection.send(new StringWritableNetworkPacket<>("Echo: " + packet.data()));
+          connection.send(new StringWritableNetworkPacket<>("Echo: " + receivedPacket.data()));
           statistics
               .sentEchoPackersPerSecond()
               .accumulate(1);

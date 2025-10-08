@@ -38,7 +38,6 @@ import reactor.core.publisher.Flux;
 @CustomLog
 public class StringNetworkTest extends BaseNetworkTest {
 
-
   @Test
   @SneakyThrows
   void echoNetworkTest() {

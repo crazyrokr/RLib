@@ -23,6 +23,7 @@ import javasabr.rlib.network.impl.StringDataConnection;
 import javasabr.rlib.network.impl.StringDataSslConnection;
 import javasabr.rlib.network.packet.impl.AbstractSslNetworkPacketReader;
 import javasabr.rlib.network.packet.impl.AbstractSslNetworkPacketWriter;
+import javasabr.rlib.network.packet.impl.StringReadableNetworkPacket;
 import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 import javasabr.rlib.network.server.ServerNetwork;
 import javasabr.rlib.network.util.NetworkUtils;
@@ -153,10 +154,11 @@ public class StringSslNetworkLoadTest {
 
     serverNetwork.onAccept(accepted -> accepted
         .onReceive((connection, packet) -> {
+          StringReadableNetworkPacket<StringDataSslConnection> receivedPacket = (StringReadableNetworkPacket<StringDataSslConnection>) packet;
           statistics
               .receivedClientPackersPerSecond()
               .accumulate(1);
-          connection.send(new StringWritableNetworkPacket<>("Echo: " + packet.data()));
+          connection.send(new StringWritableNetworkPacket<>("Echo: " + receivedPacket.data()));
           statistics
               .sentEchoPackersPerSecond()
               .accumulate(1);

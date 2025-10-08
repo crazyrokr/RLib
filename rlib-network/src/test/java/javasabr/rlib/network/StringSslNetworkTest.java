@@ -123,7 +123,7 @@ public class StringSslNetworkTest extends BaseNetworkTest {
         .flip();
     short packetLength = buffer.getShort();
 
-    StringReadableNetworkPacket<StringDataSslConnection> response = new StringReadableNetworkPacket<>();
+    var response = new StringReadableNetworkPacket<StringDataSslConnection>();
     response.read(null, buffer, packetLength - 2);
 
     log.info(response.data(), "Response:[%s]"::formatted);
