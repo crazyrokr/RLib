@@ -6,7 +6,6 @@ import javasabr.rlib.network.Network;
 import javasabr.rlib.network.packet.NetworkPacketReader;
 import javasabr.rlib.network.packet.NetworkPacketWriter;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
-import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javasabr.rlib.network.packet.impl.DefaultSslNetworkPacketReader;
 import javasabr.rlib.network.packet.impl.DefaultSslNetworkPacketWriter;
 import javax.net.ssl.SSLContext;
@@ -21,10 +20,7 @@ import lombok.experimental.FieldDefaults;
 @Getter(AccessLevel.PROTECTED)
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class DefaultDataSslConnection<
-    R extends ReadableNetworkPacket<C>,
-    W extends WritableNetworkPacket<C>,
-    C extends DefaultDataSslConnection<R, W, C>> extends AbstractSslConnection<R, W, C> {
+public abstract class DefaultDataSslConnection<C extends DefaultDataSslConnection<C>> extends AbstractSslConnection<C> {
 
   final NetworkPacketReader packetReader;
   final NetworkPacketWriter packetWriter;
@@ -73,5 +69,5 @@ public abstract class DefaultDataSslConnection<
         packetLengthHeaderSize);
   }
 
-  protected abstract R createReadablePacket();
+  protected abstract ReadableNetworkPacket<C> createReadablePacket();
 }

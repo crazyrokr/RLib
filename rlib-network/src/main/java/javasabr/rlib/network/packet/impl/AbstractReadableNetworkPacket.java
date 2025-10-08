@@ -2,7 +2,6 @@ package javasabr.rlib.network.packet.impl;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
-import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import lombok.AccessLevel;
@@ -16,7 +15,7 @@ import lombok.NoArgsConstructor;
  */
 @CustomLog
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractReadableNetworkPacket<C extends Connection>
+public abstract class AbstractReadableNetworkPacket<C extends Connection<C>>
     extends AbstractNetworkPacket<C> implements ReadableNetworkPacket<C> {
 
   @Override

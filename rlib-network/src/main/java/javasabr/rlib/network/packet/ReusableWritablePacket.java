@@ -9,7 +9,7 @@ import javasabr.rlib.reusable.pool.Pool;
  *
  * @author JavaSaBr
  */
-public interface ReusableWritablePacket<C extends Connection> extends WritableNetworkPacket<C>, Reusable {
+public interface ReusableWritablePacket<C extends Connection<C>> extends WritableNetworkPacket<C>, Reusable {
 
   /**
    * Handle completion of packet sending.
@@ -50,7 +50,7 @@ public interface ReusableWritablePacket<C extends Connection> extends WritableNe
    *
    * @param pool the pool to store used packet.
    */
-  void setPool(Pool<ReusableWritablePacket> pool);
+  void setPool(Pool<ReusableWritablePacket<C>> pool);
 
   default void notifyAddedToSend() {
     increaseSends();

@@ -28,8 +28,9 @@ import org.jspecify.annotations.Nullable;
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public class IdBasedReadableNetworkPacketRegistry<R extends IdBasedReadableNetworkPacket<R, C>, C extends Connection>
-    implements ReadableNetworkPacketRegistry<R, C> {
+public class IdBasedReadableNetworkPacketRegistry<
+    R extends IdBasedReadableNetworkPacket<C>,
+    C extends Connection<C>> implements ReadableNetworkPacketRegistry<R, C> {
 
   @Getter(AccessLevel.PROTECTED)
   final Class<? extends R> type;

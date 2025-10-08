@@ -39,16 +39,12 @@ import reactor.core.publisher.FluxSink;
 @CustomLog
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractConnection<
-    R extends ReadableNetworkPacket<C>,
-    W extends WritableNetworkPacket<C>,
-    C extends AbstractConnection<R, W, C>> implements UnsafeConnection<R, W, C> {
+public abstract class AbstractConnection<C extends AbstractConnection<C>> implements UnsafeConnection<C> {
 
-  private static class WritablePacketWithFeedback<
-      W extends WritableNetworkPacket<C>,
-      C extends Connection> extends WritablePacketWrapper<CompletableFuture<Boolean>, W, C> {
+  private static class WritablePacketWithFeedback<C extends Connection<C>>
+      extends WritablePacketWrapper<CompletableFuture<Boolean>, C> {
 
-    public WritablePacketWithFeedback(CompletableFuture<Boolean> attachment, W packet) {
+    public WritablePacketWithFeedback(CompletableFuture<Boolean> attachment, WritableNetworkPacket<C> packet) {
       super(attachment, packet);
     }
   }
@@ -65,7 +61,7 @@ public abstract class AbstractConnection<
   final AtomicBoolean isWriting;
   final AtomicBoolean closed;
 
-  final MutableArray<BiConsumer<C, ? super R>> subscribers;
+  final MutableArray<BiConsumer<C, ? super ReadableNetworkPacket<C>>> subscribers;
 
   final int maxPacketsByRead;
 
@@ -97,25 +93,25 @@ public abstract class AbstractConnection<
   protected abstract NetworkPacketWriter packetWriter();
 
   @Override
-  public void onReceive(BiConsumer<C, ? super R> consumer) {
+  public void onReceive(BiConsumer<C, ? super ReadableNetworkPacket<C>> consumer) {
     subscribers.add(consumer);
     packetReader().startRead();
   }
 
   @Override
-  public Flux<ReceivedPacketEvent<C, ? extends R>> receivedEvents() {
+  public Flux<ReceivedPacketEvent<C, ? extends ReadableNetworkPacket<C>>> receivedEvents() {
     return Flux.create(this::registerFluxOnReceivedEvents);
   }
 
   @Override
-  public Flux<? extends R> receivedPackets() {
+  public Flux<? extends ReadableNetworkPacket<C>> receivedPackets() {
     return Flux.create(this::registerFluxOnReceivedPackets);
   }
 
   protected void registerFluxOnReceivedEvents(
-      FluxSink<ReceivedPacketEvent<C, ? extends R>> sink) {
+      FluxSink<ReceivedPacketEvent<C, ? extends ReadableNetworkPacket<C>>> sink) {
 
-    BiConsumer<C, R> listener =
+    BiConsumer<C, ReadableNetworkPacket<C>> listener =
       (connection, packet) -> sink.next(new ReceivedPacketEvent<>(connection,
         packet));
 
@@ -124,8 +120,8 @@ public abstract class AbstractConnection<
     sink.onDispose(() -> subscribers.remove(listener));
   }
 
-  protected void registerFluxOnReceivedPackets(FluxSink<? super R> sink) {
-    BiConsumer<C, R> listener = (connection, packet) -> sink.next(packet);
+  protected void registerFluxOnReceivedPackets(FluxSink<? super ReadableNetworkPacket<C>> sink) {
+    BiConsumer<C, ReadableNetworkPacket<C>> listener = (connection, packet) -> sink.next(packet);
     onReceive(listener);
     sink.onDispose(() -> subscribers.remove(listener));
   }
@@ -173,7 +169,7 @@ public abstract class AbstractConnection<
 
   protected void serializedPacket(WritableNetworkPacket<?> packet) {}
 
-  protected void handleReceivedPacket(R packet) {
+  protected void handleReceivedPacket(ReadableNetworkPacket<C> packet) {
     log.debug(packet, remoteAddress, "Handle received packet:[%s] from:[%s]"::formatted);
     subscribers
         .iterations()
@@ -181,15 +177,15 @@ public abstract class AbstractConnection<
   }
 
   protected void handleSentPacket(WritableNetworkPacket<?> packet, boolean result) {
-    if (packet instanceof WritablePacketWithFeedback) {
-      ((WritablePacketWithFeedback<?, ?>) packet)
+    if (packet instanceof WritablePacketWithFeedback<?> withFeedback) {
+      withFeedback
           .getAttachment()
           .complete(result);
     }
   }
 
   @Override
-  public final void send(W packet) {
+  public final void send(WritableNetworkPacket<C> packet) {
     sendImpl(packet);
   }
 
@@ -219,7 +215,7 @@ public abstract class AbstractConnection<
   }
 
   @Override
-  public CompletableFuture<Boolean> sendWithFeedback(W packet) {
+  public CompletableFuture<Boolean> sendWithFeedback(WritableNetworkPacket<C> packet) {
 
     var asyncResult = new CompletableFuture<Boolean>();
 

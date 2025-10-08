@@ -2,13 +2,16 @@ package javasabr.rlib.network;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
+import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.DefaultConnection;
 import javasabr.rlib.network.impl.StringDataConnection;
 import javasabr.rlib.network.impl.StringDataSslConnection;
+import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javasabr.rlib.network.packet.impl.DefaultReadableNetworkPacket;
+import javasabr.rlib.network.packet.impl.StringReadableNetworkPacket;
 import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
 import javasabr.rlib.network.server.ServerNetwork;
 import javax.net.ssl.SSLContext;
@@ -19,7 +22,11 @@ import reactor.core.publisher.Flux;
  * @author JavaSaBr
  */
 public class BaseNetworkTest {
-  public static final Connection MOCK_CONNECTION = new Connection() {
+
+  protected static final Class<StringReadableNetworkPacket<StringDataConnection>> RECEIVED_PACKET_TYPE =
+      ClassUtils.unsafeCast(StringReadableNetworkPacket.class);
+
+  public static class MockConnection implements Connection<MockConnection> {
     @Override
     public String remoteAddress() {
       return "";
@@ -39,16 +46,16 @@ public class BaseNetworkTest {
     }
 
     @Override
+    public Flux<ReceivedPacketEvent<MockConnection, ? extends ReadableNetworkPacket<MockConnection>>> receivedEvents() {
+      return Flux.empty();
+    }
+
+    @Override
     public void send(WritableNetworkPacket packet) {}
 
     @Override
     public CompletableFuture<Boolean> sendWithFeedback(WritableNetworkPacket packet) {
       return CompletableFuture.completedFuture(false);
-    }
-
-    @Override
-    public Flux<ReceivedPacketEvent> receivedEvents() {
-      return Flux.empty();
     }
 
     @Override
@@ -58,10 +65,12 @@ public class BaseNetworkTest {
 
     @Override
     public void onReceive(BiConsumer consumer) {}
-  };
+  }
+
+  public static final MockConnection MOCK_CONNECTION = new MockConnection();
 
   @AllArgsConstructor
-  public static class TestNetwork<C extends Connection<?, ?, C>> implements AutoCloseable {
+  public static class TestNetwork<C extends Connection<C>> implements AutoCloseable {
 
     public final ServerNetworkConfig serverNetworkConfig;
     public final NetworkConfig clientNetworkConfig;
@@ -189,8 +198,8 @@ public class BaseNetworkTest {
   }
 
   protected TestNetwork<DefaultConnection> buildDefaultNetwork(
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> serverPacketRegistry,
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> clientPacketRegistry) {
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket<DefaultConnection>, DefaultConnection> serverPacketRegistry,
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket<DefaultConnection>, DefaultConnection> clientPacketRegistry) {
     return buildDefaultNetwork(
         ServerNetworkConfig.DEFAULT_SERVER,
         new DefaultBufferAllocator(ServerNetworkConfig.DEFAULT_SERVER),
@@ -202,9 +211,9 @@ public class BaseNetworkTest {
 
   protected TestNetwork<DefaultConnection> buildDefaultNetwork(
       BufferAllocator serverBufferAllocator,
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> serverPacketRegistry,
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket<DefaultConnection>, DefaultConnection> serverPacketRegistry,
       BufferAllocator clientBufferAllocator,
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> clientPacketRegistry) {
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket<DefaultConnection>, DefaultConnection> clientPacketRegistry) {
     return buildDefaultNetwork(
         ServerNetworkConfig.DEFAULT_SERVER,
         serverBufferAllocator,
@@ -217,10 +226,10 @@ public class BaseNetworkTest {
   protected TestNetwork<DefaultConnection> buildDefaultNetwork(
       ServerNetworkConfig serverNetworkConfig,
       BufferAllocator serverBufferAllocator,
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> serverPacketRegistry,
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket<DefaultConnection>, DefaultConnection> serverPacketRegistry,
       NetworkConfig clientNetworkConfig,
       BufferAllocator clientBufferAllocator,
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> clientPacketRegistry) {
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket<DefaultConnection>, DefaultConnection> clientPacketRegistry) {
 
     var asyncClientToServer = new CompletableFuture<DefaultConnection>();
     var asyncServerToClient = new CompletableFuture<DefaultConnection>();

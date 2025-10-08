@@ -4,10 +4,9 @@ import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Network;
 import javasabr.rlib.network.packet.IdBasedReadableNetworkPacket;
-import javasabr.rlib.network.packet.IdBasedWritableNetworkPacket;
 import javasabr.rlib.network.packet.NetworkPacketReader;
 import javasabr.rlib.network.packet.NetworkPacketWriter;
-import javasabr.rlib.network.packet.impl.IdBasedPacketReader;
+import javasabr.rlib.network.packet.impl.IdBasedNetworkPacketReader;
 import javasabr.rlib.network.packet.impl.IdBasedNetworkPacketWriter;
 import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
 import lombok.AccessLevel;
@@ -21,14 +20,11 @@ import lombok.experimental.FieldDefaults;
 @Getter(AccessLevel.PROTECTED)
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class IdBasedPacketConnection<
-    R extends IdBasedReadableNetworkPacket<R, C>,
-    W extends IdBasedWritableNetworkPacket<C>,
-    C extends IdBasedPacketConnection<R, W, C>> extends AbstractConnection<R, W, C> {
+public class IdBasedPacketConnection<C extends IdBasedPacketConnection<C>> extends AbstractConnection<C> {
 
   final NetworkPacketReader packetReader;
   final NetworkPacketWriter packetWriter;
-  final ReadableNetworkPacketRegistry<R, C> packetRegistry;
+  final ReadableNetworkPacketRegistry<? extends IdBasedReadableNetworkPacket<C>, C> packetRegistry;
 
   final int packetLengthHeaderSize;
   final int packetIdHeaderSize;
@@ -37,7 +33,7 @@ public class IdBasedPacketConnection<
       Network<C> network,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
-      ReadableNetworkPacketRegistry<R, C> packetRegistry,
+      ReadableNetworkPacketRegistry<? extends IdBasedReadableNetworkPacket<C>, C> packetRegistry,
       int maxPacketsByRead,
       int packetLengthHeaderSize,
       int packetIdHeaderSize) {
@@ -50,7 +46,7 @@ public class IdBasedPacketConnection<
   }
 
   protected NetworkPacketReader createPacketReader() {
-    return new IdBasedPacketReader<>(
+    return new IdBasedNetworkPacketReader<>(
         (C) this,
         channel,
         bufferAllocator,

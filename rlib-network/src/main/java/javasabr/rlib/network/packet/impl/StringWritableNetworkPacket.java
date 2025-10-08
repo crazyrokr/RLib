@@ -15,7 +15,7 @@ import lombok.experimental.FieldDefaults;
 @RequiredArgsConstructor
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class StringWritableNetworkPacket<C extends Connection> extends AbstractWritableNetworkPacket<C> {
+public class StringWritableNetworkPacket<C extends Connection<C>> extends AbstractWritableNetworkPacket<C> {
 
   String data;
 

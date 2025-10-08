@@ -33,7 +33,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public abstract class AbstractNetworkPacketWriter<
     W extends WritableNetworkPacket<C>,
-    C extends Connection<?, W, C>> implements NetworkPacketWriter {
+    C extends Connection<C>> implements NetworkPacketWriter {
 
   final CompletionHandler<Integer, @Nullable WritableNetworkPacket<C>> writeHandler = new CompletionHandler<>() {
 
@@ -146,8 +146,8 @@ public abstract class AbstractNetworkPacketWriter<
    */
   protected ByteBuffer serialize(WritableNetworkPacket<C> packet) {
 
-    if (packet instanceof WritablePacketWrapper) {
-      packet = ((WritablePacketWrapper<?, ?, C>) packet).getPacket();
+    if (packet instanceof WritablePacketWrapper<?, C> wrapper) {
+      packet = wrapper.getPacket();
     }
 
     W resultPacket = (W) packet;

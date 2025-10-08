@@ -8,7 +8,7 @@ import javasabr.rlib.network.Connection;
  *
  * @author JavaSaBr
  */
-public interface ReadableNetworkPacket<C extends Connection> extends NetworkPacket<C> {
+public interface ReadableNetworkPacket<C extends Connection<C>> extends NetworkPacket<C> {
 
   /**
    * Read packet's data from byte buffer.

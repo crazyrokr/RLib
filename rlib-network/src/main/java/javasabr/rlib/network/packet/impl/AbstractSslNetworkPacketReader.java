@@ -30,7 +30,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public abstract class AbstractSslNetworkPacketReader<
     R extends ReadableNetworkPacket<C>,
-    C extends Connection<R, ?, C>> extends AbstractNetworkPacketReader<R, C> {
+    C extends Connection<C>> extends AbstractNetworkPacketReader<R, C> {
 
   private static final ByteBuffer[] EMPTY_BUFFERS = {
       NetworkUtils.EMPTY_BUFFER
@@ -158,7 +158,7 @@ public abstract class AbstractSslNetworkPacketReader<
         }
         case NEED_WRAP: {
           log.debug(remoteAddress, "[%s] Send command to wrap data"::formatted);
-          packetWriter.accept(SslWrapRequestPacket.getInstance());
+          packetWriter.accept(SslWrapRequestNetworkPacket.getInstance());
           NetworkUtils.cleanNetworkBuffer(networkBuffer);
           return SKIP_READ_PACKETS;
         }
@@ -180,7 +180,7 @@ public abstract class AbstractSslNetworkPacketReader<
     if (!networkBuffer.hasRemaining()) {
       // if buffer is empty and status is FINISHED then we can notify writer
       if (handshakeStatus == HandshakeStatus.FINISHED) {
-        packetWriter.accept(SslWrapRequestPacket.getInstance());
+        packetWriter.accept(SslWrapRequestNetworkPacket.getInstance());
       }
       NetworkUtils.cleanNetworkBuffer(networkBuffer);
       return SKIP_READ_PACKETS;

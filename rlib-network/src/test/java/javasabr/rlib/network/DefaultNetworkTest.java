@@ -19,6 +19,7 @@ import javasabr.rlib.network.annotation.NetworkPacketDescription;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.DefaultConnection;
 import javasabr.rlib.network.packet.MarkerNetworkPacket;
+import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import javasabr.rlib.network.packet.impl.DefaultReadableNetworkPacket;
 import javasabr.rlib.network.packet.impl.DefaultWritableNetworkPacket;
 import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
@@ -44,7 +45,7 @@ public class DefaultNetworkTest extends BaseNetworkTest {
 
     @RequiredArgsConstructor
     @NetworkPacketDescription(id = 1)
-    class RequestEchoMessage extends DefaultWritableNetworkPacket {
+    class RequestEchoMessage extends DefaultWritableNetworkPacket<DefaultConnection> {
 
       private final String message;
 
@@ -56,11 +57,12 @@ public class DefaultNetworkTest extends BaseNetworkTest {
     }
 
     @NetworkPacketDescription(id = 2)
-    class RequestServerTime extends DefaultWritableNetworkPacket implements MarkerNetworkPacket {}
+    class RequestServerTime extends DefaultWritableNetworkPacket<DefaultConnection>
+        implements MarkerNetworkPacket {}
 
     @RequiredArgsConstructor
     @NetworkPacketDescription(id = 3)
-    class ResponseEchoMessage extends DefaultReadableNetworkPacket {
+    class ResponseEchoMessage extends DefaultReadableNetworkPacket<DefaultConnection> {
 
       @Getter
       @Nullable
@@ -78,7 +80,7 @@ public class DefaultNetworkTest extends BaseNetworkTest {
     }
 
     @NetworkPacketDescription(id = 4)
-    class ResponseServerTime extends DefaultReadableNetworkPacket {
+    class ResponseServerTime extends DefaultReadableNetworkPacket<DefaultConnection> {
 
       @Getter
       @Nullable
@@ -101,7 +103,7 @@ public class DefaultNetworkTest extends BaseNetworkTest {
   interface ServerPackets {
 
     @NetworkPacketDescription(id = 1)
-    class RequestEchoMessage extends DefaultReadableNetworkPacket {
+    class RequestEchoMessage extends DefaultReadableNetworkPacket<DefaultConnection> {
 
       private volatile String message;
 
@@ -118,7 +120,8 @@ public class DefaultNetworkTest extends BaseNetworkTest {
     }
 
     @NetworkPacketDescription(id = 2)
-    class RequestServerTime extends DefaultReadableNetworkPacket implements MarkerNetworkPacket {
+    class RequestServerTime extends DefaultReadableNetworkPacket<DefaultConnection>
+        implements MarkerNetworkPacket {
 
       @Override
       public String toString() {
@@ -128,7 +131,7 @@ public class DefaultNetworkTest extends BaseNetworkTest {
 
     @RequiredArgsConstructor
     @NetworkPacketDescription(id = 3)
-    class ResponseEchoMessage extends DefaultWritableNetworkPacket {
+    class ResponseEchoMessage extends DefaultWritableNetworkPacket<DefaultConnection> {
 
       private final String message;
 
@@ -140,7 +143,7 @@ public class DefaultNetworkTest extends BaseNetworkTest {
     }
 
     @NetworkPacketDescription(id = 4)
-    class ResponseServerTime extends DefaultWritableNetworkPacket {
+    class ResponseServerTime extends DefaultWritableNetworkPacket<DefaultConnection> {
 
       @Override
       protected void writeImpl(DefaultConnection connection, ByteBuffer buffer) {
@@ -159,12 +162,14 @@ public class DefaultNetworkTest extends BaseNetworkTest {
     //LoggerManager.enable(DefaultNetworkTest.class, LoggerLevel.INFO);
     //LoggerManager.enable(AbstractNetworkPacketReader.class, LoggerLevel.DEBUG);
 
-    ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> serverPackets = ReadableNetworkPacketRegistry.of(
+    var serverPackets = ReadableNetworkPacketRegistry.of(
         DefaultReadableNetworkPacket.class,
+        DefaultConnection.class,
         ServerPackets.RequestEchoMessage.class,
         ServerPackets.RequestServerTime.class);
-    ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket, DefaultConnection> clientPackets = ReadableNetworkPacketRegistry.of(
+    var clientPackets = ReadableNetworkPacketRegistry.of(
         DefaultReadableNetworkPacket.class,
+        DefaultConnection.class,
         ClientPackets.ResponseEchoMessage.class,
         ClientPackets.ResponseServerTime.class);
 
@@ -218,10 +223,12 @@ public class DefaultNetworkTest extends BaseNetworkTest {
 
     var serverPacketRegistry = ReadableNetworkPacketRegistry.of(
         DefaultReadableNetworkPacket.class,
+        DefaultConnection.class,
         ServerPackets.RequestEchoMessage.class,
         ServerPackets.RequestServerTime.class);
     var clientPacketRegistry = ReadableNetworkPacketRegistry.of(
         DefaultReadableNetworkPacket.class,
+        DefaultConnection.class,
         ClientPackets.ResponseEchoMessage.class,
         ClientPackets.ResponseServerTime.class);
 
@@ -265,7 +272,7 @@ public class DefaultNetworkTest extends BaseNetworkTest {
           .peek(message -> clientToServer.send(new ClientPackets.RequestEchoMessage(message)))
           .toList();
 
-      List<? extends DefaultReadableNetworkPacket> receivedPackets =
+      List<? extends ReadableNetworkPacket<DefaultConnection>> receivedPackets =
           ObjectUtils.notNull(pendingPacketsOnServer.blockFirst(Duration.ofSeconds(5)));
 
       Assertions.assertEquals(packetCount, receivedPackets.size(), "Didn't receive all packets");

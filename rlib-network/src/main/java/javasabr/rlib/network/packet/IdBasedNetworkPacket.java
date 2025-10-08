@@ -6,7 +6,7 @@ import javasabr.rlib.network.annotation.NetworkPacketDescription;
 /**
  * @author JavaSaBr
  */
-public interface IdBasedNetworkPacket<C extends Connection> extends NetworkPacket<C> {
+public interface IdBasedNetworkPacket<C extends Connection<C>> extends NetworkPacket<C> {
 
   /**
    * Get id of this packet.

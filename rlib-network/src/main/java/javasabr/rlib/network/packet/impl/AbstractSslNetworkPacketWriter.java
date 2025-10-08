@@ -29,7 +29,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public abstract class AbstractSslNetworkPacketWriter<
     W extends WritableNetworkPacket<C>,
-    C extends Connection<?, W, C>> extends AbstractNetworkPacketWriter<W, C> {
+    C extends Connection<C>> extends AbstractNetworkPacketWriter<W, C> {
 
   private static final ByteBuffer[] EMPTY_BUFFERS = {
       NetworkUtils.EMPTY_BUFFER
@@ -96,7 +96,7 @@ public abstract class AbstractSslNetworkPacketWriter<
 
   @Override
   protected ByteBuffer serialize(WritableNetworkPacket<C> packet) {
-    if (packet instanceof SslWrapRequestPacket) {
+    if (packet instanceof SslWrapRequestNetworkPacket) {
       return EMPTY_BUFFER;
     }
 

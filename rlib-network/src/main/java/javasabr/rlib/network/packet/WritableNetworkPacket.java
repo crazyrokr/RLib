@@ -8,7 +8,7 @@ import javasabr.rlib.network.Connection;
  *
  * @author JavaSaBr
  */
-public interface WritableNetworkPacket<C extends Connection> extends NetworkPacket<C> {
+public interface WritableNetworkPacket<C extends Connection<C>> extends NetworkPacket<C> {
 
   /**
    * Write this packet to the buffer.

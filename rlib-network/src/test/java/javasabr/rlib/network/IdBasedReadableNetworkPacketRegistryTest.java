@@ -30,7 +30,7 @@ public class IdBasedReadableNetworkPacketRegistryTest {
   public static class Impl3 extends DefaultReadableNetworkPacket {}
 
   @NoArgsConstructor
-  private static class PrivateBase extends AbstractIdBasedReadableNetworkPacket<PrivateBase, DefaultConnection> {}
+  private static class PrivateBase extends AbstractIdBasedReadableNetworkPacket<DefaultConnection> {}
 
   @NoArgsConstructor
   @NetworkPacketDescription(id = 1)
@@ -41,7 +41,7 @@ public class IdBasedReadableNetworkPacketRegistryTest {
   private static class PrivateImpl2 extends PrivateBase {}
 
   @NoArgsConstructor
-  public static class PublicBase extends AbstractIdBasedReadableNetworkPacket<PublicBase, DefaultConnection> {}
+  public static class PublicBase extends AbstractIdBasedReadableNetworkPacket<DefaultConnection> {}
 
   @NoArgsConstructor
   @NetworkPacketDescription(id = 1)

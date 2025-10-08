@@ -2,6 +2,7 @@ package javasabr.rlib.network;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import javasabr.rlib.network.BaseNetworkTest.MockConnection;
 import javasabr.rlib.network.packet.impl.AbstractReadableNetworkPacket;
 import javasabr.rlib.network.packet.impl.AbstractWritableNetworkPacket;
 import lombok.Builder;
@@ -17,7 +18,7 @@ class NetworkPacketTest {
   @ToString
   @EqualsAndHashCode(exclude = {"byteArrayField", "bytesField1", "bytesField2"})
   private static class TestReadablePacket
-      extends AbstractReadableNetworkPacket<Connection> {
+      extends AbstractReadableNetworkPacket<MockConnection> {
 
     private int byteField;
     private int byteUnsignedField;
@@ -34,7 +35,7 @@ class NetworkPacketTest {
     private String stringField;
 
     @Override
-    protected void readImpl(Connection connection, ByteBuffer buffer) {
+    protected void readImpl(MockConnection connection, ByteBuffer buffer) {
       super.readImpl(connection, buffer);
       byteField = readByte(buffer);
       byteUnsignedField = readByteUnsigned(buffer);
@@ -58,7 +59,7 @@ class NetworkPacketTest {
 
   @Builder
   private static class TestWritablePacket
-      extends AbstractWritableNetworkPacket<Connection> {
+      extends AbstractWritableNetworkPacket<MockConnection> {
 
     private int byteField;
     private int byteUnsignedField;
@@ -75,7 +76,7 @@ class NetworkPacketTest {
     private String stringField;
 
     @Override
-    protected void writeImpl(Connection connection, ByteBuffer buffer) {
+    protected void writeImpl(MockConnection connection, ByteBuffer buffer) {
       super.writeImpl(connection, buffer);
       writeByte(buffer, byteField);
       writeByte(buffer, byteUnsignedField);

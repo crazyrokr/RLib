@@ -19,7 +19,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public class DefaultSslNetworkPacketWriter<
     W extends WritableNetworkPacket<C>,
-    C extends Connection<?, W, C>> extends AbstractSslNetworkPacketWriter<W, C> {
+    C extends Connection<C>> extends AbstractSslNetworkPacketWriter<W, C> {
 
   final int packetLengthHeaderSize;
 

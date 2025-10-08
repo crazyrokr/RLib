@@ -21,7 +21,7 @@ import javasabr.rlib.network.ServerNetworkConfig.SimpleServerNetworkConfig;
 import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.StringDataConnection;
-import javasabr.rlib.network.packet.impl.StringReadablePacket;
+import javasabr.rlib.network.packet.impl.StringReadableNetworkPacket;
 import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 import javasabr.rlib.network.server.ServerNetwork;
 import lombok.CustomLog;
@@ -37,6 +37,7 @@ import reactor.core.publisher.Flux;
  */
 @CustomLog
 public class StringNetworkTest extends BaseNetworkTest {
+
 
   @Test
   @SneakyThrows
@@ -54,7 +55,7 @@ public class StringNetworkTest extends BaseNetworkTest {
 
     serverNetwork
         .accepted()
-        .flatMap(Connection::receivedEvents)
+        .flatMap(connection -> connection.receivedEvents(RECEIVED_PACKET_TYPE))
         .subscribe(event -> {
           String message = event.packet().data();
           log.info(message, "Received from client:[%s]"::formatted);
@@ -74,7 +75,7 @@ public class StringNetworkTest extends BaseNetworkTest {
                   .nextInt(50);
               executor.schedule(() -> connection.send(packet), delay, TimeUnit.MILLISECONDS);
             }))
-        .flatMapMany(Connection::receivedEvents)
+        .flatMapMany(connection -> connection.receivedEvents(RECEIVED_PACKET_TYPE))
         .subscribe(event -> {
           log.info(event.packet().data(), "Received from server:[%s]"::formatted);
           counter.countDown();
@@ -119,7 +120,7 @@ public class StringNetworkTest extends BaseNetworkTest {
       StringDataConnection serverToClient = testNetwork.serverToClient;
 
       var pendingPacketsOnServer = serverToClient
-          .receivedPackets()
+          .receivedPackets(RECEIVED_PACKET_TYPE)
           .buffer(packetCount);
 
       List<String> messages = IntStream
@@ -131,7 +132,7 @@ public class StringNetworkTest extends BaseNetworkTest {
           })
           .toList();
 
-      List<? extends StringReadablePacket> receivedPackets = ObjectUtils
+      List<StringReadableNetworkPacket<StringDataConnection>> receivedPackets = ObjectUtils
           .notNull(pendingPacketsOnServer.blockFirst(Duration.ofSeconds(5)));
 
       log.info(receivedPackets.size(), "Received [%s] packets from client"::formatted);
@@ -165,7 +166,7 @@ public class StringNetworkTest extends BaseNetworkTest {
       StringDataConnection serverToClient = testNetwork.serverToClient;
 
       var pendingPacketsOnServer = serverToClient
-          .receivedPackets()
+          .receivedPackets(RECEIVED_PACKET_TYPE)
           .doOnNext(packet ->
               log.info(packet.data().length(), "Received [%s] symbols from client"::formatted))
           .buffer(packetCount);
@@ -189,7 +190,7 @@ public class StringNetworkTest extends BaseNetworkTest {
           })
           .toList();
 
-      List<? extends StringReadablePacket<StringDataConnection>> receivedPackets =
+      List<? extends StringReadableNetworkPacket<StringDataConnection>> receivedPackets =
           ObjectUtils.notNull(pendingPacketsOnServer.blockFirst(Duration.ofSeconds(5)));
 
       log.info(receivedPackets.size(), "Received [%s] packets from client"::formatted);
@@ -223,7 +224,7 @@ public class StringNetworkTest extends BaseNetworkTest {
       StringDataConnection serverToClient = testNetwork.serverToClient;
 
       var pendingPacketsOnServer = serverToClient
-          .receivedPackets()
+          .receivedPackets(RECEIVED_PACKET_TYPE)
           .doOnNext(packet ->
               log.info(packet.data().length(), "Received [%s] symbols from client"::formatted))
           .buffer(packetCount);
@@ -247,7 +248,7 @@ public class StringNetworkTest extends BaseNetworkTest {
           })
           .toList();
 
-      List<? extends StringReadablePacket<StringDataConnection>> receivedPackets =
+      List<? extends StringReadableNetworkPacket<StringDataConnection>> receivedPackets =
           ObjectUtils.notNull(pendingPacketsOnServer.blockFirst(Duration.ofSeconds(5)));
 
       log.info(receivedPackets.size(), "Received [%s] packets from client"::formatted);

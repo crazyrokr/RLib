@@ -5,6 +5,6 @@ import javasabr.rlib.network.Connection;
 /**
  * @author JavaSaBr
  */
-public interface IdBasedWritableNetworkPacket<C extends Connection>
+public interface IdBasedWritableNetworkPacket<C extends Connection<C>>
     extends WritableNetworkPacket<C>, IdBasedNetworkPacket<C> {
 }

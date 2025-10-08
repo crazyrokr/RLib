@@ -11,7 +11,7 @@ import reactor.core.publisher.Flux;
  *
  * @author JavaSaBr
  */
-public interface ServerNetwork<C extends Connection<?, ?, C>> extends Network<C> {
+public interface ServerNetwork<C extends Connection<C>> extends Network<C> {
 
   /**
    * Start a server using any available address.

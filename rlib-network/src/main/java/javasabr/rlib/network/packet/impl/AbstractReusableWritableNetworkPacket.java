@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.packet.ReusableWritablePacket;
+import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javasabr.rlib.reusable.pool.Pool;
 import javasabr.rlib.reusable.pool.PoolFactory;
 import lombok.AccessLevel;
@@ -24,7 +25,7 @@ import org.jspecify.annotations.Nullable;
  */
 @CustomLog
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractReusableWritableNetworkPacket<C extends Connection>
+public abstract class AbstractReusableWritableNetworkPacket<C extends Connection<C>>
     extends AbstractWritableNetworkPacket<C> implements ReusableWritablePacket<C> {
 
   protected static final ThreadLocal<Map<Class<? super ReusableWritablePacket>, Pool<ReusableWritablePacket>>>
@@ -36,7 +37,7 @@ public abstract class AbstractReusableWritableNetworkPacket<C extends Connection
    * The pool to store this packet after using.
    */
   @Nullable
-  volatile Pool<ReusableWritablePacket> pool;
+  volatile Pool<ReusableWritablePacket<C>> pool;
   volatile int barrier;
 
   int barrierSink;
@@ -124,11 +125,10 @@ public abstract class AbstractReusableWritableNetworkPacket<C extends Connection
    *
    * @return thread local pool.
    */
-  protected Pool<ReusableWritablePacket> threadLocalPool() {
-    Class<ReusableWritablePacket> packetClass = ClassUtils.unsafeNNCast(getClass());
-    return LOCAL_POOLS
-        .get()
-        .computeIfAbsent(packetClass, PoolFactory::newLockBasePool);
+  protected Pool<ReusableWritablePacket<C>> threadLocalPool() {
+    Pool<ReusableWritablePacket> resultPool = LOCAL_POOLS.get()
+        .computeIfAbsent(ClassUtils.unsafeNNCast(getClass()), PoolFactory::newLockBasePool);
+    return ClassUtils.unsafeCast(resultPool);
   }
 
   /**
@@ -136,9 +136,9 @@ public abstract class AbstractReusableWritableNetworkPacket<C extends Connection
    *
    * @return the pool to store used packet.
    */
-  protected Pool<ReusableWritablePacket> getPool() {
+  protected Pool<ReusableWritablePacket<C>> getPool() {
 
-    Pool<ReusableWritablePacket> local = this.pool;
+    Pool<ReusableWritablePacket<C>> local = this.pool;
     if (local != null) {
       return local;
     }
@@ -167,17 +167,17 @@ public abstract class AbstractReusableWritableNetworkPacket<C extends Connection
    * @param <T> the result packet's type.
    * @return the new instance.
    */
-  public <T extends ReusableWritablePacket> T newInstance() {
+  public <T extends ReusableWritablePacket<C>> T newInstance() {
 
-    Pool<ReusableWritablePacket> pool = getPool();
-    ReusableWritablePacket result = pool.take(getClass(), ClassUtils::newInstance);
+    Pool<ReusableWritablePacket<C>> pool = getPool();
+    ReusableWritablePacket<C> result = pool.take(getClass(), ClassUtils::newInstance);
     result.setPool(pool);
 
     return notNull(ClassUtils.unsafeCast(result));
   }
 
   @Override
-  public final void setPool(Pool<ReusableWritablePacket> pool) {
+  public final void setPool(Pool<ReusableWritablePacket<C>> pool) {
     this.pool = pool;
   }
 

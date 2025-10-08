@@ -11,11 +11,11 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public class WritablePacketWrapper<A, W extends WritableNetworkPacket<C>, C extends Connection>
+public class WritablePacketWrapper<A, C extends Connection<C>>
     implements WritableNetworkPacket<C> {
 
   private final A attachment;
-  private final W packet;
+  private final WritableNetworkPacket<C> packet;
 
   @Override
   public boolean write(C connection, ByteBuffer buffer) {

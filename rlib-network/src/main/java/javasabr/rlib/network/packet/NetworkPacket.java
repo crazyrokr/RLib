@@ -7,7 +7,7 @@ import javasabr.rlib.network.Connection;
  *
  * @author JavaSaBr
  */
-public interface NetworkPacket<C extends Connection> {
+public interface NetworkPacket<C extends Connection<C>> {
 
   /**
    * @return the packet's name.

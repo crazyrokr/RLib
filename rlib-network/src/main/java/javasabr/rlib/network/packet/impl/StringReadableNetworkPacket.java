@@ -14,7 +14,7 @@ import org.jspecify.annotations.Nullable;
 @Getter
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class StringReadablePacket<C extends Connection> extends AbstractReadableNetworkPacket<C> {
+public class StringReadableNetworkPacket<C extends Connection<C>> extends AbstractReadableNetworkPacket<C> {
 
   public static final int MAX_LENGTH = 100_000;
 

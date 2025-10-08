@@ -13,7 +13,7 @@ import lombok.CustomLog;
  * @author JavaSaBr
  */
 @CustomLog
-public abstract class AbstractNetworkPacket<C extends Connection> implements NetworkPacket<C> {
+public abstract class AbstractNetworkPacket<C extends Connection<C>> implements NetworkPacket<C> {
 
   /**
    * Handles packet data exception.

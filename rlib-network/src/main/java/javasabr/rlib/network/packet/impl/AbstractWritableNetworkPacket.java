@@ -12,7 +12,7 @@ import lombok.CustomLog;
  * @author JavaSaBr
  */
 @CustomLog
-public abstract class AbstractWritableNetworkPacket<C extends Connection>
+public abstract class AbstractWritableNetworkPacket<C extends Connection<C>>
     extends AbstractNetworkPacket<C> implements WritableNetworkPacket<C> {
 
   @Override

@@ -6,6 +6,6 @@ import javasabr.rlib.network.packet.IdBasedReadableNetworkPacket;
 /**
  * @author JavaSaBr
  */
-public abstract class AbstractIdBasedReadableNetworkPacket<S extends AbstractIdBasedReadableNetworkPacket<S, C>, C extends Connection>
-    extends AbstractReadableNetworkPacket<C> implements IdBasedReadableNetworkPacket<S, C> {
+public abstract class AbstractIdBasedReadableNetworkPacket<C extends Connection<C>>
+    extends AbstractReadableNetworkPacket<C> implements IdBasedReadableNetworkPacket<C> {
 }

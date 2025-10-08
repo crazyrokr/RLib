@@ -18,7 +18,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public class DefaultNetworkPacketWriter<
     W extends WritableNetworkPacket<C>,
-    C extends Connection<?, W, C>> extends AbstractNetworkPacketWriter<W, C> {
+    C extends Connection<C>> extends AbstractNetworkPacketWriter<W, C> {
 
   final int packetLengthHeaderSize;
 

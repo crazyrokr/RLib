@@ -40,10 +40,10 @@ import reactor.core.publisher.FluxSink;
  */
 @CustomLog
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
-public class DefaultServerNetwork<C extends UnsafeConnection<?, ?, C>>
+public class DefaultServerNetwork<C extends UnsafeConnection<C>>
     extends AbstractNetwork<C> implements ServerNetwork<C> {
 
-  private interface ServerCompletionHandler<C extends UnsafeConnection<?, ?, C>> extends
+  private interface ServerCompletionHandler<C extends UnsafeConnection<C>> extends
       CompletionHandler<AsynchronousSocketChannel, DefaultServerNetwork<C>> {}
 
   private final ServerCompletionHandler<C> acceptHandler = new ServerCompletionHandler<>() {

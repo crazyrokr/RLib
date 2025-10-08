@@ -29,7 +29,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public abstract class AbstractNetworkPacketReader<
     R extends ReadableNetworkPacket<C>,
-    C extends Connection<R, ?, C>> implements NetworkPacketReader {
+    C extends Connection<C>> implements NetworkPacketReader {
 
   final CompletionHandler<Integer, ByteBuffer> readChannelHandler = new CompletionHandler<>() {
 

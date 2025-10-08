@@ -3,16 +3,12 @@ package javasabr.rlib.network.impl;
 import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Network;
-import javasabr.rlib.network.packet.impl.StringReadablePacket;
-import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
+import javasabr.rlib.network.packet.impl.StringReadableNetworkPacket;
 
 /**
  * @author JavaSaBr
  */
-public class StringDataConnection extends DefaultDataConnection<
-    StringReadablePacket<StringDataConnection>,
-    StringWritableNetworkPacket<StringDataConnection>,
-    StringDataConnection> {
+public class StringDataConnection extends DefaultDataConnection<StringDataConnection> {
 
   public StringDataConnection(
       Network<StringDataConnection> network,
@@ -22,7 +18,7 @@ public class StringDataConnection extends DefaultDataConnection<
   }
 
   @Override
-  protected StringReadablePacket<StringDataConnection> createReadablePacket() {
-    return new StringReadablePacket<>();
+  protected StringReadableNetworkPacket<StringDataConnection> createReadablePacket() {
+    return new StringReadableNetworkPacket<>();
   }
 }

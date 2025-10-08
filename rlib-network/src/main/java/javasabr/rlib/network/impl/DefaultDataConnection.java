@@ -6,7 +6,6 @@ import javasabr.rlib.network.Network;
 import javasabr.rlib.network.packet.NetworkPacketReader;
 import javasabr.rlib.network.packet.NetworkPacketWriter;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
-import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javasabr.rlib.network.packet.impl.DefaultNetworkPacketReader;
 import javasabr.rlib.network.packet.impl.DefaultNetworkPacketWriter;
 import lombok.AccessLevel;
@@ -20,10 +19,7 @@ import lombok.experimental.FieldDefaults;
 @Getter(AccessLevel.PROTECTED)
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class DefaultDataConnection<
-    R extends ReadableNetworkPacket<C>,
-    W extends WritableNetworkPacket<C>,
-    C extends DefaultDataConnection<R, W, C>> extends AbstractConnection<R, W, C> {
+public abstract class DefaultDataConnection<C extends DefaultDataConnection<C>> extends AbstractConnection<C> {
 
   final NetworkPacketReader packetReader;
   final NetworkPacketWriter packetWriter;
@@ -66,5 +62,5 @@ public abstract class DefaultDataConnection<
         packetLengthHeaderSize);
   }
 
-  protected abstract R createReadablePacket();
+  protected abstract ReadableNetworkPacket<C> createReadablePacket();
 }

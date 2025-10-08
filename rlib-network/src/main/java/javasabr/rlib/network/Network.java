@@ -5,7 +5,7 @@ package javasabr.rlib.network;
  *
  * @author JavaSaBr
  */
-public interface Network<C extends Connection<?, ?, C>> {
+public interface Network<C extends Connection<C>> {
 
   /**
    * Shutdown this network.

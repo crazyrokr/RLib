@@ -3,17 +3,14 @@ package javasabr.rlib.network.impl;
 import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Network;
-import javasabr.rlib.network.packet.impl.StringReadablePacket;
+import javasabr.rlib.network.packet.impl.StringReadableNetworkPacket;
 import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 import javax.net.ssl.SSLContext;
 
 /**
  * @author JavaSaBr
  */
-public class StringDataSslConnection extends DefaultDataSslConnection<
-    StringReadablePacket<StringDataSslConnection>,
-    StringWritableNetworkPacket<StringDataSslConnection>,
-    StringDataSslConnection> {
+public class StringDataSslConnection extends DefaultDataSslConnection<StringDataSslConnection> {
 
   public StringDataSslConnection(
       Network<StringDataSslConnection> network,
@@ -25,7 +22,7 @@ public class StringDataSslConnection extends DefaultDataSslConnection<
   }
 
   @Override
-  protected StringReadablePacket<StringDataSslConnection> createReadablePacket() {
-    return new StringReadablePacket<>();
+  protected StringReadableNetworkPacket<StringDataSslConnection> createReadablePacket() {
+    return new StringReadableNetworkPacket<>();
   }
 }

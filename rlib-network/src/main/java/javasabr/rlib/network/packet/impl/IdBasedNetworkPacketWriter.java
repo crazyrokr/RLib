@@ -22,7 +22,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public class IdBasedNetworkPacketWriter<
     W extends IdBasedWritableNetworkPacket<C>,
-    C extends Connection<?, W, C>> extends DefaultNetworkPacketWriter<W, C> {
+    C extends Connection<C>> extends DefaultNetworkPacketWriter<W, C> {
 
   final int packetIdHeaderSize;
 

@@ -6,14 +6,13 @@ import javasabr.rlib.network.Connection;
 /**
  * @author JavaSaBr
  */
-public interface IdBasedReadableNetworkPacket<
-    S extends IdBasedReadableNetworkPacket<S, C>,
-    C extends Connection> extends ReadableNetworkPacket<C>, IdBasedNetworkPacket<C> {
+public interface IdBasedReadableNetworkPacket<C extends Connection<C>>
+    extends ReadableNetworkPacket<C>, IdBasedNetworkPacket<C> {
 
   /**
    * Create a new instance of this type.
    */
-  default S newInstance() {
+  default IdBasedReadableNetworkPacket<C> newInstance() {
     return ClassUtils.newInstance(getClass());
   }
 }

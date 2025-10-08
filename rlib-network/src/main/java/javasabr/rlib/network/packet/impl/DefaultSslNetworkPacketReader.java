@@ -19,7 +19,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public class DefaultSslNetworkPacketReader<
     R extends ReadableNetworkPacket<C>,
-    C extends Connection<R, ?, C>> extends AbstractSslNetworkPacketReader<R, C> {
+    C extends Connection<C>> extends AbstractSslNetworkPacketReader<R, C> {
 
   final IntFunction<R> packetResolver;
   final int packetLengthHeaderSize;
