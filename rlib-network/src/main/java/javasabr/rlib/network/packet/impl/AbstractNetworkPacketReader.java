@@ -5,12 +5,18 @@ import static javasabr.rlib.common.util.ObjectUtils.notNull;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.CompletionHandler;
+import java.nio.channels.InterruptedByTimeoutException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import javasabr.rlib.common.util.BufferUtils;
 import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
+import javasabr.rlib.network.Network;
+import javasabr.rlib.network.NetworkConfig;
+import javasabr.rlib.network.UnsafeConnection;
 import javasabr.rlib.network.packet.NetworkPacketReader;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import lombok.AccessLevel;
@@ -27,8 +33,9 @@ import org.jspecify.annotations.Nullable;
 @CustomLog
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacket, C extends Connection<R, ?>>
-    implements NetworkPacketReader {
+public abstract class AbstractNetworkPacketReader<
+    R extends ReadableNetworkPacket<C>,
+    C extends UnsafeConnection<C>> implements NetworkPacketReader {
 
   final CompletionHandler<Integer, ByteBuffer> readChannelHandler = new CompletionHandler<>() {
 
@@ -48,6 +55,7 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
   };
 
   final AtomicBoolean reading = new AtomicBoolean(false);
+  final AtomicInteger emptyReadsCounter = new AtomicInteger(0);
 
   final C connection;
   final AsynchronousSocketChannel socketChannel;
@@ -93,12 +101,35 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
 
   @Override
   public void startRead() {
-    if (!reading.compareAndSet(false, true)) {
+    if (connection.closed()) {
+      log.warning(connection.remoteAddress(), "[%s] Connection is already closed"::formatted);
+      return;
+    } else if (!reading.compareAndSet(false, true)) {
+      log.debug(connection.remoteAddress(), "[%s] Connection is already waiting for new data from channel"::formatted);
       return;
     }
+    startReadImpl();
+  }
+
+  protected void startReadImpl() {
     log.debug(remoteAddress(), "[%s] Start waiting for new data from channel..."::formatted);
     ByteBuffer buffer = bufferToReadFromChannel();
-    socketChannel.read(buffer, buffer, readChannelHandler);
+    try {
+      socketChannel.read(buffer, buffer, readChannelHandler);
+    } catch (RuntimeException ex) {
+      log.error(ex);
+      if (reading.compareAndSet(true, false)) {
+        retryReadLater();
+      }
+    }
+  }
+
+  protected void retryReadLater() {
+    Network<?> network = connection.network();
+    NetworkConfig config = network.config();
+    network
+        .scheduledExecutor()
+        .schedule(this::startRead, config.retryDelayInMs(), TimeUnit.MILLISECONDS);
   }
 
   /**
@@ -287,7 +318,7 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
   }
 
   protected void readAndHandlePacket(ByteBuffer bufferToRead, int remainingDataLength, R packetInstance) {
-    if (packetInstance.read(bufferToRead, remainingDataLength)) {
+    if (packetInstance.read(connection, bufferToRead, remainingDataLength)) {
       packetHandler.accept(packetInstance);
     } else {
       log.error(remoteAddress(), packetInstance,
@@ -362,22 +393,43 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
    */
   protected void handleReceivedData(int receivedBytes, ByteBuffer readingBuffer) {
     updateActivityFunction.run();
-
     if (receivedBytes == -1) {
+      handleEmptyReadFromChannel();
+    } else {
+      log.debug(remoteAddress(), receivedBytes, "[%s] Received [%s] bytes from channel"::formatted);
+      readingBuffer.flip();
+      emptyReadsCounter.set(0);
+      try {
+        readPackets(readingBuffer);
+      } catch (Exception e) {
+        log.error(e);
+      }
+      startReadImpl();
+    }
+  }
+
+  protected void handleEmptyReadFromChannel() {
+    log.debug(remoteAddress(), "[%s] Received empty bytes from channel"::formatted);
+
+    if (connection.closed()) {
+      reading.compareAndSet(true, false);
+      return;
+    } else if (!socketChannel.isOpen()) {
       connection.close();
       return;
     }
 
-    log.debug(remoteAddress(), receivedBytes, "[%s] Received [%s] bytes from channel"::formatted);
-    readingBuffer.flip();
-    try {
-      readPackets(readingBuffer);
-    } catch (Exception e) {
-      log.error(e);
+    NetworkConfig config = connection
+        .network()
+        .config();
+
+    if (emptyReadsCounter.incrementAndGet() > config.maxEmptyReadsBeforeClose()) {
+      connection.close();
+      return;
     }
 
     if (reading.compareAndSet(true, false)) {
-      startRead();
+      retryReadLater();
     }
   }
 
@@ -388,7 +440,15 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
    * @param readingBuffer the currently reading buffer.
    */
   protected void handleFailedReceiving(Throwable exception, ByteBuffer readingBuffer) {
+    if (exception instanceof InterruptedByTimeoutException) {
+      if (reading.compareAndSet(true, false)) {
+        retryReadLater();
+      }
+      return;
+    }
     if (exception instanceof AsynchronousCloseException) {
+      log.info(remoteAddress(), "[%s] Connection was closed"::formatted);
+    } else if (exception instanceof ClosedChannelException) {
       log.info(remoteAddress(), "[%s] Connection was closed"::formatted);
     } else {
       log.error(exception);
@@ -434,11 +494,10 @@ public abstract class AbstractNetworkPacketReader<R extends ReadableNetworkPacke
 
   @Override
   public void close() {
-
     bufferAllocator
         .putReadBuffer(readBuffer)
         .putPendingBuffer(pendingBuffer);
-
     freeTempBigBuffers();
+    reading.compareAndSet(true, false);
   }
 }

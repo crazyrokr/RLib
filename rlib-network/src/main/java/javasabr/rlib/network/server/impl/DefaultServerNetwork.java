@@ -11,6 +11,8 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +31,8 @@ import javasabr.rlib.network.server.ServerNetwork;
 import javasabr.rlib.network.util.NetworkUtils;
 import lombok.AccessLevel;
 import lombok.CustomLog;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -39,11 +43,12 @@ import reactor.core.publisher.FluxSink;
  * @author JavaSaBr
  */
 @CustomLog
+@Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
-public class DefaultServerNetwork<C extends UnsafeConnection<?, ?>>
+public class DefaultServerNetwork<C extends UnsafeConnection<C>>
     extends AbstractNetwork<C> implements ServerNetwork<C> {
 
-  private interface ServerCompletionHandler<C extends UnsafeConnection<?, ?>> extends
+  private interface ServerCompletionHandler<C extends UnsafeConnection<C>> extends
       CompletionHandler<AsynchronousSocketChannel, DefaultServerNetwork<C>> {}
 
   private final ServerCompletionHandler<C> acceptHandler = new ServerCompletionHandler<>() {
@@ -70,6 +75,9 @@ public class DefaultServerNetwork<C extends UnsafeConnection<?, ?>>
     }
   };
 
+  @Getter
+  ScheduledExecutorService scheduledExecutor;
+
   AsynchronousChannelGroup group;
   AsynchronousServerSocketChannel channel;
   MutableArray<Consumer<? super C>> subscribers;
@@ -79,6 +87,7 @@ public class DefaultServerNetwork<C extends UnsafeConnection<?, ?>>
       BiFunction<Network<C>, AsynchronousSocketChannel, C> channelToConnection) {
     super(config, channelToConnection);
     this.group = Utils.uncheckedGet(buildExecutor(config), AsynchronousChannelGroup::withThreadPool);
+    this.scheduledExecutor = buildScheduledExecutor(config);
     this.channel = Utils.uncheckedGet(group, AsynchronousServerSocketChannel::open);
     this.subscribers = ArrayFactory.copyOnModifyArray(Consumer.class);
     log.info(config, DefaultServerNetwork::buildConfigDescription);
@@ -183,9 +192,32 @@ public class DefaultServerNetwork<C extends UnsafeConnection<?, ?>>
     return executorService;
   }
 
+  protected ScheduledExecutorService buildScheduledExecutor(ServerNetworkConfig config) {
+
+    var threadFactory = new GroupThreadFactory(
+        config.scheduledThreadGroupName(),
+        config.threadConstructor(),
+        config.threadPriority(),
+        false);
+
+    ScheduledExecutorService executorService;
+    if (config.threadGroupMinSize() < config.threadGroupMaxSize()) {
+      executorService = new ScheduledThreadPoolExecutor(
+          config.scheduledThreadGroupSize(),
+          threadFactory,
+          new ThreadPoolExecutor.CallerRunsPolicy());
+    } else {
+      executorService = Executors.newScheduledThreadPool(config.threadGroupMinSize(), threadFactory);
+    }
+
+    // activate the executor
+    executorService.submit(() -> {});
+    return executorService;
+  }
+
   private static String buildConfigDescription(ServerNetworkConfig conf) {
     return "Server network configuration: {\n" + "  minThreads: " + conf.threadGroupMinSize() + ",\n" + "  maxThreads: "
-        + conf.threadGroupMaxSize() + ",\n" + "  priority: " + conf.threadPriority() + ",\n" + "  groupName: \""
+        + conf.threadGroupMaxSize() + ",\n" + "  priority: " + conf.threadPriority() + ",\n" + "  threadGroupName: \""
         + conf.threadGroupName() + "\",\n" + "  readBufferSize: " + conf.readBufferSize() + ",\n"
         + "  pendingBufferSize: " + conf.pendingBufferSize() + ",\n" + "  writeBufferSize: " + conf.writeBufferSize()
         + "\n" + "}";

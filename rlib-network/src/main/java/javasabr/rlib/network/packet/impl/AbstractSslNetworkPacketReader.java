@@ -7,7 +7,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.function.Consumer;
 import javasabr.rlib.common.util.BufferUtils;
 import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
+import javasabr.rlib.network.UnsafeConnection;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javasabr.rlib.network.util.NetworkUtils;
@@ -28,8 +28,9 @@ import lombok.experimental.FieldDefaults;
 @CustomLog
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPacket, C extends Connection<R, ?>>
-    extends AbstractNetworkPacketReader<R, C> {
+public abstract class AbstractSslNetworkPacketReader<
+    R extends ReadableNetworkPacket<C>,
+    C extends UnsafeConnection<C>> extends AbstractNetworkPacketReader<R, C> {
 
   private static final ByteBuffer[] EMPTY_BUFFERS = {
       NetworkUtils.EMPTY_BUFFER
@@ -38,7 +39,7 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
   private static final int SKIP_READ_PACKETS = -1;
 
   final SSLEngine sslEngine;
-  final Consumer<WritableNetworkPacket> packetWriter;
+  final Consumer<WritableNetworkPacket<C>> packetWriter;
 
   @Getter(value = AccessLevel.PROTECTED)
   volatile ByteBuffer sslNetworkBuffer;
@@ -54,7 +55,7 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
       Runnable updateActivityFunction,
       Consumer<? super R> readPacketHandler,
       SSLEngine sslEngine,
-      Consumer<WritableNetworkPacket> packetWriter,
+      Consumer<WritableNetworkPacket<C>> packetWriter,
       int maxPacketsByRead) {
     super(connection, channel, bufferAllocator, updateActivityFunction, readPacketHandler, maxPacketsByRead);
     this.sslEngine = sslEngine;
@@ -157,7 +158,7 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
         }
         case NEED_WRAP: {
           log.debug(remoteAddress, "[%s] Send command to wrap data"::formatted);
-          packetWriter.accept(SslWrapRequestPacket.getInstance());
+          packetWriter.accept(SslWrapRequestNetworkPacket.getInstance());
           NetworkUtils.cleanNetworkBuffer(networkBuffer);
           return SKIP_READ_PACKETS;
         }
@@ -179,7 +180,7 @@ public abstract class AbstractSslNetworkPacketReader<R extends ReadableNetworkPa
     if (!networkBuffer.hasRemaining()) {
       // if buffer is empty and status is FINISHED then we can notify writer
       if (handshakeStatus == HandshakeStatus.FINISHED) {
-        packetWriter.accept(SslWrapRequestPacket.getInstance());
+        packetWriter.accept(SslWrapRequestNetworkPacket.getInstance());
       }
       NetworkUtils.cleanNetworkBuffer(networkBuffer);
       return SKIP_READ_PACKETS;

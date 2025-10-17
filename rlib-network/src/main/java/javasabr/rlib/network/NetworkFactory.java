@@ -23,13 +23,13 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public final class NetworkFactory {
 
-  public static <C extends UnsafeConnection<?, ?>> ClientNetwork<C> clientNetwork(
+  public static <C extends UnsafeConnection<C>> ClientNetwork<C> clientNetwork(
       NetworkConfig networkConfig,
       BiFunction<Network<C>, AsynchronousSocketChannel, C> channelToConnection) {
     return new DefaultClientNetwork<>(networkConfig, channelToConnection);
   }
 
-  public static <C extends UnsafeConnection<?, ?>> ServerNetwork<C> serverNetwork(
+  public static <C extends UnsafeConnection<C>> ServerNetwork<C> serverNetwork(
       ServerNetworkConfig networkConfig,
       BiFunction<Network<C>, AsynchronousSocketChannel, C> channelToConnection) {
     return new DefaultServerNetwork<>(networkConfig, channelToConnection);
@@ -65,7 +65,7 @@ public final class NetworkFactory {
    * Create id based packet default asynchronous client network.
    */
   public static ClientNetwork<DefaultConnection> defaultClientNetwork(
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> packetRegistry) {
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket<DefaultConnection>, DefaultConnection> packetRegistry) {
     return defaultClientNetwork(
         NetworkConfig.DEFAULT_CLIENT,
         new DefaultBufferAllocator(NetworkConfig.DEFAULT_CLIENT),
@@ -78,8 +78,8 @@ public final class NetworkFactory {
   public static ClientNetwork<DefaultConnection> defaultClientNetwork(
       NetworkConfig networkConfig,
       BufferAllocator bufferAllocator,
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> packetRegistry) {
-    return clientNetwork(
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket<DefaultConnection>, DefaultConnection> packetRegistry) {
+    return NetworkFactory.clientNetwork(
         networkConfig,
         (network, channel) -> new DefaultConnection(network, channel, bufferAllocator, packetRegistry));
   }
@@ -139,7 +139,7 @@ public final class NetworkFactory {
    * Create id based packet default asynchronous server network.
    */
   public static ServerNetwork<DefaultConnection> defaultServerNetwork(
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> packetRegistry) {
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket<DefaultConnection>, DefaultConnection> packetRegistry) {
     return defaultServerNetwork(
         ServerNetworkConfig.DEFAULT_SERVER,
         new DefaultBufferAllocator(ServerNetworkConfig.DEFAULT_SERVER),
@@ -152,7 +152,7 @@ public final class NetworkFactory {
   public static ServerNetwork<DefaultConnection> defaultServerNetwork(
       ServerNetworkConfig networkConfig,
       BufferAllocator bufferAllocator,
-      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket> packetRegistry) {
+      ReadableNetworkPacketRegistry<DefaultReadableNetworkPacket<DefaultConnection>, DefaultConnection> packetRegistry) {
     return serverNetwork(
         networkConfig,
         (network, channel) -> new DefaultConnection(network, channel, bufferAllocator, packetRegistry));

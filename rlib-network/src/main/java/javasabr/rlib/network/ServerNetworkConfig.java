@@ -32,7 +32,13 @@ public interface ServerNetworkConfig extends NetworkConfig {
     @Builder.Default
     private int writeBufferSize = 2048;
     @Builder.Default
-    private int threadGroupSize = 1;
+    private int retryDelayInMs = 1000;
+    @Builder.Default
+    private int threadGroupMinSize = 1;
+    @Builder.Default
+    private int threadGroupMaxSize = 1;
+    @Builder.Default
+    private int scheduledThreadGroupSize = 1;
     @Builder.Default
     private int threadPriority = Thread.NORM_PRIORITY;
   }
@@ -40,13 +46,13 @@ public interface ServerNetworkConfig extends NetworkConfig {
   ServerNetworkConfig DEFAULT_SERVER = new ServerNetworkConfig() {
 
     @Override
-    public int threadGroupMinSize() {
-      return 1;
+    public String threadGroupName() {
+      return "ServerNetworkThread";
     }
 
     @Override
-    public String threadGroupName() {
-      return "ServerNetworkThread";
+    public String scheduledThreadGroupName() {
+      return "ServerScheduledNetworkThread";
     }
   };
 
@@ -62,6 +68,13 @@ public interface ServerNetworkConfig extends NetworkConfig {
    */
   default int threadGroupMaxSize() {
     return threadGroupMinSize();
+  }
+
+  /**
+   * Get a size of network scheduled thread executor.
+   */
+  default int scheduledThreadGroupSize() {
+    return 1;
   }
 
   /**

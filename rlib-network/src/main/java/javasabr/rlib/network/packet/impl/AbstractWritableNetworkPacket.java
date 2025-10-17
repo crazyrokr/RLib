@@ -2,6 +2,7 @@ package javasabr.rlib.network.packet.impl;
 
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
+import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.packet.WritableNetworkPacket;
 import lombok.CustomLog;
 
@@ -11,16 +12,16 @@ import lombok.CustomLog;
  * @author JavaSaBr
  */
 @CustomLog
-public abstract class AbstractWritableNetworkPacket extends AbstractNetworkPacket
-    implements WritableNetworkPacket {
+public abstract class AbstractWritableNetworkPacket<C extends Connection<C>>
+    extends AbstractNetworkPacket<C> implements WritableNetworkPacket<C> {
 
   @Override
-  public boolean write(ByteBuffer buffer) {
+  public boolean write(C connection, ByteBuffer buffer) {
     try {
-      writeImpl(buffer);
+      writeImpl(connection, buffer);
       return true;
     } catch (Exception e) {
-      handleException(buffer, e);
+      handleException(connection, buffer, e);
       return false;
     }
   }
@@ -28,7 +29,7 @@ public abstract class AbstractWritableNetworkPacket extends AbstractNetworkPacke
   /**
    * The process of writing this packet to the buffer.
    */
-  protected void writeImpl(ByteBuffer buffer) {}
+  protected void writeImpl(C connection, ByteBuffer buffer) {}
 
   /**
    * Write 1 byte to the buffer.
@@ -59,6 +60,13 @@ public abstract class AbstractWritableNetworkPacket extends AbstractNetworkPacke
   }
 
   /**
+   * Write 8 bytes to the buffer.
+   */
+  protected void writeDouble(ByteBuffer buffer, double value) {
+    buffer.putDouble(value);
+  }
+
+  /**
    * Write 4 bytes to the buffer.
    */
   protected void writeInt(ByteBuffer buffer, int value) {
@@ -78,6 +86,29 @@ public abstract class AbstractWritableNetworkPacket extends AbstractNetworkPacke
   protected void writeShort(ByteBuffer buffer, int value) {
     buffer.putShort((short) value);
   }
+
+  /**
+   * Writes bytes to the buffer.
+   */
+  protected void writeBytes(ByteBuffer buffer, byte[] bytes) {
+    buffer.put(bytes);
+  }
+
+  /**
+   * Writes bytes to the buffer.
+   */
+  protected void writeBytes(ByteBuffer buffer, byte[] bytes, int offset, int length) {
+    buffer.put(bytes, offset, length);
+  }
+
+  /**
+   * Writes bytes to the buffer.
+   */
+  protected void writeByteArray(ByteBuffer buffer, byte[] bytes) {
+    buffer.putInt(bytes.length);
+    buffer.put(bytes);
+  }
+
 
   /**
    * Writes the string to the buffer.

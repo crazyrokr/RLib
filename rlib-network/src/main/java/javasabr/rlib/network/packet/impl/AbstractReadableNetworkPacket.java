@@ -2,7 +2,6 @@ package javasabr.rlib.network.packet.impl;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
-import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import lombok.AccessLevel;
@@ -16,33 +15,50 @@ import lombok.NoArgsConstructor;
  */
 @CustomLog
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractReadableNetworkPacket
-    extends AbstractNetworkPacket implements ReadableNetworkPacket {
+public abstract class AbstractReadableNetworkPacket<C extends Connection<C>>
+    extends AbstractNetworkPacket<C> implements ReadableNetworkPacket<C> {
 
   @Override
-  public boolean read(ByteBuffer buffer, int remainingDataLength) {
+  public boolean read(C connection, ByteBuffer buffer, int remainingDataLength) {
     int oldLimit = buffer.limit();
     int oldPosition = buffer.position();
     try {
       buffer.limit(oldPosition + remainingDataLength);
-      readImpl(buffer);
+      readImpl(connection, buffer);
       return true;
     } catch (Exception e) {
       buffer.position(oldPosition);
-      handleException(buffer, e);
+      handleException(connection, buffer, e);
       return false;
     } finally {
       buffer.limit(oldLimit);
     }
   }
 
-  protected void readImpl(ByteBuffer buffer) {}
+  protected void readImpl(C connection, ByteBuffer buffer) {}
 
   /**
    * Reads 1 byte from the buffer.
    */
   protected int readByte(ByteBuffer buffer) {
     return buffer.get();
+  }
+
+  /**
+   * Reads 1 byte from the buffer.
+   */
+  protected int readByteUnsigned(ByteBuffer buffer) {
+    return buffer.get() & 0xFF;
+  }
+
+  /**
+   * Fills byte array with data from the buffer.
+   */
+  protected byte[] readByteArray(ByteBuffer buffer) {
+    int size = readInt(buffer);
+    byte[] result = new byte[size];
+    buffer.get(result);
+    return result;
   }
 
   /**
@@ -81,6 +97,14 @@ public abstract class AbstractReadableNetworkPacket
   }
 
   /**
+   * Reads 4 bytes from buffer.
+   */
+  protected long readIntUnsigned(ByteBuffer buffer) {
+    return buffer.getInt() & 0xFFFFFFFFL;
+  }
+
+
+  /**
    * Reads 8 bytes from buffer.
    */
   protected long readLong(ByteBuffer buffer) {
@@ -92,6 +116,13 @@ public abstract class AbstractReadableNetworkPacket
    */
   protected int readShort(ByteBuffer buffer) {
     return buffer.getShort();
+  }
+
+  /**
+   * Reads 2 bytes from buffer.
+   */
+  protected int readShortUnsigned(ByteBuffer buffer) {
+    return buffer.getShort() & 0xFFFF;
   }
 
   /**

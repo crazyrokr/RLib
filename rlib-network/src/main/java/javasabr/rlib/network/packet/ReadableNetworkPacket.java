@@ -1,13 +1,14 @@
 package javasabr.rlib.network.packet;
 
 import java.nio.ByteBuffer;
+import javasabr.rlib.network.Connection;
 
 /**
  * The interface to implement a readable network packet.
  *
  * @author JavaSaBr
  */
-public interface ReadableNetworkPacket extends NetworkPacket {
+public interface ReadableNetworkPacket<C extends Connection<C>> extends NetworkPacket<C> {
 
   /**
    * Read packet's data from byte buffer.
@@ -16,5 +17,5 @@ public interface ReadableNetworkPacket extends NetworkPacket {
    * @param remainingDataLength the expected remaining data length.
    * @return true if reading was success.
    */
-  boolean read(ByteBuffer buffer, int remainingDataLength);
+  boolean read(C connection, ByteBuffer buffer, int remainingDataLength);
 }

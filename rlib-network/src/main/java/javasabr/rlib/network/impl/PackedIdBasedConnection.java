@@ -7,7 +7,7 @@ import javasabr.rlib.network.Connection;
  *
  * @author JavaSaBr
  */
-public interface PackedIdBasedConnection extends Connection {
+public interface PackedIdBasedConnection<C extends Connection<C>> extends Connection<C> {
 
   /**
    * Get length of packet's header with packet's data length.

@@ -2,20 +2,17 @@ package javasabr.rlib.network.impl;
 
 import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.Network;
-import javasabr.rlib.network.packet.impl.StringReadablePacket;
-import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
+import javasabr.rlib.network.packet.impl.StringReadableNetworkPacket;
 import javax.net.ssl.SSLContext;
 
 /**
  * @author JavaSaBr
  */
-public class StringDataSslConnection extends
-    DefaultDataSslConnection<StringReadablePacket, StringWritableNetworkPacket> {
+public class StringDataSslConnection extends DefaultDataSslConnection<StringDataSslConnection> {
 
   public StringDataSslConnection(
-      Network<? extends Connection<StringReadablePacket, StringWritableNetworkPacket>> network,
+      Network<StringDataSslConnection> network,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       SSLContext sslContext,
@@ -24,7 +21,7 @@ public class StringDataSslConnection extends
   }
 
   @Override
-  protected StringReadablePacket createReadablePacket() {
-    return new StringReadablePacket();
+  protected StringReadableNetworkPacket<StringDataSslConnection> createReadablePacket() {
+    return new StringReadableNetworkPacket<>();
   }
 }

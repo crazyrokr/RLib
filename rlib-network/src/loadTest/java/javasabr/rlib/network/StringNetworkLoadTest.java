@@ -19,6 +19,7 @@ import javasabr.rlib.network.ServerNetworkConfig.SimpleServerNetworkConfig;
 import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.StringDataConnection;
+import javasabr.rlib.network.packet.impl.StringReadableNetworkPacket;
 import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 import javasabr.rlib.network.server.ServerNetwork;
 import lombok.CustomLog;
@@ -77,7 +78,7 @@ public class StringNetworkLoadTest {
             int delay = random.nextInt(MAX_SEND_DELAY);
             ScheduledFuture<?> schedule = executor.schedule(
                 () -> {
-                  StringWritableNetworkPacket message = newMessage(10, 10240);
+                  var message = newMessage(10, 10240);
                   connection.send(message);
                 }, delay, TimeUnit.MILLISECONDS);
             tasks.add(schedule);
@@ -120,7 +121,7 @@ public class StringNetworkLoadTest {
 
     var serverConfig = SimpleServerNetworkConfig
         .builder()
-        .threadGroupSize(10)
+        .threadGroupMaxSize(10)
         .writeBufferSize(1024)
         .readBufferSize(1024)
         .pendingBufferSize(2048)
@@ -141,10 +142,11 @@ public class StringNetworkLoadTest {
 
     serverNetwork.onAccept(accepted -> accepted
         .onReceive((connection, packet) -> {
+          StringReadableNetworkPacket<StringDataConnection> receivedPacket = (StringReadableNetworkPacket<StringDataConnection>) packet;
           statistics
               .receivedClientPackersPerSecond()
               .accumulate(1);
-          connection.send(new StringWritableNetworkPacket("Echo: " + packet.data()));
+          connection.send(new StringWritableNetworkPacket<>("Echo: " + receivedPacket.data()));
           statistics
               .sentEchoPackersPerSecond()
               .accumulate(1);
@@ -200,7 +202,9 @@ public class StringNetworkLoadTest {
     }, 1, 1, TimeUnit.SECONDS);
   }
 
-  private static StringWritableNetworkPacket newMessage(int minMessageLength, int maxMessageLength) {
-    return new StringWritableNetworkPacket(StringUtils.generate(minMessageLength, maxMessageLength));
+  private static StringWritableNetworkPacket<StringDataConnection> newMessage(
+      int minMessageLength,
+      int maxMessageLength) {
+    return new StringWritableNetworkPacket<>(StringUtils.generate(minMessageLength, maxMessageLength));
   }
 }

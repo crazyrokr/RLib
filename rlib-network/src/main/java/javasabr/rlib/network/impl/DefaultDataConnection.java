@@ -2,12 +2,10 @@ package javasabr.rlib.network.impl;
 
 import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.Network;
 import javasabr.rlib.network.packet.NetworkPacketReader;
 import javasabr.rlib.network.packet.NetworkPacketWriter;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
-import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javasabr.rlib.network.packet.impl.DefaultNetworkPacketReader;
 import javasabr.rlib.network.packet.impl.DefaultNetworkPacketWriter;
 import lombok.AccessLevel;
@@ -21,8 +19,7 @@ import lombok.experimental.FieldDefaults;
 @Getter(AccessLevel.PROTECTED)
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class DefaultDataConnection<R extends ReadableNetworkPacket, W extends WritableNetworkPacket>
-    extends AbstractConnection<R, W> {
+public abstract class DefaultDataConnection<C extends DefaultDataConnection<C>> extends AbstractConnection<C> {
 
   final NetworkPacketReader packetReader;
   final NetworkPacketWriter packetWriter;
@@ -30,7 +27,7 @@ public abstract class DefaultDataConnection<R extends ReadableNetworkPacket, W e
   final int packetLengthHeaderSize;
 
   public DefaultDataConnection(
-      Network<? extends Connection<R, W>> network,
+      Network<C> network,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator,
       int maxPacketsByRead,
@@ -43,7 +40,7 @@ public abstract class DefaultDataConnection<R extends ReadableNetworkPacket, W e
 
   protected NetworkPacketReader createPacketReader() {
     return new DefaultNetworkPacketReader<>(
-        this,
+        (C) this,
         channel,
         bufferAllocator,
         this::updateLastActivity,
@@ -54,8 +51,8 @@ public abstract class DefaultDataConnection<R extends ReadableNetworkPacket, W e
   }
 
   protected NetworkPacketWriter createPacketWriter() {
-    return new DefaultNetworkPacketWriter<W, Connection<R, W>>(
-        this,
+    return new DefaultNetworkPacketWriter<>(
+        (C) this,
         channel,
         bufferAllocator,
         this::updateLastActivity,
@@ -65,5 +62,5 @@ public abstract class DefaultDataConnection<R extends ReadableNetworkPacket, W e
         packetLengthHeaderSize);
   }
 
-  protected abstract R createReadablePacket();
+  protected abstract ReadableNetworkPacket<C> createReadablePacket();
 }

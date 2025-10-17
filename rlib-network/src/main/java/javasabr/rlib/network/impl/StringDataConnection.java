@@ -2,25 +2,23 @@ package javasabr.rlib.network.impl;
 
 import java.nio.channels.AsynchronousSocketChannel;
 import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.Network;
-import javasabr.rlib.network.packet.impl.StringReadablePacket;
-import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
+import javasabr.rlib.network.packet.impl.StringReadableNetworkPacket;
 
 /**
  * @author JavaSaBr
  */
-public class StringDataConnection extends DefaultDataConnection<StringReadablePacket, StringWritableNetworkPacket> {
+public class StringDataConnection extends DefaultDataConnection<StringDataConnection> {
 
   public StringDataConnection(
-      Network<? extends Connection<StringReadablePacket, StringWritableNetworkPacket>> network,
+      Network<StringDataConnection> network,
       AsynchronousSocketChannel channel,
       BufferAllocator bufferAllocator) {
     super(network, channel, bufferAllocator, 100, 2);
   }
 
   @Override
-  protected StringReadablePacket createReadablePacket() {
-    return new StringReadablePacket();
+  protected StringReadableNetworkPacket<StringDataConnection> createReadablePacket() {
+    return new StringReadableNetworkPacket<>();
   }
 }

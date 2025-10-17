@@ -7,6 +7,7 @@ import javasabr.rlib.collections.array.Array;
 import javasabr.rlib.common.util.ArrayUtils;
 import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.common.util.ObjectUtils;
+import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.annotation.NetworkPacketDescription;
 import javasabr.rlib.network.packet.IdBasedReadableNetworkPacket;
 import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
@@ -27,8 +28,9 @@ import org.jspecify.annotations.Nullable;
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public class IdBasedReadableNetworkPacketRegistry<R extends IdBasedReadableNetworkPacket<R>>
-    implements ReadableNetworkPacketRegistry<R> {
+public class IdBasedReadableNetworkPacketRegistry<
+    R extends IdBasedReadableNetworkPacket<C>,
+    C extends Connection<C>> implements ReadableNetworkPacketRegistry<R, C> {
 
   @Getter(AccessLevel.PROTECTED)
   final Class<? extends R> type;
@@ -46,7 +48,7 @@ public class IdBasedReadableNetworkPacketRegistry<R extends IdBasedReadableNetwo
    *
    * @throws IllegalArgumentException if found a class without description annotation or if found duplication by id.
    */
-  public IdBasedReadableNetworkPacketRegistry<R> register(Array<Class<? extends R>> classes) {
+  public IdBasedReadableNetworkPacketRegistry<R, C> register(Array<Class<? extends R>> classes) {
     return register(classes.toArray(), classes.size());
   }
 
@@ -57,7 +59,7 @@ public class IdBasedReadableNetworkPacketRegistry<R extends IdBasedReadableNetwo
    * id.
    */
   @SafeVarargs
-  public final IdBasedReadableNetworkPacketRegistry<R> register(Class<? extends R>... classes) {
+  public final IdBasedReadableNetworkPacketRegistry<R, C> register(Class<? extends R>... classes) {
     return register(classes, classes.length);
   }
 
@@ -66,7 +68,7 @@ public class IdBasedReadableNetworkPacketRegistry<R extends IdBasedReadableNetwo
    *
    * @throws IllegalArgumentException if found a class without description annotation or if found duplication by id.
    */
-  public IdBasedReadableNetworkPacketRegistry<R> register(Class<? extends R>[] classes, int length) {
+  public IdBasedReadableNetworkPacketRegistry<R, C> register(Class<? extends R>[] classes, int length) {
 
     Optional<Class<? extends R>> incorrectClass = Arrays
         .stream(classes, 0, length)
@@ -114,7 +116,7 @@ public class IdBasedReadableNetworkPacketRegistry<R extends IdBasedReadableNetwo
    * @throws IllegalArgumentException if this class doesn't have {@link NetworkPacketDescription}, wrong id or some class is
    * already presented with the same id.
    */
-  public IdBasedReadableNetworkPacketRegistry<R> register(Class<? extends R> cs) {
+  public IdBasedReadableNetworkPacketRegistry<R, C> register(Class<? extends R> cs) {
     return register(cs, () -> ClassUtils.newInstance(cs));
   }
 
@@ -125,7 +127,7 @@ public class IdBasedReadableNetworkPacketRegistry<R extends IdBasedReadableNetwo
    * @throws IllegalArgumentException if this class doesn't have {@link NetworkPacketDescription}, wrong id or some class is
    * already presented with the same id.
    */
-  public <P extends R> IdBasedReadableNetworkPacketRegistry<R> register(Class<P> cs, Supplier<P> factory) {
+  public <P extends R> IdBasedReadableNetworkPacketRegistry<R, C> register(Class<P> cs, Supplier<P> factory) {
 
     var description = cs.getAnnotation(NetworkPacketDescription.class);
     if (description == null) {

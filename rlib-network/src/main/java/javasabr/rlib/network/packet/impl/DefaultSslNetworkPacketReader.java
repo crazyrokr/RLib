@@ -5,7 +5,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
+import javasabr.rlib.network.UnsafeConnection;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javax.net.ssl.SSLEngine;
@@ -17,8 +17,9 @@ import org.jspecify.annotations.Nullable;
  * @author JavaSaBR
  */
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class DefaultSslNetworkPacketReader<R extends ReadableNetworkPacket, C extends Connection<R, ?>> extends
-    AbstractSslNetworkPacketReader<R, C> {
+public class DefaultSslNetworkPacketReader<
+    R extends ReadableNetworkPacket<C>,
+    C extends UnsafeConnection<C>> extends AbstractSslNetworkPacketReader<R, C> {
 
   final IntFunction<R> packetResolver;
   final int packetLengthHeaderSize;
@@ -31,7 +32,7 @@ public class DefaultSslNetworkPacketReader<R extends ReadableNetworkPacket, C ex
       Consumer<R> packetHandler,
       IntFunction<R> packetResolver,
       SSLEngine sslEngine,
-      Consumer<WritableNetworkPacket> packetWriter,
+      Consumer<WritableNetworkPacket<C>> packetWriter,
       int packetLengthHeaderSize,
       int maxPacketsByRead) {
     super(

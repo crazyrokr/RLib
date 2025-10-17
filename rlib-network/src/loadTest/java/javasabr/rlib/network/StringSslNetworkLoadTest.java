@@ -19,10 +19,8 @@ import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.ServerNetworkConfig.SimpleServerNetworkConfig;
 import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
-import javasabr.rlib.network.impl.StringDataConnection;
 import javasabr.rlib.network.impl.StringDataSslConnection;
-import javasabr.rlib.network.packet.impl.AbstractSslNetworkPacketReader;
-import javasabr.rlib.network.packet.impl.AbstractSslNetworkPacketWriter;
+import javasabr.rlib.network.packet.impl.StringReadableNetworkPacket;
 import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 import javasabr.rlib.network.server.ServerNetwork;
 import javasabr.rlib.network.util.NetworkUtils;
@@ -83,7 +81,7 @@ public class StringSslNetworkLoadTest {
             int delay = random.nextInt(MAX_SEND_DELAY);
             ScheduledFuture<?> schedule = executor.schedule(
                 () -> {
-                  StringWritableNetworkPacket message = newMessage(10, 10240); // 10240
+                  var message = newMessage(10, 10240); // 10240
                   connection.send(message);
                 }, delay, TimeUnit.MILLISECONDS);
             tasks.add(schedule);
@@ -128,7 +126,7 @@ public class StringSslNetworkLoadTest {
 
     var serverConfig = SimpleServerNetworkConfig
         .builder()
-        .threadGroupSize(10)
+        .threadGroupMaxSize(10)
         .writeBufferSize(1024)
         .readBufferSize(1024)
         .pendingBufferSize(2048)
@@ -153,10 +151,11 @@ public class StringSslNetworkLoadTest {
 
     serverNetwork.onAccept(accepted -> accepted
         .onReceive((connection, packet) -> {
+          StringReadableNetworkPacket<StringDataSslConnection> receivedPacket = (StringReadableNetworkPacket<StringDataSslConnection>) packet;
           statistics
               .receivedClientPackersPerSecond()
               .accumulate(1);
-          connection.send(new StringWritableNetworkPacket("Echo: " + packet.data()));
+          connection.send(new StringWritableNetworkPacket<>("Echo: " + receivedPacket.data()));
           statistics
               .sentEchoPackersPerSecond()
               .accumulate(1);
@@ -215,7 +214,9 @@ public class StringSslNetworkLoadTest {
     }, 1, 1, TimeUnit.SECONDS);
   }
 
-  private static StringWritableNetworkPacket newMessage(int minMessageLength, int maxMessageLength) {
-    return new StringWritableNetworkPacket(StringUtils.generate(minMessageLength, maxMessageLength));
+  private static StringWritableNetworkPacket<StringDataSslConnection> newMessage(
+      int minMessageLength,
+      int maxMessageLength) {
+    return new StringWritableNetworkPacket<>(StringUtils.generate(minMessageLength, maxMessageLength));
   }
 }

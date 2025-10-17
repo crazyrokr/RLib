@@ -5,7 +5,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
+import javasabr.rlib.network.UnsafeConnection;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -15,8 +15,9 @@ import org.jspecify.annotations.Nullable;
  * @author JavaSaBR
  */
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class DefaultNetworkPacketReader<R extends ReadableNetworkPacket, C extends Connection<R, ?>>
-    extends AbstractNetworkPacketReader<R, C> {
+public class DefaultNetworkPacketReader<
+    R extends ReadableNetworkPacket<C>,
+    C extends UnsafeConnection<C>> extends AbstractNetworkPacketReader<R, C> {
 
   final IntFunction<R> readablePacketFactory;
   final int packetLengthHeaderSize;

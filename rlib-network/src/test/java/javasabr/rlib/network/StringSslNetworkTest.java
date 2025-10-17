@@ -18,16 +18,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import javasabr.rlib.common.util.ObjectUtils;
 import javasabr.rlib.common.util.StringUtils;
-import javasabr.rlib.common.util.ThreadUtils;
 import javasabr.rlib.common.util.Utils;
-import javasabr.rlib.logger.api.LoggerLevel;
-import javasabr.rlib.logger.api.LoggerManager;
 import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.StringDataSslConnection;
-import javasabr.rlib.network.packet.impl.AbstractSslNetworkPacketReader;
-import javasabr.rlib.network.packet.impl.AbstractSslNetworkPacketWriter;
-import javasabr.rlib.network.packet.impl.StringReadablePacket;
+import javasabr.rlib.network.packet.ReadableNetworkPacket;
+import javasabr.rlib.network.packet.impl.StringReadableNetworkPacket;
 import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 import javasabr.rlib.network.server.ServerNetwork;
 import javasabr.rlib.network.util.NetworkUtils;
@@ -97,20 +93,19 @@ public class StringSslNetworkTest extends BaseNetworkTest {
         .accepted()
         .flatMap(Connection::receivedEvents)
         .subscribe(event -> {
-          var message = event.packet().data();
+          var message = ((StringReadableNetworkPacket<?>) event.packet()).data();
           log.info(message, "Received from client:[%s]"::formatted);
-          event.connection().send(new StringWritableNetworkPacket("Echo: " + message));
+          event.connection().send(new StringWritableNetworkPacket<>("Echo: " + message));
         });
 
     SSLContext clientSslContext = NetworkUtils.createAllTrustedClientSslContext();
     SSLSocketFactory sslSocketFactory = clientSslContext.getSocketFactory();
     SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(serverAddress.getHostName(), serverAddress.getPort());
 
-    StringWritableNetworkPacket writableNetworkPacket = new StringWritableNetworkPacket("Hello SSL");
-
+    var writableNetworkPacket = new StringWritableNetworkPacket<StringDataSslConnection>("Hello SSL");
     var buffer = ByteBuffer.allocate(1024);
     buffer.position(2);
-    writableNetworkPacket.write(buffer);
+    writableNetworkPacket.write(null, buffer);
     buffer.putShort(0, (short) buffer.position());
     buffer.flip();
 
@@ -128,8 +123,8 @@ public class StringSslNetworkTest extends BaseNetworkTest {
         .flip();
     short packetLength = buffer.getShort();
 
-    StringReadablePacket response = new StringReadablePacket();
-    response.read(buffer, packetLength - 2);
+    var response = new StringReadableNetworkPacket<StringDataSslConnection>();
+    response.read(null, buffer, packetLength - 2);
 
     log.info(response.data(), "Response:[%s]"::formatted);
 
@@ -159,11 +154,12 @@ public class StringSslNetworkTest extends BaseNetworkTest {
 
     clientNetwork
         .connectReactive(new InetSocketAddress("localhost", serverPort))
-        .doOnNext(connection -> connection.send(new StringWritableNetworkPacket("Hello SSL")))
+        .doOnNext(connection -> connection.send(new StringWritableNetworkPacket<>("Hello SSL")))
         .doOnError(Throwable::printStackTrace)
         .flatMapMany(Connection::receivedEvents)
         .subscribe(event -> {
-          log.info(event.packet().data(), "Received from server:[%s]"::formatted);
+          var message = ((StringReadableNetworkPacket<?>) event.packet()).data();
+          log.info(message, "Received from server:[%s]"::formatted);
           counter.countDown();
         });
 
@@ -180,18 +176,17 @@ public class StringSslNetworkTest extends BaseNetworkTest {
 
     var dataLength = buffer.getShort();
 
-    var receivedPacket = new StringReadablePacket();
-    receivedPacket.read(buffer, dataLength);
+    var receivedPacket = new StringReadableNetworkPacket<StringDataSslConnection>();
+    receivedPacket.read(null, buffer, dataLength);
 
     Assertions.assertEquals("Hello SSL", receivedPacket.data());
 
     log.info(receivedPacket.data(), "Received from client:[%s]"::formatted);
 
-    StringWritableNetworkPacket writableNetworkPacket = new StringWritableNetworkPacket("Echo: Hello SSL");
-
+    var writableNetworkPacket = new StringWritableNetworkPacket<StringDataSslConnection>("Echo: Hello SSL");
     buffer.clear();
     buffer.position(2);
-    writableNetworkPacket.write(buffer);
+    writableNetworkPacket.write(null, buffer);
     buffer.putShort(0, (short) buffer.position());
     buffer.flip();
 
@@ -233,9 +228,9 @@ public class StringSslNetworkTest extends BaseNetworkTest {
         .accepted()
         .flatMap(Connection::receivedEvents)
         .subscribe(event -> {
-          var message = event.packet().data();
+          var message = ((StringReadableNetworkPacket<?>) event.packet()).data();
           log.info(message, "Received from client:[%s]"::formatted);
-          event.connection().send(new StringWritableNetworkPacket("Echo: " + message));
+          event.connection().send(new StringWritableNetworkPacket<>("Echo: " + message));
         });
 
     SSLContext clientSslContext = NetworkUtils.createAllTrustedClientSslContext();
@@ -262,7 +257,8 @@ public class StringSslNetworkTest extends BaseNetworkTest {
         .doOnError(Throwable::printStackTrace)
         .flatMapMany(Connection::receivedEvents)
         .subscribe(event -> {
-          log.info(event.packet().data(), "Received from server:[%s]"::formatted);
+          var message = ((StringReadableNetworkPacket<?>) event.packet()).data();
+          log.info(message, "Received from server:[%s]"::formatted);
           counter.countDown();
         });
 
@@ -298,7 +294,7 @@ public class StringSslNetworkTest extends BaseNetworkTest {
 
       var pendingPacketsOnServer = serverToClient
           .receivedPackets()
-          .doOnNext(packet -> log.info("Received from client: " + packet.data()))
+          .doOnNext(packet -> log.info("Received from client: " + packet))
           .buffer(packetCount);
 
       var messages = IntStream
@@ -307,10 +303,10 @@ public class StringSslNetworkTest extends BaseNetworkTest {
             var length = value % 3 == 0 ? bufferSize : random.nextInt(0, bufferSize / 2 - 1);
             return StringUtils.generate(length);
           })
-          .peek(message -> clientToServer.send(new StringWritableNetworkPacket(message)))
+          .peek(message -> clientToServer.send(new StringWritableNetworkPacket<>(message)))
           .toList();
 
-      List<? extends StringReadablePacket> receivedPackets =
+      List<? extends ReadableNetworkPacket<StringDataSslConnection>> receivedPackets =
           ObjectUtils.notNull(pendingPacketsOnServer.blockFirst(Duration.ofSeconds(5000)));
 
       Assertions.assertEquals(packetCount, receivedPackets.size(), "Didn't receive all packets");
@@ -319,7 +315,7 @@ public class StringSslNetworkTest extends BaseNetworkTest {
           .stream()
           .filter(packet -> messages
               .stream()
-              .noneMatch(message -> message.equals(packet.data())))
+              .noneMatch(message -> message.equals(((StringReadableNetworkPacket<?>) packet).data())))
           .findFirst()
           .orElse(null);
 
@@ -327,7 +323,7 @@ public class StringSslNetworkTest extends BaseNetworkTest {
     }
   }
 
-  private static StringWritableNetworkPacket newMessage(int minMessageLength, int maxMessageLength) {
-    return new StringWritableNetworkPacket(StringUtils.generate(minMessageLength, maxMessageLength));
+  private static StringWritableNetworkPacket<StringDataSslConnection> newMessage(int minMessageLength, int maxMessageLength) {
+    return new StringWritableNetworkPacket<>(StringUtils.generate(minMessageLength, maxMessageLength));
   }
 }

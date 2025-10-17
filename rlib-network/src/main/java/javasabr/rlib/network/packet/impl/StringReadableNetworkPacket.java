@@ -1,6 +1,7 @@
 package javasabr.rlib.network.packet.impl;
 
 import java.nio.ByteBuffer;
+import javasabr.rlib.network.Connection;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -13,7 +14,7 @@ import org.jspecify.annotations.Nullable;
 @Getter
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class StringReadablePacket extends AbstractReadableNetworkPacket {
+public class StringReadableNetworkPacket<C extends Connection<C>> extends AbstractReadableNetworkPacket<C> {
 
   public static final int MAX_LENGTH = 100_000;
 
@@ -21,7 +22,7 @@ public class StringReadablePacket extends AbstractReadableNetworkPacket {
   volatile String data;
 
   @Override
-  protected void readImpl(ByteBuffer buffer) {
+  protected void readImpl(C connection, ByteBuffer buffer) {
     this.data = readString(buffer, MAX_LENGTH);
   }
 

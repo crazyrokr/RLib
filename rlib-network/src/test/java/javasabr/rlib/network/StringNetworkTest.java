@@ -21,7 +21,7 @@ import javasabr.rlib.network.ServerNetworkConfig.SimpleServerNetworkConfig;
 import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.StringDataConnection;
-import javasabr.rlib.network.packet.impl.StringReadablePacket;
+import javasabr.rlib.network.packet.impl.StringReadableNetworkPacket;
 import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 import javasabr.rlib.network.server.ServerNetwork;
 import lombok.CustomLog;
@@ -54,11 +54,11 @@ public class StringNetworkTest extends BaseNetworkTest {
 
     serverNetwork
         .accepted()
-        .flatMap(Connection::receivedEvents)
+        .flatMap(connection -> connection.receivedEvents(RECEIVED_PACKET_TYPE))
         .subscribe(event -> {
           String message = event.packet().data();
           log.info(message, "Received from client:[%s]"::formatted);
-          event.connection().send(new StringWritableNetworkPacket("Echo: " + message));
+          event.connection().send(new StringWritableNetworkPacket<>("Echo: " + message));
         });
 
     ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
@@ -68,13 +68,13 @@ public class StringNetworkTest extends BaseNetworkTest {
         .doOnNext(connection -> IntStream
             .range(10, 200)
             .forEach(length -> {
-              var packet = new StringWritableNetworkPacket(StringUtils.generate(length));
+              var packet = new StringWritableNetworkPacket<StringDataConnection>(StringUtils.generate(length));
               int delay = ThreadLocalRandom
                   .current()
                   .nextInt(50);
               executor.schedule(() -> connection.send(packet), delay, TimeUnit.MILLISECONDS);
             }))
-        .flatMapMany(Connection::receivedEvents)
+        .flatMapMany(connection -> connection.receivedEvents(RECEIVED_PACKET_TYPE))
         .subscribe(event -> {
           log.info(event.packet().data(), "Received from server:[%s]"::formatted);
           counter.countDown();
@@ -119,7 +119,7 @@ public class StringNetworkTest extends BaseNetworkTest {
       StringDataConnection serverToClient = testNetwork.serverToClient;
 
       var pendingPacketsOnServer = serverToClient
-          .receivedPackets()
+          .receivedPackets(RECEIVED_PACKET_TYPE)
           .buffer(packetCount);
 
       List<String> messages = IntStream
@@ -127,11 +127,11 @@ public class StringNetworkTest extends BaseNetworkTest {
           .mapToObj(value -> StringUtils.generate(random.nextInt(0, bufferSize)))
           .peek(message -> {
             log.info(message.length(), "Send [%s] symbols to server"::formatted);
-            clientToServer.send(new StringWritableNetworkPacket(message));
+            clientToServer.send(new StringWritableNetworkPacket<>(message));
           })
           .toList();
 
-      List<? extends StringReadablePacket> receivedPackets = ObjectUtils
+      List<StringReadableNetworkPacket<StringDataConnection>> receivedPackets = ObjectUtils
           .notNull(pendingPacketsOnServer.blockFirst(Duration.ofSeconds(5)));
 
       log.info(receivedPackets.size(), "Received [%s] packets from client"::formatted);
@@ -165,7 +165,7 @@ public class StringNetworkTest extends BaseNetworkTest {
       StringDataConnection serverToClient = testNetwork.serverToClient;
 
       var pendingPacketsOnServer = serverToClient
-          .receivedPackets()
+          .receivedPackets(RECEIVED_PACKET_TYPE)
           .doOnNext(packet ->
               log.info(packet.data().length(), "Received [%s] symbols from client"::formatted))
           .buffer(packetCount);
@@ -177,7 +177,7 @@ public class StringNetworkTest extends BaseNetworkTest {
             return StringUtils.generate(length);
           })
           .peek(message -> {
-            var packet = new StringWritableNetworkPacket(message);
+            var packet = new StringWritableNetworkPacket<StringDataConnection>(message);
             int delay = ThreadLocalRandom
                 .current()
                 .nextInt(15);
@@ -189,7 +189,7 @@ public class StringNetworkTest extends BaseNetworkTest {
           })
           .toList();
 
-      List<? extends StringReadablePacket> receivedPackets =
+      List<? extends StringReadableNetworkPacket<StringDataConnection>> receivedPackets =
           ObjectUtils.notNull(pendingPacketsOnServer.blockFirst(Duration.ofSeconds(5)));
 
       log.info(receivedPackets.size(), "Received [%s] packets from client"::formatted);
@@ -223,7 +223,7 @@ public class StringNetworkTest extends BaseNetworkTest {
       StringDataConnection serverToClient = testNetwork.serverToClient;
 
       var pendingPacketsOnServer = serverToClient
-          .receivedPackets()
+          .receivedPackets(RECEIVED_PACKET_TYPE)
           .doOnNext(packet ->
               log.info(packet.data().length(), "Received [%s] symbols from client"::formatted))
           .buffer(packetCount);
@@ -235,7 +235,7 @@ public class StringNetworkTest extends BaseNetworkTest {
             return StringUtils.generate(length);
           })
           .peek(message -> {
-            var packet = new StringWritableNetworkPacket(message);
+            var packet = new StringWritableNetworkPacket<StringDataConnection>(message);
             int delay = ThreadLocalRandom
                 .current()
                 .nextInt(15);
@@ -247,7 +247,7 @@ public class StringNetworkTest extends BaseNetworkTest {
           })
           .toList();
 
-      List<? extends StringReadablePacket> receivedPackets =
+      List<? extends StringReadableNetworkPacket<StringDataConnection>> receivedPackets =
           ObjectUtils.notNull(pendingPacketsOnServer.blockFirst(Duration.ofSeconds(5)));
 
       log.info(receivedPackets.size(), "Received [%s] packets from client"::formatted);
@@ -273,7 +273,7 @@ public class StringNetworkTest extends BaseNetworkTest {
 
     var serverConfig = SimpleServerNetworkConfig
         .builder()
-        .threadGroupSize(10)
+        .threadGroupMaxSize(10)
         .build();
 
     var serverAllocator = new DefaultBufferAllocator(serverConfig);
@@ -335,7 +335,7 @@ public class StringNetworkTest extends BaseNetworkTest {
 
     var serverNetwork = NetworkFactory.stringDataServerNetwork(SimpleServerNetworkConfig
         .builder()
-        .threadGroupSize(10)
+        .threadGroupMaxSize(10)
         .build());
 
     InetSocketAddress serverAddress = serverNetwork.start();
@@ -409,7 +409,7 @@ public class StringNetworkTest extends BaseNetworkTest {
       List<CompletableFuture<Boolean>> asyncResults = IntStream
           .range(0, packetCount)
           .mapToObj(value -> StringUtils.generate(random.nextInt(0, bufferSize)))
-          .map(message -> clientToServer.sendWithFeedback(new StringWritableNetworkPacket(message)))
+          .map(message -> clientToServer.sendWithFeedback(new StringWritableNetworkPacket<>(message)))
           .toList();
 
       CompletableFuture
@@ -432,7 +432,7 @@ public class StringNetworkTest extends BaseNetworkTest {
     }
   }
 
-  private static StringWritableNetworkPacket newMessage(int minMessageLength, int maxMessageLength) {
-    return new StringWritableNetworkPacket(StringUtils.generate(minMessageLength, maxMessageLength));
+  private static StringWritableNetworkPacket<StringDataConnection> newMessage(int minMessageLength, int maxMessageLength) {
+    return new StringWritableNetworkPacket<>(StringUtils.generate(minMessageLength, maxMessageLength));
   }
 }

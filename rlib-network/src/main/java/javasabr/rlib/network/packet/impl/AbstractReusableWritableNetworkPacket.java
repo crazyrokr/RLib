@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import javasabr.rlib.common.util.ClassUtils;
+import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.packet.ReusableWritablePacket;
 import javasabr.rlib.reusable.pool.Pool;
 import javasabr.rlib.reusable.pool.PoolFactory;
@@ -23,8 +24,8 @@ import org.jspecify.annotations.Nullable;
  */
 @CustomLog
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class AbstractReusableWritableNetworkPacket extends AbstractWritableNetworkPacket
-    implements ReusableWritablePacket {
+public abstract class AbstractReusableWritableNetworkPacket<C extends Connection<C>>
+    extends AbstractWritableNetworkPacket<C> implements ReusableWritablePacket<C> {
 
   protected static final ThreadLocal<Map<Class<? super ReusableWritablePacket>, Pool<ReusableWritablePacket>>>
       LOCAL_POOLS = ThreadLocal.withInitial(HashMap::new);
@@ -35,7 +36,7 @@ public abstract class AbstractReusableWritableNetworkPacket extends AbstractWrit
    * The pool to store this packet after using.
    */
   @Nullable
-  volatile Pool<ReusableWritablePacket> pool;
+  volatile Pool<ReusableWritablePacket<C>> pool;
   volatile int barrier;
 
   int barrierSink;
@@ -45,7 +46,7 @@ public abstract class AbstractReusableWritableNetworkPacket extends AbstractWrit
   }
 
   @Override
-  public boolean write(ByteBuffer buffer) {
+  public boolean write(C connection, ByteBuffer buffer) {
 
     if (counter.get() < 1) {
       log.warning(this, arg ->
@@ -55,7 +56,7 @@ public abstract class AbstractReusableWritableNetworkPacket extends AbstractWrit
 
     notifyStartedWriting();
     try {
-      super.write(buffer);
+      super.write(connection, buffer);
     } finally {
       notifyFinishedWriting();
     }
@@ -123,11 +124,10 @@ public abstract class AbstractReusableWritableNetworkPacket extends AbstractWrit
    *
    * @return thread local pool.
    */
-  protected Pool<ReusableWritablePacket> threadLocalPool() {
-    Class<ReusableWritablePacket> packetClass = ClassUtils.unsafeNNCast(getClass());
-    return LOCAL_POOLS
-        .get()
-        .computeIfAbsent(packetClass, PoolFactory::newLockBasePool);
+  protected Pool<ReusableWritablePacket<C>> threadLocalPool() {
+    Pool<ReusableWritablePacket> resultPool = LOCAL_POOLS.get()
+        .computeIfAbsent(ClassUtils.unsafeNNCast(getClass()), PoolFactory::newLockBasePool);
+    return ClassUtils.unsafeCast(resultPool);
   }
 
   /**
@@ -135,9 +135,9 @@ public abstract class AbstractReusableWritableNetworkPacket extends AbstractWrit
    *
    * @return the pool to store used packet.
    */
-  protected Pool<ReusableWritablePacket> getPool() {
+  protected Pool<ReusableWritablePacket<C>> getPool() {
 
-    Pool<ReusableWritablePacket> local = this.pool;
+    Pool<ReusableWritablePacket<C>> local = this.pool;
     if (local != null) {
       return local;
     }
@@ -166,17 +166,17 @@ public abstract class AbstractReusableWritableNetworkPacket extends AbstractWrit
    * @param <T> the result packet's type.
    * @return the new instance.
    */
-  public <T extends ReusableWritablePacket> T newInstance() {
+  public <T extends ReusableWritablePacket<C>> T newInstance() {
 
-    Pool<ReusableWritablePacket> pool = getPool();
-    ReusableWritablePacket result = pool.take(getClass(), ClassUtils::newInstance);
+    Pool<ReusableWritablePacket<C>> pool = getPool();
+    ReusableWritablePacket<C> result = pool.take(getClass(), ClassUtils::newInstance);
     result.setPool(pool);
 
     return notNull(ClassUtils.unsafeCast(result));
   }
 
   @Override
-  public final void setPool(Pool<ReusableWritablePacket> pool) {
+  public final void setPool(Pool<ReusableWritablePacket<C>> pool) {
     this.pool = pool;
   }
 
