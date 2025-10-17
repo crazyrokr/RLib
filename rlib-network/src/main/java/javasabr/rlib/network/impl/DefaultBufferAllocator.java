@@ -28,7 +28,7 @@ public class DefaultBufferAllocator implements BufferAllocator {
   public ByteBuffer takeReadBuffer() {
     int bufferSize = config.readBufferSize();
     log.debug(bufferSize, "Allocate new read buffer with size:[%s]"::formatted);
-    return config.isDirectByteBuffer()
+    return config.useDirectByteBuffer()
            ? ByteBuffer.allocateDirect(bufferSize)
            : ByteBuffer
                .allocate(bufferSize)
@@ -40,7 +40,7 @@ public class DefaultBufferAllocator implements BufferAllocator {
   public ByteBuffer takePendingBuffer() {
     int bufferSize = config.pendingBufferSize();
     log.debug(bufferSize, "Allocate new pending buffer with size:[%s]"::formatted);
-    return config.isDirectByteBuffer()
+    return config.useDirectByteBuffer()
            ? ByteBuffer.allocateDirect(bufferSize)
            : ByteBuffer
                .allocate(bufferSize)
@@ -52,7 +52,7 @@ public class DefaultBufferAllocator implements BufferAllocator {
   public ByteBuffer takeWriteBuffer() {
     int bufferSize = config.writeBufferSize();
     log.debug(bufferSize, "Allocate new write buffer with size:[%s]"::formatted);
-    return config.isDirectByteBuffer()
+    return config.useDirectByteBuffer()
            ? ByteBuffer.allocateDirect(bufferSize)
            : ByteBuffer
                .allocate(bufferSize)
@@ -63,7 +63,7 @@ public class DefaultBufferAllocator implements BufferAllocator {
   @Override
   public ByteBuffer takeBuffer(int bufferSize) {
     log.debug(bufferSize, "Allocate new buffer with size:[%s]"::formatted);
-    return config.isDirectByteBuffer()
+    return config.useDirectByteBuffer()
            ? ByteBuffer.allocateDirect(bufferSize)
            : ByteBuffer
                .allocate(bufferSize)

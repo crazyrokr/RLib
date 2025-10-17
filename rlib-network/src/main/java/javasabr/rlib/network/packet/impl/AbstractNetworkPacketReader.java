@@ -6,11 +6,17 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.nio.channels.InterruptedByTimeoutException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import javasabr.rlib.common.util.BufferUtils;
 import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Connection;
+import javasabr.rlib.network.Network;
+import javasabr.rlib.network.NetworkConfig;
+import javasabr.rlib.network.UnsafeConnection;
 import javasabr.rlib.network.packet.NetworkPacketReader;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import lombok.AccessLevel;
@@ -29,7 +35,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public abstract class AbstractNetworkPacketReader<
     R extends ReadableNetworkPacket<C>,
-    C extends Connection<C>> implements NetworkPacketReader {
+    C extends UnsafeConnection<C>> implements NetworkPacketReader {
 
   final CompletionHandler<Integer, ByteBuffer> readChannelHandler = new CompletionHandler<>() {
 
@@ -94,12 +100,34 @@ public abstract class AbstractNetworkPacketReader<
 
   @Override
   public void startRead() {
-    if (!reading.compareAndSet(false, true)) {
+    if (connection.closed()) {
+      log.warning(connection.remoteAddress(), "[%s] Connection is already closed"::formatted);
+      return;
+    } else if (!reading.compareAndSet(false, true)) {
+      log.debug(connection.remoteAddress(), "[%s] Connection is already waiting for new data from channel"::formatted);
       return;
     }
+    startReadImpl();
+  }
+
+  protected void startReadImpl() {
     log.debug(remoteAddress(), "[%s] Start waiting for new data from channel..."::formatted);
     ByteBuffer buffer = bufferToReadFromChannel();
-    socketChannel.read(buffer, buffer, readChannelHandler);
+    try {
+      socketChannel.read(buffer, buffer, readChannelHandler);
+    } catch (RuntimeException ex) {
+      log.error(ex);
+      reading.compareAndSet(true, false);
+      retryReadLater();
+    }
+  }
+
+  protected void retryReadLater() {
+    Network<?> network = connection.network();
+    NetworkConfig config = network.config();
+    network
+        .scheduledExecutor()
+        .schedule(this::startRead, config.retryDelayInMs(), TimeUnit.MILLISECONDS);
   }
 
   /**
@@ -363,22 +391,27 @@ public abstract class AbstractNetworkPacketReader<
    */
   protected void handleReceivedData(int receivedBytes, ByteBuffer readingBuffer) {
     updateActivityFunction.run();
-
     if (receivedBytes == -1) {
-      connection.close();
-      return;
-    }
-
-    log.debug(remoteAddress(), receivedBytes, "[%s] Received [%s] bytes from channel"::formatted);
-    readingBuffer.flip();
-    try {
-      readPackets(readingBuffer);
-    } catch (Exception e) {
-      log.error(e);
-    }
-
-    if (reading.compareAndSet(true, false)) {
-      startRead();
+      log.debug(remoteAddress(), "[%s] Received empty bytes from channel"::formatted);
+      if (connection.closed()) {
+        reading.compareAndSet(true, false);
+        return;
+      } else if (!socketChannel.isOpen()) {
+        connection.close();
+        return;
+      }
+      if (reading.compareAndSet(false, true)) {
+        retryReadLater();
+      }
+    } else {
+      log.debug(remoteAddress(), receivedBytes, "[%s] Received [%s] bytes from channel"::formatted);
+      readingBuffer.flip();
+      try {
+        readPackets(readingBuffer);
+      } catch (Exception e) {
+        log.error(e);
+      }
+      startReadImpl();
     }
   }
 
@@ -389,6 +422,12 @@ public abstract class AbstractNetworkPacketReader<
    * @param readingBuffer the currently reading buffer.
    */
   protected void handleFailedReceiving(Throwable exception, ByteBuffer readingBuffer) {
+    if (exception instanceof InterruptedByTimeoutException) {
+      if (reading.compareAndSet(true, false)) {
+        startRead();
+      }
+      return;
+    }
     if (exception instanceof AsynchronousCloseException) {
       log.info(remoteAddress(), "[%s] Connection was closed"::formatted);
     } else {
@@ -435,11 +474,10 @@ public abstract class AbstractNetworkPacketReader<
 
   @Override
   public void close() {
-
     bufferAllocator
         .putReadBuffer(readBuffer)
         .putPendingBuffer(pendingBuffer);
-
     freeTempBigBuffers();
+    reading.compareAndSet(true, false);
   }
 }

@@ -7,7 +7,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.function.Consumer;
 import javasabr.rlib.common.util.BufferUtils;
 import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
+import javasabr.rlib.network.UnsafeConnection;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javasabr.rlib.network.util.NetworkUtils;
@@ -30,7 +30,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public abstract class AbstractSslNetworkPacketReader<
     R extends ReadableNetworkPacket<C>,
-    C extends Connection<C>> extends AbstractNetworkPacketReader<R, C> {
+    C extends UnsafeConnection<C>> extends AbstractNetworkPacketReader<R, C> {
 
   private static final ByteBuffer[] EMPTY_BUFFERS = {
       NetworkUtils.EMPTY_BUFFER

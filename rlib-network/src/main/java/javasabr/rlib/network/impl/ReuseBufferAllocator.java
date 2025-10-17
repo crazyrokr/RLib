@@ -58,7 +58,7 @@ public class ReuseBufferAllocator implements BufferAllocator {
     return config -> {
       var bufferSize = config.pendingBufferSize();
       log.debug(bufferSize, "Allocate new pending buffer with size:[%s]"::formatted);
-      return config.isDirectByteBuffer()
+      return config.useDirectByteBuffer()
              ? ByteBuffer.allocateDirect(bufferSize)
              : ByteBuffer
                  .allocate(bufferSize)
@@ -71,7 +71,7 @@ public class ReuseBufferAllocator implements BufferAllocator {
     return config -> {
       var bufferSize = config.readBufferSize();
       log.debug(bufferSize, "Allocate new read buffer with size:[%s]"::formatted);
-      return config.isDirectByteBuffer()
+      return config.useDirectByteBuffer()
              ? ByteBuffer.allocateDirect(bufferSize)
              : ByteBuffer
                  .allocate(bufferSize)
@@ -84,7 +84,7 @@ public class ReuseBufferAllocator implements BufferAllocator {
     return config -> {
       var bufferSize = config.writeBufferSize();
       log.debug(bufferSize, "Allocate new write buffer with size:[%s]"::formatted);
-      return config.isDirectByteBuffer()
+      return config.useDirectByteBuffer()
              ? ByteBuffer.allocateDirect(bufferSize)
              : ByteBuffer
                  .allocate(bufferSize)
@@ -130,7 +130,7 @@ public class ReuseBufferAllocator implements BufferAllocator {
     }
 
     log.debug(bufferSize, "Allocate a new buffer with size:[%s]"::formatted);
-    return config.isDirectByteBuffer()
+    return config.useDirectByteBuffer()
            ? ByteBuffer.allocateDirect(bufferSize)
            : ByteBuffer
                .allocate(bufferSize)

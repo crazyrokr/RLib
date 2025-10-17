@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.function.Consumer;
 import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
+import javasabr.rlib.network.UnsafeConnection;
 import javasabr.rlib.network.packet.IdBasedReadableNetworkPacket;
 import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
 import lombok.AccessLevel;
@@ -17,7 +17,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public class IdBasedNetworkPacketReader<
     R extends IdBasedReadableNetworkPacket<C>,
-    C extends Connection<C>> extends AbstractNetworkPacketReader<R, C> {
+    C extends UnsafeConnection<C>> extends AbstractNetworkPacketReader<R, C> {
 
   final ReadableNetworkPacketRegistry<R, C> packetRegistry;
   final int packetLengthHeaderSize;

@@ -349,6 +349,9 @@ public abstract class AbstractNetworkPacketWriter<
       if (packet != null) {
         sentPacketHandler.accept(packet, false);
       }
+      if (writing.compareAndSet(true, false)) {
+        clearTempBuffers();
+      }
       connection.close();
       return;
     }
@@ -357,7 +360,14 @@ public abstract class AbstractNetworkPacketWriter<
     if (writingBuffer.remaining() > 0) {
       log.debug(remoteAddress(), writingBuffer,
           "[%s] Buffer was not consumed fully, try to write else [%s] bytes to channel"::formatted);
-      socketChannel.write(writingBuffer, packet, writeHandler);
+      try {
+        socketChannel.write(writingBuffer, packet, writeHandler);
+      } catch (RuntimeException ex) {
+        log.error(ex);
+        if (writing.compareAndSet(true, false)) {
+          clearTempBuffers();
+        }
+      }
       return;
     } else {
       log.debug(remoteAddress(), wroteBytes, "[%s] Finished writing [%s] bytes"::formatted);
@@ -400,6 +410,7 @@ public abstract class AbstractNetworkPacketWriter<
         .putWriteBuffer(secondWriteBuffer);
     clearTempBuffers();
     writingBuffer = EMPTY_BUFFER;
+    writing.compareAndSet(true, false);
   }
 
   protected void clearTempBuffers() {

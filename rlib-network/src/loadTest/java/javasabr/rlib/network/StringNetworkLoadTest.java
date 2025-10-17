@@ -122,7 +122,7 @@ public class StringNetworkLoadTest {
 
     var serverConfig = SimpleServerNetworkConfig
         .builder()
-        .threadGroupSize(10)
+        .threadGroupMaxSize(10)
         .writeBufferSize(1024)
         .readBufferSize(1024)
         .pendingBufferSize(2048)

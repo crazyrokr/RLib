@@ -10,6 +10,8 @@ import javasabr.rlib.network.Connection;
  */
 public interface WritableNetworkPacket<C extends Connection<C>> extends NetworkPacket<C> {
 
+  int UNKNOWN_EXPECTED_BYTES = -1;
+
   /**
    * Write this packet to the buffer.
    *
@@ -18,9 +20,9 @@ public interface WritableNetworkPacket<C extends Connection<C>> extends NetworkP
   boolean write(C connection, ByteBuffer buffer);
 
   /**
-   * @return expected data length of this packet or -1.
+   * @return expected data length of this packet or {@code UNKNOWN_EXPECTED_BYTES}.
    */
   default int expectedLength(C connection) {
-    return -1;
+    return UNKNOWN_EXPECTED_BYTES;
   }
 }

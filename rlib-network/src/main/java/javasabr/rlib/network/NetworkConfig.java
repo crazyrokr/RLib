@@ -28,6 +28,8 @@ public interface NetworkConfig {
     private int pendingBufferSize = 4096;
     @Builder.Default
     private int writeBufferSize = 2048;
+    @Builder.Default
+    private int retryDelayInMs = 1000;
   }
 
   NetworkConfig DEFAULT_CLIENT = new NetworkConfig() {
@@ -46,34 +48,46 @@ public interface NetworkConfig {
   }
 
   /**
-   * Get size of buffer with used to collect received data from network.
+   * Get a group name of scheduling network threads.
+   */
+  default String scheduledThreadGroupName() {
+    return "ScheduledNetworkThread";
+  }
+
+  /**
+   * Get size of buffer with will be used to collect received data from network.
    */
   default int readBufferSize() {
     return 2048;
   }
 
   /**
-   * Get size of buffer with pending data. Pending buffer allows to construct a packet with bigger data than
+   * Gets size of buffer with pending reading data. Pending buffer allows to construct a packet with bigger data part than
    * {@link #readBufferSize()}. It should be at least 2x of {@link #readBufferSize()}
-   *
-   * @return the pending buffer's size.
    */
   default int pendingBufferSize() {
     return readBufferSize() * 2;
   }
 
   /**
-   * Get size of buffer which used to serialize packets to bytes.
+   * Gets a size of buffer which will be used for packet serialization.
    */
   default int writeBufferSize() {
     return 2048;
+  }
+
+  /**
+   * Gets a timeout for retry read/write operation.
+   */
+  default int retryDelayInMs() {
+    return 1000;
   }
 
   default ByteOrder byteOrder() {
     return ByteOrder.BIG_ENDIAN;
   }
 
-  default boolean isDirectByteBuffer() {
+  default boolean useDirectByteBuffer() {
     return false;
   }
 }

@@ -273,7 +273,7 @@ public class StringNetworkTest extends BaseNetworkTest {
 
     var serverConfig = SimpleServerNetworkConfig
         .builder()
-        .threadGroupSize(10)
+        .threadGroupMaxSize(10)
         .build();
 
     var serverAllocator = new DefaultBufferAllocator(serverConfig);
@@ -335,7 +335,7 @@ public class StringNetworkTest extends BaseNetworkTest {
 
     var serverNetwork = NetworkFactory.stringDataServerNetwork(SimpleServerNetworkConfig
         .builder()
-        .threadGroupSize(10)
+        .threadGroupMaxSize(10)
         .build());
 
     InetSocketAddress serverAddress = serverNetwork.start();

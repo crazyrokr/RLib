@@ -6,9 +6,12 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import javasabr.rlib.common.util.AsyncUtils;
+import javasabr.rlib.common.util.GroupThreadFactory;
 import javasabr.rlib.common.util.ThreadUtils;
 import javasabr.rlib.common.util.Utils;
 import javasabr.rlib.network.Connection;
@@ -38,6 +41,9 @@ public class DefaultClientNetwork<C extends Connection<C>> extends AbstractNetwo
 
   final AtomicBoolean connecting;
 
+  @Getter
+  final ScheduledExecutorService scheduledExecutor;
+
   @Nullable
   @Getter(AccessLevel.PROTECTED)
   volatile CompletableFuture<C> pendingConnection;
@@ -51,6 +57,8 @@ public class DefaultClientNetwork<C extends Connection<C>> extends AbstractNetwo
       BiFunction<Network<C>, AsynchronousSocketChannel, C> channelToConnection) {
     super(config, channelToConnection);
     this.connecting = new AtomicBoolean(false);
+    this.scheduledExecutor = Executors
+        .newSingleThreadScheduledExecutor(new GroupThreadFactory(config.scheduledThreadGroupName()));
     log.info(config, DefaultClientNetwork::buildConfigDescription);
   }
 
@@ -85,7 +93,7 @@ public class DefaultClientNetwork<C extends Connection<C>> extends AbstractNetwo
       @Override
       public void completed(@Nullable Void result, DefaultClientNetwork<C> network) {
         SocketAddress remoteAddress = NetworkUtils.getRemoteAddress(channel);
-        log.info(remoteAddress, "Connected to server:[%s]"::formatted);
+        log.info(remoteAddress, "[%s] Connected to server."::formatted);
         asyncResult.complete(channelToConnection.apply(network, channel));
       }
 
