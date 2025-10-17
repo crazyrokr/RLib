@@ -19,7 +19,6 @@ import javasabr.rlib.network.ServerNetworkConfig.SimpleServerNetworkConfig;
 import javasabr.rlib.network.client.ClientNetwork;
 import javasabr.rlib.network.impl.DefaultBufferAllocator;
 import javasabr.rlib.network.impl.StringDataConnection;
-import javasabr.rlib.network.impl.StringDataSslConnection;
 import javasabr.rlib.network.packet.impl.StringReadableNetworkPacket;
 import javasabr.rlib.network.packet.impl.StringWritableNetworkPacket;
 import javasabr.rlib.network.server.ServerNetwork;

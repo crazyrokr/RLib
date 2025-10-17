@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javasabr.rlib.common.util.ClassUtils;
 import javasabr.rlib.network.Connection;
 import javasabr.rlib.network.packet.ReusableWritablePacket;
-import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javasabr.rlib.reusable.pool.Pool;
 import javasabr.rlib.reusable.pool.PoolFactory;
 import lombok.AccessLevel;

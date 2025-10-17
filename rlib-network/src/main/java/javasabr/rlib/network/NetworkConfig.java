@@ -83,6 +83,13 @@ public interface NetworkConfig {
     return 1000;
   }
 
+  /**
+   * Gets a max allowed empty reads from socket channel before closing a connection.
+   */
+  default int maxEmptyReadsBeforeClose() {
+    return 3;
+  }
+
   default ByteOrder byteOrder() {
     return ByteOrder.BIG_ENDIAN;
   }
