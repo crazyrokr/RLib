@@ -130,7 +130,7 @@ public class StringNetworkLoadTest {
     var serverAllocator = new DefaultBufferAllocator(serverConfig);
     ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
-    int clientCount = 200;
+    int clientCount = 500;
     int messagesPerIteration = 3_000;
     int expectedMessages = clientCount * messagesPerIteration * MAX_ITERATIONS;
 

@@ -77,6 +77,7 @@ public interface ServerNetworkConfig extends NetworkConfig {
     return 1;
   }
 
+
   /**
    * Get a thread constructor which should be used to create network threads.
    */

@@ -121,6 +121,8 @@ public abstract class AbstractNetworkPacketReader<
       if (reading.compareAndSet(true, false)) {
         retryReadLater();
       }
+    } catch (Error error) {
+      throw error;
     }
   }
 
