@@ -153,11 +153,15 @@ public abstract class AbstractNetworkPacketReader<
    */
   protected int readPackets(ByteBuffer receivedBuffer, ByteBuffer pendingBuffer) {
     String remoteAddress = remoteAddress();
+    NetworkConfig networkConfig = connection
+        .network()
+        .config();
 
     log.debug(remoteAddress, receivedBuffer,
         "[%s] Start reading packets from received buffer:[%s]"::formatted);
 
     int waitedBytes = pendingBuffer.position();
+
     ByteBuffer bufferToRead = receivedBuffer;
     ByteBuffer tempBigBuffer = tempBigBuffer();
 
@@ -214,6 +218,11 @@ public abstract class AbstractNetworkPacketReader<
 
       int positionBeforeRead = endPosition;
       int packetFullLength = readFullPacketLength(bufferToRead);
+      if (packetFullLength > networkConfig.maxPacketSize()) {
+        throw new IllegalStateException(
+            "Received to big packet:[" + packetFullLength + ">" + networkConfig.maxPacketSize() + "]");
+      }
+
       int alreadyReadBytes = bufferToRead.position() - endPosition;
       int packetDataLength = calculatePacketDataLength(packetFullLength, alreadyReadBytes, bufferToRead);
 

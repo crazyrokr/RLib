@@ -34,6 +34,12 @@ public interface ServerNetworkConfig extends NetworkConfig {
     @Builder.Default
     private int retryDelayInMs = 1000;
     @Builder.Default
+    private int maxPacketSize = 5 * 1024 * 1024;
+    @Builder.Default
+    private int maxEmptyReadsBeforeClose = 3;
+    @Builder.Default
+    private boolean useDirectByteBuffer = false;
+    @Builder.Default
     private int threadGroupMinSize = 1;
     @Builder.Default
     private int threadGroupMaxSize = 1;
