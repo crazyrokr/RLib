@@ -17,6 +17,7 @@ import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Network;
 import javasabr.rlib.network.NetworkConfig;
 import javasabr.rlib.network.UnsafeConnection;
+import javasabr.rlib.network.exception.MalformedProtocolException;
 import javasabr.rlib.network.packet.NetworkPacketReader;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import lombok.AccessLevel;
@@ -121,8 +122,6 @@ public abstract class AbstractNetworkPacketReader<
       if (reading.compareAndSet(true, false)) {
         retryReadLater();
       }
-    } catch (Error error) {
-      throw error;
     }
   }
 
@@ -219,7 +218,7 @@ public abstract class AbstractNetworkPacketReader<
       int positionBeforeRead = endPosition;
       int packetFullLength = readFullPacketLength(bufferToRead);
       if (packetFullLength > networkConfig.maxPacketSize()) {
-        throw new IllegalStateException(
+        throw new MalformedProtocolException(
             "Received to big packet:[" + packetFullLength + ">" + networkConfig.maxPacketSize() + "]");
       }
 
@@ -412,8 +411,9 @@ public abstract class AbstractNetworkPacketReader<
       emptyReadsCounter.set(0);
       try {
         readPackets(readingBuffer);
-      } catch (Exception e) {
-        log.error(e);
+      } catch (MalformedProtocolException e) {
+        handleFailedReceiving(e, readingBuffer);
+        return;
       }
       startReadImpl();
     }
@@ -451,19 +451,20 @@ public abstract class AbstractNetworkPacketReader<
    * @param readingBuffer the currently reading buffer.
    */
   protected void handleFailedReceiving(Throwable exception, ByteBuffer readingBuffer) {
-    if (exception instanceof InterruptedByTimeoutException) {
-      if (reading.compareAndSet(true, false)) {
-        retryReadLater();
+    switch (exception) {
+      case InterruptedByTimeoutException ex -> {
+        if (reading.compareAndSet(true, false)) {
+          retryReadLater();
+        }
       }
-      return;
-    }
-    if (exception instanceof AsynchronousCloseException) {
-      log.info(remoteAddress(), "[%s] Connection was closed"::formatted);
-    } else if (exception instanceof ClosedChannelException) {
-      log.info(remoteAddress(), "[%s] Connection was closed"::formatted);
-    } else {
-      log.error(exception);
-      connection.close();
+      case AsynchronousCloseException ex ->
+          log.info(remoteAddress(), "[%s] Connection was closed"::formatted);
+      case ClosedChannelException ex ->
+          log.info(remoteAddress(), "[%s] Connection was closed"::formatted);
+      default -> {
+        log.error(exception);
+        connection.close();
+      }
     }
   }
 
@@ -475,16 +476,12 @@ public abstract class AbstractNetworkPacketReader<
   }
 
   protected int readHeader(ByteBuffer buffer, int headerSize) {
-    switch (headerSize) {
-      case 1:
-        return buffer.get() & 0xFF;
-      case 2:
-        return buffer.getShort() & 0xFFFF;
-      case 4:
-        return buffer.getInt();
-      default:
-        throw new IllegalStateException("Wrong packet's header size: " + headerSize);
-    }
+    return switch (headerSize) {
+      case 1 -> buffer.get() & 0xFF;
+      case 2 -> buffer.getShort() & 0xFFFF;
+      case 4 -> buffer.getInt();
+      default -> throw new MalformedProtocolException("Wrong packet's header size:" + headerSize);
+    };
   }
 
   /**
