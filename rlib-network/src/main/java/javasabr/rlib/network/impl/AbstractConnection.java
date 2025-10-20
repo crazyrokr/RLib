@@ -60,8 +60,6 @@ public abstract class AbstractConnection<C extends AbstractConnection<C>> implem
 
   final Deque<WritableNetworkPacket<C>> pendingPackets;
   final StampedLock lock;
-
-  final AtomicBoolean isWriting;
   final AtomicBoolean closed;
 
   final MutableArray<BiConsumer<C, ? super ReadableNetworkPacket<C>>> subscribers;
@@ -82,7 +80,6 @@ public abstract class AbstractConnection<C extends AbstractConnection<C>> implem
     this.channel = channel;
     this.pendingPackets = DequeFactory.arrayBasedBased(WritableNetworkPacket.class);
     this.network = network;
-    this.isWriting = new AtomicBoolean(false);
     this.closed = new AtomicBoolean(false);
     this.subscribers = ArrayFactory.copyOnModifyArray(BiConsumer.class);
     this.remoteAddress = String.valueOf(NetworkUtils.getRemoteAddress(channel));
