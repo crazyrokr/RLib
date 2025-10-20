@@ -53,14 +53,10 @@ public abstract class AbstractNetworkPacketWriter<
   final C connection;
   final AsynchronousSocketChannel socketChannel;
   final BufferAllocator bufferAllocator;
-  final ByteBuffer firstWriteBuffer;
-  final ByteBuffer secondWriteBuffer;
+  final ByteBuffer writeBuffer;
 
   @Nullable
-  volatile ByteBuffer firstWriteTempBuffer;
-  @Nullable
-  volatile ByteBuffer secondWriteTempBuffer;
-
+  volatile ByteBuffer writeTempBuffer;
   @Getter(AccessLevel.PROTECTED)
   volatile ByteBuffer writingBuffer = EMPTY_BUFFER;
 
@@ -80,8 +76,7 @@ public abstract class AbstractNetworkPacketWriter<
     this.connection = connection;
     this.socketChannel = socketChannel;
     this.bufferAllocator = bufferAllocator;
-    this.firstWriteBuffer = bufferAllocator.takeWriteBuffer();
-    this.secondWriteBuffer = bufferAllocator.takeWriteBuffer();
+    this.writeBuffer = bufferAllocator.takeWriteBuffer();
     this.updateActivityFunction = updateActivityFunction;
     this.writablePacketProvider = packetProvider;
     this.serializedToChannelPacketHandler = serializedToChannelPacketHandler;
@@ -156,28 +151,23 @@ public abstract class AbstractNetworkPacketWriter<
     int totalSize = expectedLength == -1 ? -1 : totalSize(packet, expectedLength);
 
     // if the packet is too big to use a write buffer
-    if (expectedLength != -1 && totalSize > firstWriteBuffer.capacity()) {
-      ByteBuffer first = bufferAllocator.takeBuffer(totalSize);
-      ByteBuffer second = bufferAllocator.takeBuffer(totalSize);
-      firstWriteTempBuffer = first;
-      secondWriteTempBuffer = second;
+    if (expectedLength != -1 && totalSize > writeBuffer.capacity()) {
+      ByteBuffer tempBuffer = bufferAllocator.takeBuffer(totalSize);
       try {
-        return serialize(resultPacket, expectedLength, totalSize, first, second);
+        ByteBuffer serialized = serialize(resultPacket, expectedLength, totalSize, tempBuffer);
+        writeTempBuffer = tempBuffer;
+        return serialized;
       } catch (BufferOverflowException ex) {
         log.error(ex);
-        bufferAllocator.putBuffer(first);
-        bufferAllocator.putBuffer(second);
-        firstWriteTempBuffer = null;
-        secondWriteTempBuffer = null;
+        bufferAllocator.putBuffer(tempBuffer);
+        writeTempBuffer = null;
         throw new RuntimeException(ex);
       }
     } else {
       try {
-        return serialize(resultPacket, expectedLength, totalSize, firstWriteBuffer, secondWriteBuffer);
+        return serialize(resultPacket, expectedLength, totalSize, writeBuffer);
       } catch (BufferOverflowException ex) {
         log.error(ex);
-        firstWriteBuffer.clear();
-        secondWriteBuffer.clear();
         throw new RuntimeException(ex);
       }
     }
@@ -196,84 +186,76 @@ public abstract class AbstractNetworkPacketWriter<
    * @param packet the network packet to serialize.
    * @param expectedLength the packet's expected size.
    * @param totalSize the packet's total size.
-   * @param firstBuffer the first buffer.
-   * @param secondBuffer the second buffer.
+   * @param writeBuffer the write buffer.
    * @return the final buffer to write to channel.
    */
   protected ByteBuffer serialize(
       W packet,
       int expectedLength,
       int totalSize,
-      ByteBuffer firstBuffer,
-      ByteBuffer secondBuffer) {
+      ByteBuffer writeBuffer) {
 
-    if (!onBeforeSerialize(packet, expectedLength, totalSize, firstBuffer, secondBuffer)) {
-      return firstBuffer.clear().limit(0);
-    } else if (!doSerialize(packet, expectedLength, totalSize, firstBuffer, secondBuffer)) {
-      return firstBuffer.clear().limit(0);
-    } else if (!onAfterSerialize(packet, expectedLength, totalSize, firstBuffer, secondBuffer)) {
-      return firstBuffer.clear().limit(0);
+    if (!onBeforeSerialize(packet, expectedLength, totalSize, writeBuffer)) {
+      return writeBuffer.clear().limit(0);
+    } else if (!doSerialize(packet, expectedLength, totalSize, writeBuffer)) {
+      return writeBuffer.clear().limit(0);
+    } else if (!onAfterSerialize(packet, expectedLength, totalSize, writeBuffer)) {
+      return writeBuffer.clear().limit(0);
     }
 
-    return onSerializeResult(packet, expectedLength, totalSize, firstBuffer, secondBuffer);
+    return onSerializeResult(packet, expectedLength, totalSize, writeBuffer);
   }
 
   /**
-   * Handles the buffers before serializing packet's data.
+   * Handles the buffer before serializing packet's data.
    *
    * @param packet the network packet.
    * @param expectedLength the packet's expected size.
    * @param totalSize the packet's total size.
-   * @param firstBuffer the first buffer.
-   * @param secondBuffer the second buffer.
+   * @param writeBuffer the write buffer.
    * @return true if handling was successful.
    */
   protected boolean onBeforeSerialize(
       W packet,
       int expectedLength,
       int totalSize,
-      ByteBuffer firstBuffer,
-      ByteBuffer secondBuffer) {
-    firstBuffer.clear();
+      ByteBuffer writeBuffer) {
+    writeBuffer.clear();
     return true;
   }
 
   /**
-   * Serializes the network packet data to the buffers.
+   * Serializes the network packet data to the buffer.
    *
    * @param packet the network packet.
    * @param expectedLength the packet's expected size.
    * @param totalSize the packet's total size.
-   * @param firstBuffer the first buffer.
-   * @param secondBuffer the second buffer.
+   * @param writeBuffer the first buffer.
    * @return true if writing was successful.
    */
   protected boolean doSerialize(
       W packet,
       int expectedLength,
       int totalSize,
-      ByteBuffer firstBuffer,
-      ByteBuffer secondBuffer) {
-    return packet.write(connection, firstBuffer);
+      ByteBuffer writeBuffer) {
+    return packet.write(connection, writeBuffer);
   }
 
   /**
-   * Handles the buffers after serializing packet's data.
+   * Handles the buffer after serializing packet's data.
    *
    * @param packet the network packet.
    * @param expectedLength the packet's expected size.
    * @param totalSize the packet's total size.
-   * @param firstBuffer the first buffer.
-   * @param secondBuffer the second buffer.
+   * @param writeBuffer the write buffer.
    * @return true if handling was successful.
    */
   protected boolean onAfterSerialize(
       W packet,
       int expectedLength,
       int totalSize,
-      ByteBuffer firstBuffer,
-      ByteBuffer secondBuffer) {
-    firstBuffer.flip();
+      ByteBuffer writeBuffer) {
+    writeBuffer.flip();
     return true;
   }
 
@@ -283,17 +265,15 @@ public abstract class AbstractNetworkPacketWriter<
    * @param packet the network packet.
    * @param expectedLength the packet's expected size.
    * @param totalSize the packet's total size.
-   * @param firstBuffer the first buffer.
-   * @param secondBuffer the second buffer.
+   * @param writeBuffer the write buffer.
    * @return the result buffer.
    */
   protected ByteBuffer onSerializeResult(
       W packet,
       int expectedLength,
       int totalSize,
-      ByteBuffer firstBuffer,
-      ByteBuffer secondBuffer) {
-    return firstBuffer.position(0);
+      ByteBuffer writeBuffer) {
+    return writeBuffer;
   }
 
   protected ByteBuffer writeHeader(ByteBuffer buffer, int position, int value, int headerSize) {
@@ -405,9 +385,7 @@ public abstract class AbstractNetworkPacketWriter<
 
   @Override
   public void close() {
-    bufferAllocator
-        .putWriteBuffer(firstWriteBuffer)
-        .putWriteBuffer(secondWriteBuffer);
+    bufferAllocator.putWriteBuffer(writeBuffer);
     clearTempBuffers();
     writingBuffer = EMPTY_BUFFER;
     writing.compareAndSet(true, false);
@@ -415,17 +393,10 @@ public abstract class AbstractNetworkPacketWriter<
 
   protected void clearTempBuffers() {
     this.writingBuffer = EMPTY_BUFFER;
-
-    var firstWriteTempBuffer = this.firstWriteTempBuffer;
-    if (firstWriteTempBuffer != null) {
-      this.firstWriteTempBuffer = null;
-      bufferAllocator.putBuffer(firstWriteTempBuffer);
-    }
-
-    var secondWriteTempBuffer = this.secondWriteTempBuffer;
-    if (secondWriteTempBuffer != null) {
-      this.secondWriteTempBuffer = null;
-      bufferAllocator.putBuffer(secondWriteTempBuffer);
+    var writeTempBuffer = this.writeTempBuffer;
+    if (writeTempBuffer != null) {
+      this.writeTempBuffer = null;
+      bufferAllocator.putBuffer(writeTempBuffer);
     }
   }
 }

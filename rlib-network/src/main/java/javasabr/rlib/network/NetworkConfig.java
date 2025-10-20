@@ -30,6 +30,12 @@ public interface NetworkConfig {
     private int writeBufferSize = 2048;
     @Builder.Default
     private int retryDelayInMs = 1000;
+    @Builder.Default
+    private int maxPacketSize = 5 * 1024 * 1024;
+    @Builder.Default
+    private int maxEmptyReadsBeforeClose = 3;
+    @Builder.Default
+    private boolean useDirectByteBuffer = false;
   }
 
   NetworkConfig DEFAULT_CLIENT = new NetworkConfig() {
@@ -74,6 +80,13 @@ public interface NetworkConfig {
    */
   default int writeBufferSize() {
     return 2048;
+  }
+
+  /**
+   * Gets the max size of one single network packet.
+   */
+  default int maxPacketSize() {
+    return 5 * 1024 * 1024;
   }
 
   /**

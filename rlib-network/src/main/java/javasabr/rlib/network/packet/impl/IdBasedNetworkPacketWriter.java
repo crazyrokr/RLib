@@ -50,9 +50,8 @@ public class IdBasedNetworkPacketWriter<
       W packet,
       int expectedLength,
       int totalSize,
-      ByteBuffer firstBuffer,
-      ByteBuffer secondBuffer) {
-    writeHeader(firstBuffer, packet.packetId(), packetIdHeaderSize);
-    return super.doSerialize(packet, expectedLength, totalSize, firstBuffer, secondBuffer);
+      ByteBuffer writeBuffer) {
+    writeHeader(writeBuffer, packet.packetId(), packetIdHeaderSize);
+    return super.doSerialize(packet, expectedLength, totalSize, writeBuffer);
   }
 }

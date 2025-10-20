@@ -52,9 +52,8 @@ public class DefaultNetworkPacketWriter<
       W packet,
       int expectedLength,
       int totalSize,
-      ByteBuffer firstBuffer,
-      ByteBuffer secondBuffer) {
-    firstBuffer
+      ByteBuffer writeBuffer) {
+    writeBuffer
         .clear()
         .position(packetLengthHeaderSize);
     return true;
@@ -65,9 +64,8 @@ public class DefaultNetworkPacketWriter<
       W packet,
       int expectedLength,
       int totalSize,
-      ByteBuffer firstBuffer,
-      ByteBuffer secondBuffer) {
-    return writePacketLength(firstBuffer, firstBuffer.limit())
+      ByteBuffer writeBuffer) {
+    return writePacketLength(writeBuffer, writeBuffer.limit())
         .position(0);
   }
 

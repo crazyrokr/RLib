@@ -57,9 +57,8 @@ public class DefaultSslNetworkPacketWriter<
       W packet,
       int expectedLength,
       int totalSize,
-      ByteBuffer firstBuffer,
-      ByteBuffer secondBuffer) {
-    firstBuffer
+      ByteBuffer writeBuffer) {
+    writeBuffer
         .clear()
         .position(packetLengthHeaderSize);
     return true;
@@ -70,9 +69,9 @@ public class DefaultSslNetworkPacketWriter<
       W packet,
       int expectedLength,
       int totalSize,
-      ByteBuffer firstBuffer,
-      ByteBuffer secondBuffer) {
-    return writePacketLength(firstBuffer, firstBuffer.limit()).position(0);
+      ByteBuffer writeBuffer) {
+    return writePacketLength(writeBuffer, writeBuffer.limit())
+        .position(0);
   }
 
   protected ByteBuffer writePacketLength(ByteBuffer buffer, int packetLength) {

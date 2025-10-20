@@ -11,6 +11,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.SynchronousQueue;
@@ -180,9 +181,9 @@ public class DefaultServerNetwork<C extends UnsafeConnection<C>>
           config.threadGroupMaxSize(),
           120,
           TimeUnit.SECONDS,
-          new SynchronousQueue<>(),
+          new LinkedBlockingQueue<>(),
           threadFactory,
-          new ThreadPoolExecutor.CallerRunsPolicy());
+          new ThreadPoolExecutor.AbortPolicy());
     } else {
       executorService = Executors.newFixedThreadPool(config.threadGroupMinSize(), threadFactory);
     }
