@@ -53,9 +53,11 @@ public abstract class AbstractConnection<C extends AbstractConnection<C>> implem
   final String remoteAddress;
   @Getter
   final Network<C> network;
-
+  @Getter
   final BufferAllocator bufferAllocator;
+  @Getter
   final AsynchronousSocketChannel channel;
+
   final Deque<WritableNetworkPacket<C>> pendingPackets;
   final StampedLock lock;
 

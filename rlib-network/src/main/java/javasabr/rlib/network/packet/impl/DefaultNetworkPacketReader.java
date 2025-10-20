@@ -1,10 +1,8 @@
 package javasabr.rlib.network.packet.impl;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousSocketChannel;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
-import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.UnsafeConnection;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import lombok.AccessLevel;
@@ -24,14 +22,12 @@ public class DefaultNetworkPacketReader<
 
   public DefaultNetworkPacketReader(
       C connection,
-      AsynchronousSocketChannel channel,
-      BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
       Consumer<R> packetHandler,
       IntFunction<R> readablePacketFactory,
       int packetLengthHeaderSize,
       int maxPacketsByRead) {
-    super(connection, channel, bufferAllocator, updateActivityFunction, packetHandler, maxPacketsByRead);
+    super(connection, updateActivityFunction, packetHandler, maxPacketsByRead);
     this.readablePacketFactory = readablePacketFactory;
     this.packetLengthHeaderSize = packetLengthHeaderSize;
   }

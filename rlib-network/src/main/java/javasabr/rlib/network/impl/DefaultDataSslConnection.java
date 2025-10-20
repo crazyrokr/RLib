@@ -44,8 +44,6 @@ public abstract class DefaultDataSslConnection<C extends DefaultDataSslConnectio
   protected NetworkPacketReader createPacketReader() {
     return new DefaultSslNetworkPacketReader<>(
         (C) this,
-        channel,
-        bufferAllocator,
         this::updateLastActivity,
         this::handleReceivedPacket,
         value -> createReadablePacket(),
@@ -58,8 +56,6 @@ public abstract class DefaultDataSslConnection<C extends DefaultDataSslConnectio
   protected NetworkPacketWriter createPacketWriter() {
     return new DefaultSslNetworkPacketWriter<>(
         (C) this,
-        channel,
-        bufferAllocator,
         this::updateLastActivity,
         this::nextPacketToWrite,
         this::serializedPacket,

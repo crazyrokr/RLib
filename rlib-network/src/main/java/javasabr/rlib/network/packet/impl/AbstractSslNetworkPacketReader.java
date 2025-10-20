@@ -3,7 +3,6 @@ package javasabr.rlib.network.packet.impl;
 import static javasabr.rlib.network.util.NetworkUtils.hexDump;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousSocketChannel;
 import java.util.function.Consumer;
 import javasabr.rlib.common.util.BufferUtils;
 import javasabr.rlib.network.BufferAllocator;
@@ -50,14 +49,13 @@ public abstract class AbstractSslNetworkPacketReader<
 
   protected AbstractSslNetworkPacketReader(
       C connection,
-      AsynchronousSocketChannel channel,
-      BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
       Consumer<? super R> readPacketHandler,
       SSLEngine sslEngine,
       Consumer<WritableNetworkPacket<C>> packetWriter,
       int maxPacketsByRead) {
-    super(connection, channel, bufferAllocator, updateActivityFunction, readPacketHandler, maxPacketsByRead);
+    super(connection, updateActivityFunction, readPacketHandler, maxPacketsByRead);
+    BufferAllocator bufferAllocator = connection.bufferAllocator();
     this.sslEngine = sslEngine;
     this.sslDataBuffer = bufferAllocator.takeBuffer(sslEngine
         .getSession()
@@ -65,7 +63,8 @@ public abstract class AbstractSslNetworkPacketReader<
     this.sslDataPendingBuffer = bufferAllocator.takeBuffer(sslEngine
         .getSession()
         .getApplicationBufferSize() * 2);
-    this.sslNetworkBuffer = bufferAllocator.takeBuffer(sslEngine
+    this.sslNetworkBuffer = bufferAllocator
+        .takeBuffer(sslEngine
         .getSession()
         .getPacketBufferSize())
         .limit(0);
@@ -251,6 +250,7 @@ public abstract class AbstractSslNetworkPacketReader<
   }
 
   protected synchronized ByteBuffer increaseNetworkBuffer(int extra) {
+    BufferAllocator bufferAllocator = connection.bufferAllocator();
     ByteBuffer current = sslNetworkBuffer();
     int newSize = (int) Math.max(current.capacity() * 1.3, current.capacity() + extra);
     sslNetworkBuffer = NetworkUtils
@@ -260,21 +260,23 @@ public abstract class AbstractSslNetworkPacketReader<
   }
 
   protected synchronized void increaseDataBuffer() {
+    BufferAllocator allocator = connection.bufferAllocator();
     int newSize = sslEngine
         .getSession()
         .getApplicationBufferSize();
     sslDataBuffer = NetworkUtils
-        .increaseBuffer(sslDataBuffer, bufferAllocator, newSize)
+        .increaseBuffer(sslDataBuffer, allocator, newSize)
         .flip();
     sslDataPendingBuffer = NetworkUtils
-        .increaseBuffer(sslDataPendingBuffer, bufferAllocator, newSize * 2)
+        .increaseBuffer(sslDataPendingBuffer, allocator, newSize * 2)
         .flip();
   }
 
   @Override
   public void close() {
     sslEngine.closeOutbound();
-    bufferAllocator
+    connection
+        .bufferAllocator()
         .putBuffer(sslDataBuffer)
         .putBuffer(sslDataPendingBuffer)
         .putBuffer(sslNetworkBuffer);

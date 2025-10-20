@@ -4,7 +4,6 @@ import static javasabr.rlib.common.util.ObjectUtils.notNull;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousCloseException;
-import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.CompletionHandler;
 import java.nio.channels.InterruptedByTimeoutException;
@@ -13,7 +12,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import javasabr.rlib.common.util.BufferUtils;
-import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.Network;
 import javasabr.rlib.network.NetworkConfig;
 import javasabr.rlib.network.UnsafeConnection;
@@ -59,8 +57,6 @@ public abstract class AbstractNetworkPacketReader<
   final AtomicInteger emptyReadsCounter = new AtomicInteger(0);
 
   final C connection;
-  final AsynchronousSocketChannel socketChannel;
-  final BufferAllocator bufferAllocator;
 
   final ByteBuffer readBuffer;
   final ByteBuffer pendingBuffer;
@@ -77,16 +73,12 @@ public abstract class AbstractNetworkPacketReader<
 
   protected AbstractNetworkPacketReader(
       C connection,
-      AsynchronousSocketChannel socketChannel,
-      BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
       Consumer<? super R> packetHandler,
       int maxPacketsByRead) {
     this.connection = connection;
-    this.socketChannel = socketChannel;
-    this.bufferAllocator = bufferAllocator;
-    this.readBuffer = bufferAllocator.takeReadBuffer();
-    this.pendingBuffer = bufferAllocator.takePendingBuffer();
+    this.readBuffer = connection.bufferAllocator().takeReadBuffer();
+    this.pendingBuffer = connection.bufferAllocator().takePendingBuffer();
     this.updateActivityFunction = updateActivityFunction;
     this.packetHandler = packetHandler;
     this.maxPacketsByRead = maxPacketsByRead;
@@ -116,7 +108,7 @@ public abstract class AbstractNetworkPacketReader<
     log.debug(remoteAddress(), "[%s] Start waiting for new data from channel..."::formatted);
     ByteBuffer buffer = bufferToReadFromChannel();
     try {
-      socketChannel.read(buffer, buffer, readChannelHandler);
+      connection.channel().read(buffer, buffer, readChannelHandler);
     } catch (RuntimeException ex) {
       log.error(ex);
       if (reading.compareAndSet(true, false)) {
@@ -367,9 +359,13 @@ public abstract class AbstractNetworkPacketReader<
     log.debug(remoteAddress(), sourceBuffer.capacity(), fullPacketLength,
         "[%s] Resize temp big buffer from:[%s] to:[%s]"::formatted);
 
-    var newTempBuffer = bufferAllocator.takeBuffer(fullPacketLength + readBuffer.capacity());
+    ByteBuffer newTempBuffer = connection
+        .bufferAllocator()
+        .takeBuffer(fullPacketLength + readBuffer.capacity());
+
     log.debug(remoteAddress(), sourceBuffer, newTempBuffer,
         "[%s] Moved data from old temp big buffer:[%s] to new:[%s]"::formatted);
+
     newTempBuffer.put(sourceBuffer);
 
     freeTempBigBuffers();
@@ -378,15 +374,19 @@ public abstract class AbstractNetworkPacketReader<
 
   protected void allocTempBigBuffers(ByteBuffer sourceBuffer, int fullPacketLength) {
     int notConsumeBytes = sourceBuffer.remaining();
+
     log.debug(
         notConsumeBytes,
         fullPacketLength,
         "Request temp big buffer to store part:[%s] of big packet with length:[%s]"::formatted);
 
-    var tempBigBuffer = bufferAllocator.takeBuffer(fullPacketLength + readBuffer.capacity());
-    log.debug(sourceBuffer, tempBigBuffer, "Put data from old temp big buffer:[%s] to new:[%s]"::formatted);
-    tempBigBuffer.put(sourceBuffer);
+    ByteBuffer tempBigBuffer = connection
+        .bufferAllocator()
+        .takeBuffer(fullPacketLength + readBuffer.capacity());
 
+    log.debug(sourceBuffer, tempBigBuffer, "Put data from old temp big buffer:[%s] to new:[%s]"::formatted);
+
+    tempBigBuffer.put(sourceBuffer);
     this.tempBigBuffer = tempBigBuffer;
   }
 
@@ -394,7 +394,9 @@ public abstract class AbstractNetworkPacketReader<
     ByteBuffer tempBuffer = tempBigBuffer();
     if (tempBuffer != null) {
       tempBigBuffer(null);
-      bufferAllocator.putBuffer(tempBuffer);
+      connection
+          .bufferAllocator()
+          .putBuffer(tempBuffer);
     }
   }
 
@@ -425,7 +427,7 @@ public abstract class AbstractNetworkPacketReader<
     if (connection.closed()) {
       reading.compareAndSet(true, false);
       return;
-    } else if (!socketChannel.isOpen()) {
+    } else if (!connection.channel().isOpen()) {
       connection.close();
       return;
     }
@@ -502,7 +504,8 @@ public abstract class AbstractNetworkPacketReader<
 
   @Override
   public void close() {
-    bufferAllocator
+    connection
+        .bufferAllocator()
         .putReadBuffer(readBuffer)
         .putPendingBuffer(pendingBuffer);
     freeTempBigBuffers();

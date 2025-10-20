@@ -1,9 +1,7 @@
 package javasabr.rlib.network.packet.impl;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousSocketChannel;
 import java.util.function.Consumer;
-import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.UnsafeConnection;
 import javasabr.rlib.network.packet.IdBasedReadableNetworkPacket;
 import javasabr.rlib.network.packet.registry.ReadableNetworkPacketRegistry;
@@ -25,15 +23,13 @@ public class IdBasedNetworkPacketReader<
 
   public IdBasedNetworkPacketReader(
       C connection,
-      AsynchronousSocketChannel channel,
-      BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
       Consumer<R> packetHandler,
       int packetLengthHeaderSize,
       int maxPacketsByRead,
       int packetIdHeaderSize,
       ReadableNetworkPacketRegistry<R, C> packetRegistry) {
-    super(connection, channel, bufferAllocator, updateActivityFunction, packetHandler, maxPacketsByRead);
+    super(connection, updateActivityFunction, packetHandler, maxPacketsByRead);
     this.packetLengthHeaderSize = packetLengthHeaderSize;
     this.packetIdHeaderSize = packetIdHeaderSize;
     this.packetRegistry = packetRegistry;

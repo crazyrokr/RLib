@@ -41,8 +41,6 @@ public abstract class DefaultDataConnection<C extends DefaultDataConnection<C>> 
   protected NetworkPacketReader createPacketReader() {
     return new DefaultNetworkPacketReader<>(
         (C) this,
-        channel,
-        bufferAllocator,
         this::updateLastActivity,
         this::handleReceivedPacket,
         value -> createReadablePacket(),
@@ -53,8 +51,6 @@ public abstract class DefaultDataConnection<C extends DefaultDataConnection<C>> 
   protected NetworkPacketWriter createPacketWriter() {
     return new DefaultNetworkPacketWriter<>(
         (C) this,
-        channel,
-        bufferAllocator,
         this::updateLastActivity,
         this::nextPacketToWrite,
         this::serializedPacket,
