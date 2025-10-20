@@ -4,12 +4,10 @@ import static javasabr.rlib.network.util.NetworkUtils.EMPTY_BUFFER;
 import static javasabr.rlib.network.util.NetworkUtils.hexDump;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousSocketChannel;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javasabr.rlib.functions.ObjBoolConsumer;
-import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
+import javasabr.rlib.network.UnsafeConnection;
 import javasabr.rlib.network.packet.WritableNetworkPacket;
 import javasabr.rlib.network.util.NetworkUtils;
 import javasabr.rlib.network.util.SslUtils;
@@ -29,7 +27,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public abstract class AbstractSslNetworkPacketWriter<
     W extends WritableNetworkPacket<C>,
-    C extends Connection<C>> extends AbstractNetworkPacketWriter<W, C> {
+    C extends UnsafeConnection<C>> extends AbstractNetworkPacketWriter<W, C> {
 
   private static final ByteBuffer[] EMPTY_BUFFERS = {
       NetworkUtils.EMPTY_BUFFER
@@ -47,8 +45,6 @@ public abstract class AbstractSslNetworkPacketWriter<
 
   public AbstractSslNetworkPacketWriter(
       C connection,
-      AsynchronousSocketChannel channel,
-      BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
       Supplier<WritableNetworkPacket<C>> packetProvider,
       Consumer<WritableNetworkPacket<C>> serializedToChannelPacketHandler,
@@ -57,17 +53,17 @@ public abstract class AbstractSslNetworkPacketWriter<
       Consumer<WritableNetworkPacket<C>> queueAtFirst) {
     super(
         connection,
-        channel,
-        bufferAllocator,
         updateActivityFunction,
         packetProvider,
         serializedToChannelPacketHandler,
         sentPacketHandler);
     this.sslEngine = sslEngine;
     this.queueAtFirst = queueAtFirst;
-    this.sslNetworkBuffer = bufferAllocator.takeBuffer(sslEngine
-        .getSession()
-        .getPacketBufferSize());
+    this.sslNetworkBuffer = connection
+        .bufferAllocator()
+        .takeBuffer(sslEngine
+            .getSession()
+            .getPacketBufferSize());
   }
 
   @Override
@@ -112,7 +108,9 @@ public abstract class AbstractSslNetworkPacketWriter<
           "[%s] Has remaining [%s] bytes after encrypting, will create temp big buffer"::formatted);
 
       int tempBufferSize = (int) ((bufferToSend.limit() + serialized.remaining()) * 1.2);
-      ByteBuffer tempBuffer = bufferAllocator.takeBuffer(tempBufferSize);
+      ByteBuffer tempBuffer = connection
+          .bufferAllocator()
+          .takeBuffer(tempBufferSize);
       tempBuffer.put(bufferToSend.flip());
 
       while (serialized.hasRemaining()) {
@@ -215,7 +213,9 @@ public abstract class AbstractSslNetworkPacketWriter<
     super.clearTempBuffers();
     ByteBuffer sslTempBuffer = this.sslTempBuffer;
     if (sslTempBuffer != null) {
-      bufferAllocator.putBuffer(sslTempBuffer);
+      connection
+          .bufferAllocator()
+          .putBuffer(sslTempBuffer);
       this.sslTempBuffer = null;
     }
   }
@@ -223,7 +223,9 @@ public abstract class AbstractSslNetworkPacketWriter<
   @Override
   public void close() {
     sslEngine.closeOutbound();
-    bufferAllocator.putBuffer(sslNetworkBuffer);
+    connection
+        .bufferAllocator()
+        .putBuffer(sslNetworkBuffer);
     super.close();
   }
 

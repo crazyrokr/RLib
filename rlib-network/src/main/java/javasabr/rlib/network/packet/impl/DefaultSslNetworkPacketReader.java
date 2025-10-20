@@ -1,10 +1,8 @@
 package javasabr.rlib.network.packet.impl;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousSocketChannel;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
-import javasabr.rlib.network.BufferAllocator;
 import javasabr.rlib.network.UnsafeConnection;
 import javasabr.rlib.network.packet.ReadableNetworkPacket;
 import javasabr.rlib.network.packet.WritableNetworkPacket;
@@ -26,8 +24,6 @@ public class DefaultSslNetworkPacketReader<
 
   public DefaultSslNetworkPacketReader(
       C connection,
-      AsynchronousSocketChannel channel,
-      BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
       Consumer<R> packetHandler,
       IntFunction<R> packetResolver,
@@ -37,8 +33,6 @@ public class DefaultSslNetworkPacketReader<
       int maxPacketsByRead) {
     super(
         connection,
-        channel,
-        bufferAllocator,
         updateActivityFunction,
         packetHandler,
         sslEngine,

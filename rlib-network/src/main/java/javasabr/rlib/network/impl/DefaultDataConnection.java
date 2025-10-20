@@ -19,7 +19,8 @@ import lombok.experimental.FieldDefaults;
 @Getter(AccessLevel.PROTECTED)
 @Accessors(fluent = true, chain = false)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public abstract class DefaultDataConnection<C extends DefaultDataConnection<C>> extends AbstractConnection<C> {
+public abstract class DefaultDataConnection<C extends DefaultDataConnection<C>>
+    extends AbstractConnection<C> {
 
   final NetworkPacketReader packetReader;
   final NetworkPacketWriter packetWriter;
@@ -39,10 +40,9 @@ public abstract class DefaultDataConnection<C extends DefaultDataConnection<C>> 
   }
 
   protected NetworkPacketReader createPacketReader() {
+    //noinspection unchecked
     return new DefaultNetworkPacketReader<>(
         (C) this,
-        channel,
-        bufferAllocator,
         this::updateLastActivity,
         this::handleReceivedPacket,
         value -> createReadablePacket(),
@@ -51,10 +51,9 @@ public abstract class DefaultDataConnection<C extends DefaultDataConnection<C>> 
   }
 
   protected NetworkPacketWriter createPacketWriter() {
+    //noinspection unchecked
     return new DefaultNetworkPacketWriter<>(
         (C) this,
-        channel,
-        bufferAllocator,
         this::updateLastActivity,
         this::nextPacketToWrite,
         this::serializedPacket,

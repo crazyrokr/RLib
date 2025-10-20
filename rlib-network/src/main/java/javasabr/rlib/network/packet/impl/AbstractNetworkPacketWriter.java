@@ -6,14 +6,15 @@ import static javasabr.rlib.network.util.NetworkUtils.hexDump;
 import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javasabr.rlib.functions.ObjBoolConsumer;
 import javasabr.rlib.network.BufferAllocator;
-import javasabr.rlib.network.Connection;
+import javasabr.rlib.network.NetworkConfig;
+import javasabr.rlib.network.UnsafeConnection;
+import javasabr.rlib.network.exception.MalformedProtocolException;
 import javasabr.rlib.network.packet.NetworkPacketWriter;
 import javasabr.rlib.network.packet.WritableNetworkPacket;
 import lombok.AccessLevel;
@@ -33,7 +34,7 @@ import org.jspecify.annotations.Nullable;
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public abstract class AbstractNetworkPacketWriter<
     W extends WritableNetworkPacket<C>,
-    C extends Connection<C>> implements NetworkPacketWriter {
+    C extends UnsafeConnection<C>> implements NetworkPacketWriter {
 
   final CompletionHandler<Integer, @Nullable WritableNetworkPacket<C>> writeHandler = new CompletionHandler<>() {
 
@@ -51,8 +52,6 @@ public abstract class AbstractNetworkPacketWriter<
   final AtomicBoolean writing = new AtomicBoolean();
 
   final C connection;
-  final AsynchronousSocketChannel socketChannel;
-  final BufferAllocator bufferAllocator;
   final ByteBuffer writeBuffer;
 
   @Nullable
@@ -67,16 +66,12 @@ public abstract class AbstractNetworkPacketWriter<
 
   public AbstractNetworkPacketWriter(
       C connection,
-      AsynchronousSocketChannel socketChannel,
-      BufferAllocator bufferAllocator,
       Runnable updateActivityFunction,
       Supplier<@Nullable WritableNetworkPacket<C>> packetProvider,
       Consumer<WritableNetworkPacket<C>> serializedToChannelPacketHandler,
       ObjBoolConsumer<WritableNetworkPacket<C>> sentPacketHandler) {
     this.connection = connection;
-    this.socketChannel = socketChannel;
-    this.bufferAllocator = bufferAllocator;
-    this.writeBuffer = bufferAllocator.takeWriteBuffer();
+    this.writeBuffer = connection.bufferAllocator().takeWriteBuffer();
     this.updateActivityFunction = updateActivityFunction;
     this.writablePacketProvider = packetProvider;
     this.serializedToChannelPacketHandler = serializedToChannelPacketHandler;
@@ -129,7 +124,7 @@ public abstract class AbstractNetworkPacketWriter<
     }
     writingBuffer = resultBuffer;
     log.debug(remoteAddress(), resultBuffer, (address, buff) -> "[%s] Write to channel data:\n" + hexDump(buff));
-    socketChannel.write(resultBuffer, nextPacket, writeHandler);
+    connection.channel().write(resultBuffer, nextPacket, writeHandler);
     return true;
   }
 
@@ -148,10 +143,17 @@ public abstract class AbstractNetworkPacketWriter<
     W resultPacket = (W) packet;
 
     int expectedLength = packet.expectedLength(connection);
-    int totalSize = expectedLength == -1 ? -1 : totalSize(packet, expectedLength);
+    int totalSize = expectedLength == WritableNetworkPacket.UNKNOWN_EXPECTED_BYTES
+                    ? WritableNetworkPacket.UNKNOWN_EXPECTED_BYTES
+                    : totalSize(packet, expectedLength);
+
+    if (totalSize > 0) {
+      validateMaxPacketSize(packet, totalSize);
+    }
 
     // if the packet is too big to use a write buffer
     if (expectedLength != -1 && totalSize > writeBuffer.capacity()) {
+      BufferAllocator bufferAllocator = connection.bufferAllocator();
       ByteBuffer tempBuffer = bufferAllocator.takeBuffer(totalSize);
       try {
         ByteBuffer serialized = serialize(resultPacket, expectedLength, totalSize, tempBuffer);
@@ -170,6 +172,17 @@ public abstract class AbstractNetworkPacketWriter<
         log.error(ex);
         throw new RuntimeException(ex);
       }
+    }
+  }
+
+  protected void validateMaxPacketSize(WritableNetworkPacket<C> packet, int totalSize) {
+    NetworkConfig networkConfig = connection
+        .network()
+        .config();
+
+    if (totalSize > networkConfig.maxPacketSize()) {
+      throw new MalformedProtocolException(
+          "Writable packet:[" + packet + "] is too big:[" + totalSize + ">" + networkConfig.maxPacketSize() + "]");
     }
   }
 
@@ -341,7 +354,7 @@ public abstract class AbstractNetworkPacketWriter<
       log.debug(remoteAddress(), writingBuffer,
           "[%s] Buffer was not consumed fully, try to write else [%s] bytes to channel"::formatted);
       try {
-        socketChannel.write(writingBuffer, packet, writeHandler);
+        connection.channel().write(writingBuffer, packet, writeHandler);
       } catch (RuntimeException ex) {
         log.error(ex);
         if (writing.compareAndSet(true, false)) {
@@ -385,7 +398,9 @@ public abstract class AbstractNetworkPacketWriter<
 
   @Override
   public void close() {
-    bufferAllocator.putWriteBuffer(writeBuffer);
+    connection
+        .bufferAllocator()
+        .putWriteBuffer(writeBuffer);
     clearTempBuffers();
     writingBuffer = EMPTY_BUFFER;
     writing.compareAndSet(true, false);
@@ -396,7 +411,9 @@ public abstract class AbstractNetworkPacketWriter<
     var writeTempBuffer = this.writeTempBuffer;
     if (writeTempBuffer != null) {
       this.writeTempBuffer = null;
-      bufferAllocator.putBuffer(writeTempBuffer);
+      connection
+          .bufferAllocator()
+          .putBuffer(writeTempBuffer);
     }
   }
 }

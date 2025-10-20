@@ -46,10 +46,9 @@ public class IdBasedPacketConnection<C extends IdBasedPacketConnection<C>> exten
   }
 
   protected NetworkPacketReader createPacketReader() {
+    //noinspection unchecked
     return new IdBasedNetworkPacketReader<>(
         (C) this,
-        channel,
-        bufferAllocator,
         this::updateLastActivity,
         this::handleReceivedPacket,
         packetLengthHeaderSize,
@@ -59,12 +58,11 @@ public class IdBasedPacketConnection<C extends IdBasedPacketConnection<C>> exten
   }
 
   protected NetworkPacketWriter createPacketWriter() {
+    //noinspection unchecked
     return new IdBasedNetworkPacketWriter<>(
         (C) this,
-        channel,
-        bufferAllocator,
         this::updateLastActivity,
-        () -> nextPacketToWrite(),
+        this::nextPacketToWrite,
         this::serializedPacket,
         this::handleSentPacket,
         packetLengthHeaderSize,
