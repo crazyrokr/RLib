@@ -162,7 +162,8 @@ public class IdBasedReadableNetworkPacketRegistry<
   @Override
   public R resolvePrototypeById(int id) {
     try {
-      return ObjectUtils.notNull(idToPrototype[id], id, integer -> new IllegalArgumentException("Not found a packet for the id " + integer));
+      return ObjectUtils.notNull(idToPrototype[id], id,
+          value -> new IllegalArgumentException("Not found a packet for the id " + value));
     } catch (IndexOutOfBoundsException e) {
       throw new IllegalArgumentException("Not found prototype for the id " + id);
     }

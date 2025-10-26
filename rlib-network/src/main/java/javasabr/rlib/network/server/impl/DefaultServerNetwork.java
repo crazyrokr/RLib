@@ -216,10 +216,34 @@ public class DefaultServerNetwork<C extends UnsafeConnection<C>>
   }
 
   private static String buildConfigDescription(ServerNetworkConfig conf) {
-    return "Server network configuration: {\n" + "  minThreads: " + conf.threadGroupMinSize() + ",\n" + "  maxThreads: "
-        + conf.threadGroupMaxSize() + ",\n" + "  priority: " + conf.threadPriority() + ",\n" + "  threadGroupName: \""
-        + conf.threadGroupName() + "\",\n" + "  readBufferSize: " + conf.readBufferSize() + ",\n"
-        + "  pendingBufferSize: " + conf.pendingBufferSize() + ",\n" + "  writeBufferSize: " + conf.writeBufferSize()
-        + "\n" + "}";
+    return """
+        Server network configuration: {
+          "threadGroupMinSize": %d,
+          "threadGroupMaxSize": %d,
+          "threadPriority": %d,
+          "threadGroupName": "%s",
+          "scheduledThreadGroupSize": %d,
+          "scheduledThreadGroupName": "%s",
+          "readBufferSize": %d,
+          "pendingBufferSize": %d,
+          "writeBufferSize": %d,
+          "useDirectByteBuffer": %s,
+          "maxEmptyReadsBeforeClose": %d,
+          "maxPacketSize": %d,
+          "retryDelayInMs": %d
+        }""".formatted(
+        conf.threadGroupMinSize(),
+        conf.threadGroupMaxSize(),
+        conf.threadPriority(),
+        conf.threadGroupName(),
+        conf.scheduledThreadGroupSize(),
+        conf.scheduledThreadGroupName(),
+        conf.readBufferSize(),
+        conf.pendingBufferSize(),
+        conf.writeBufferSize(),
+        conf.useDirectByteBuffer(),
+        conf.maxEmptyReadsBeforeClose(),
+        conf.maxPacketSize(),
+        conf.retryDelayInMs());
   }
 }

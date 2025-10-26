@@ -139,8 +139,26 @@ public class DefaultClientNetwork<C extends Connection<C>> extends AbstractNetwo
   }
 
   private static String buildConfigDescription(NetworkConfig conf) {
-    return "Client network configuration: {\n" + "  groupName: \"" + conf.threadGroupName() + "\",\n"
-        + "  readBufferSize: " + conf.readBufferSize() + ",\n" + "  pendingBufferSize: " + conf.pendingBufferSize()
-        + ",\n" + "  writeBufferSize: " + conf.writeBufferSize() + "\n" + "}";
+    return """
+        Server network configuration: {
+          "threadGroupName": "%s",
+          "scheduledThreadGroupName": "%s",
+          "readBufferSize": %d,
+          "pendingBufferSize": %d,
+          "writeBufferSize": %d,
+          "useDirectByteBuffer": %s,
+          "maxEmptyReadsBeforeClose": %d,
+          "maxPacketSize": %d,
+          "retryDelayInMs": %d
+        }""".formatted(
+        conf.threadGroupName(),
+        conf.scheduledThreadGroupName(),
+        conf.readBufferSize(),
+        conf.pendingBufferSize(),
+        conf.writeBufferSize(),
+        conf.useDirectByteBuffer(),
+        conf.maxEmptyReadsBeforeClose(),
+        conf.maxPacketSize(),
+        conf.retryDelayInMs());
   }
 }

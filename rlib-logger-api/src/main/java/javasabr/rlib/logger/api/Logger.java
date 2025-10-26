@@ -181,11 +181,19 @@ public interface Logger {
     print(LoggerLevel.INFO, message);
   }
 
-  default <T> void info(T arg1, @NonNull N1Factory<T> factory) {
+  default void info(int arg1, @NonNull IntFactory factory) {
+    print(LoggerLevel.INFO, arg1, factory);
+  }
+
+  default <A> void info(A arg1, @NonNull N1Factory<A> factory) {
     print(LoggerLevel.INFO, arg1, factory);
   }
 
   default <A, B> void info(A arg1, B arg2, @NonNull N2Factory<A, B> factory) {
+    print(LoggerLevel.INFO, arg1, arg2, factory);
+  }
+
+  default <B> void info(int arg1, B arg2, @NonNull IntN1Factory<B> factory) {
     print(LoggerLevel.INFO, arg1, arg2, factory);
   }
 
@@ -233,6 +241,10 @@ public interface Logger {
   }
 
   default <A> void warning(A arg1, @NonNull N1Factory<A> factory) {
+    print(LoggerLevel.WARNING, arg1, factory);
+  }
+
+  default void warning(int arg1, @NonNull IntFactory factory) {
     print(LoggerLevel.WARNING, arg1, factory);
   }
 
