@@ -137,11 +137,15 @@ public interface Logger {
     print(LoggerLevel.DEBUG, arg1, arg2, arg3, factory);
   }
 
+  default <A, B, C, D> void debug(A arg1, B arg2, C arg3, D arg4, @NonNull N4Factory<A, B, C, D> factory) {
+    print(LoggerLevel.DEBUG, arg1, arg2, arg3, arg4, factory);
+  }
+
   default <A, C> void debug(A arg1, int arg2, C arg3, @NonNull N1IntN1Factory<A, C> factory) {
     print(LoggerLevel.DEBUG, arg1, arg2, arg3, factory);
   }
 
-  default <A, B, C> void debug(A arg1, int arg2, int arg3, @NonNull N1Int2Factory<A> factory) {
+  default <A> void debug(A arg1, int arg2, int arg3, @NonNull N1Int2Factory<A> factory) {
     print(LoggerLevel.DEBUG, arg1, arg2, arg3, factory);
   }
 
@@ -249,6 +253,10 @@ public interface Logger {
   }
 
   default <A, B> void warning(A arg1, B arg2, @NonNull N2Factory<A, B> factory) {
+    print(LoggerLevel.WARNING, arg1, arg2, factory);
+  }
+
+  default <A> void warning(A arg1, int arg2, @NonNull N1IntFactory<A> factory) {
     print(LoggerLevel.WARNING, arg1, arg2, factory);
   }
 

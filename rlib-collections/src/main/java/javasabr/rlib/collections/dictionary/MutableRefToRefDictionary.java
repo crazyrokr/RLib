@@ -14,13 +14,10 @@ public interface MutableRefToRefDictionary<K, V> extends RefToRefDictionary<K, V
     return new DefaultMutableHashBasedRefToRefDictionary<>();
   }
 
-  @Nullable
   V getOrCompute(K key, Supplier<V> factory);
 
-  @Nullable
   V getOrCompute(K key, Function<K, V> factory);
 
-  @Nullable
   <T> V getOrCompute(K key, T arg1, Function<T, V> factory);
 
   /**

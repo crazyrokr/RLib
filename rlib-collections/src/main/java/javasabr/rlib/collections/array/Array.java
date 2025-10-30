@@ -16,7 +16,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * @author JavaSaBr
  */
-public interface Array<E> extends Iterable<E>, Serializable, Cloneable, RandomAccess {
+public interface Array<E> extends Iterable<E>, Serializable, Cloneable {
 
   static <E> Array<E> empty(Class<? super E> type) {
     return new ImmutableArray<>(ClassUtils.unsafeCast(type));
