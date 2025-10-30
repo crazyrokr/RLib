@@ -13,20 +13,17 @@ public interface MutableLongToRefDictionary<V> extends LongToRefDictionary<V> {
     return new DefaultMutableHashBasedLongToRefDictionary<>();
   }
 
-  @Nullable
   V getOrCompute(long key, Supplier<V> factory);
 
-  @Nullable
   V getOrCompute(long key, LongFunction<V> factory);
 
-  @Nullable
   <T> V getOrCompute(long key, T arg1, Function<T, V> factory);
 
   /**
    * @return the previous value for the key or null.
    */
   @Nullable
-  V put(long key, @Nullable V value);
+  V put(long key, V value);
 
   void putAll(LongToRefDictionary<? extends V> dictionary);
 
@@ -35,7 +32,7 @@ public interface MutableLongToRefDictionary<V> extends LongToRefDictionary<V> {
   /**
    * @return the optional value of the previous value for the key.
    */
-  Optional<V> putOptional(long key, @Nullable V value);
+  Optional<V> putOptional(long key, V value);
 
   /**
    * @return the previous value for the key or null.

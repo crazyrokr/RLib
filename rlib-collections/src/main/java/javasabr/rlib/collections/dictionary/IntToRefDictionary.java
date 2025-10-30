@@ -10,7 +10,7 @@ import org.jspecify.annotations.Nullable;
 
 public interface IntToRefDictionary<V> extends Dictionary<Integer, V> {
 
-  static <V> IntToRefEntry<V> entry(int key, @Nullable V value) {
+  static <V> IntToRefEntry<V> entry(int key, V value) {
     return new SimpleIntToRefEntry<>(key, value);
   }
 
@@ -18,16 +18,16 @@ public interface IntToRefDictionary<V> extends Dictionary<Integer, V> {
     return ImmutableHashBasedIntToRefDictionary.empty();
   }
 
-  static <K, V> IntToRefDictionary<V> of(int key, @Nullable V value) {
+  static <V> IntToRefDictionary<V> of(int key, V value) {
     return ofEntries(entry(key, value));
   }
 
-  static <K, V> IntToRefDictionary<V> of(int k1, @Nullable V v1, int k2, @Nullable V v2) {
+  static <V> IntToRefDictionary<V> of(int k1, V v1, int k2, V v2) {
     return ofEntries(entry(k1, v1), entry(k2, v2));
   }
 
   @SafeVarargs
-  static <K, V> IntToRefDictionary<V> ofEntries(IntToRefEntry<V>... entries) {
+  static <V> IntToRefDictionary<V> ofEntries(IntToRefEntry<V>... entries) {
     MutableIntToRefDictionary<V> mutable = DictionaryFactory.mutableIntToRefDictionary();
     for (var entry : entries) {
       mutable.put(entry.key(), entry.value());
@@ -42,7 +42,6 @@ public interface IntToRefDictionary<V> extends Dictionary<Integer, V> {
 
   Optional<V> getOptional(int key);
 
-  @Nullable
   V getOrDefault(int key, V def);
 
   MutableIntArray keys(MutableIntArray container);

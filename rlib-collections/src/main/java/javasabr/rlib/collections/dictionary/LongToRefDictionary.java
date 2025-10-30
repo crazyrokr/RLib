@@ -10,24 +10,24 @@ import org.jspecify.annotations.Nullable;
 
 public interface LongToRefDictionary<V> extends Dictionary<Long, V> {
 
-  static <V> LongToRefEntry<V> entry(long key, @Nullable V value) {
+  static <V> LongToRefEntry<V> entry(long key, V value) {
     return new SimpleLongToRefEntry<>(key, value);
   }
 
-  static <K, V> LongToRefDictionary<V> empty() {
+  static <V> LongToRefDictionary<V> empty() {
     return ImmutableHashBasedLongToRefDictionary.empty();
   }
 
-  static <K, V> LongToRefDictionary<V> of(long key, @Nullable V value) {
+  static <V> LongToRefDictionary<V> of(long key, V value) {
     return ofEntries(entry(key, value));
   }
 
-  static <K, V> LongToRefDictionary<V> of(long k1, @Nullable V v1, long k2, @Nullable V v2) {
+  static <V> LongToRefDictionary<V> of(long k1, V v1, long k2, V v2) {
     return ofEntries(entry(k1, v1), entry(k2, v2));
   }
 
   @SafeVarargs
-  static <K, V> LongToRefDictionary<V> ofEntries(LongToRefEntry<V>... entries) {
+  static <V> LongToRefDictionary<V> ofEntries(LongToRefEntry<V>... entries) {
     MutableLongToRefDictionary<V> mutable = DictionaryFactory.mutableLongToRefDictionary();
     for (var entry : entries) {
       mutable.put(entry.key(), entry.value());
@@ -42,7 +42,6 @@ public interface LongToRefDictionary<V> extends Dictionary<Long, V> {
 
   Optional<V> getOptional(long key);
 
-  @Nullable
   V getOrDefault(long key, V def);
 
   MutableLongArray keys(MutableLongArray container);
