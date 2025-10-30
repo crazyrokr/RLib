@@ -14,7 +14,7 @@ repositories {
 }
 
 ext {
-   rlibVersion = "10.0.alpha5"
+   rlibVersion = "10.0.alpha6"
 }
 
 dependencies {
