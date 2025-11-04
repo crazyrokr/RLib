@@ -1,9 +1,10 @@
 package javasabr.rlib.collections.dictionary;
 
 import static javasabr.rlib.collections.dictionary.RefToRefDictionary.entry;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Optional;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -18,16 +19,32 @@ class MutableRefToRefDictionaryTest {
     dictionary.put("key4", "val4");
     dictionary.put("key7", "val7");
     dictionary.put("key55", "val55");
+    // then:
+    assertThat(dictionary.get("key1")).isEqualTo("val1");
+    assertThat(dictionary.get("key4")).isEqualTo("val4");
+    assertThat(dictionary.get("key55")).isEqualTo("val55");
+    assertThat(dictionary.containsKey("key1")).isTrue();
+    assertThat(dictionary.containsKey("key4")).isTrue();
+    assertThat(dictionary.containsKey("key55")).isTrue();
+    assertThat(dictionary.get("key10")).isNull();
+    assertThat(dictionary.size()).isEqualTo(4);
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateDictionaries")
+  void shouldPutOptionalNewPairs(MutableRefToRefDictionary<String, String> dictionary) {
+    // when:
+    dictionary.put("key4", "val4");
+    dictionary.put("key7", "val7");
+    dictionary.put("key55", "val55");
+
+    Optional<String> prevForKey1 = dictionary.putOptional("key1", "val1");
+    Optional<String> prevForKey55 = dictionary.putOptional("key55", "val56");
 
     // then:
-    Assertions.assertEquals("val1", dictionary.get("key1"));
-    Assertions.assertEquals("val4", dictionary.get("key4"));
-    Assertions.assertEquals("val55", dictionary.get("key55"));
-    Assertions.assertTrue(dictionary.containsKey("key1"));
-    Assertions.assertTrue(dictionary.containsKey("key4"));
-    Assertions.assertTrue(dictionary.containsKey("key55"));
-    Assertions.assertNull(dictionary.get("key10"));
-    Assertions.assertEquals(4, dictionary.size());
+    assertThat(prevForKey1).isEmpty();
+    assertThat(prevForKey55).contains("val55");
+    assertThat(dictionary.get("key55")).isEqualTo("val56");
   }
 
   @ParameterizedTest
@@ -44,15 +61,34 @@ class MutableRefToRefDictionaryTest {
     String removed2 = dictionary.remove("key55");
 
     // then:
-    Assertions.assertEquals("val1", removed1);
-    Assertions.assertEquals("val55", removed2);
-    Assertions.assertEquals("val4", dictionary.get("key4"));
-    Assertions.assertEquals("val7", dictionary.get("key7"));
-    Assertions.assertNull(dictionary.get("key1"));
-    Assertions.assertNull(dictionary.get("key55"));
-    Assertions.assertFalse(dictionary.containsKey("key1"));
-    Assertions.assertFalse(dictionary.containsKey("key55"));
-    Assertions.assertEquals(2, dictionary.size());
+    assertThat(removed1).isEqualTo("val1");
+    assertThat(removed2).isEqualTo("val55");
+    assertThat(dictionary.get("key4")).isEqualTo("val4");
+    assertThat(dictionary.get("key7")).isEqualTo("val7");
+    assertThat(dictionary.get("key1")).isNull();
+    assertThat(dictionary.get("key55")).isNull();
+    assertThat(dictionary.containsKey("key1")).isFalse();
+    assertThat(dictionary.containsKey("key55")).isFalse();
+    assertThat(dictionary.size()).isEqualTo(2);
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateDictionaries")
+  void shouldRemoveOptionalByKeys(MutableRefToRefDictionary<String, String> dictionary) {
+    // given:
+    dictionary.put("key1", "val1");
+    dictionary.put("key4", "val4");
+    dictionary.put("key7", "val7");
+    dictionary.put("key55", "val55");
+
+    // when:
+    Optional<String> removed1 = dictionary.removeOptional("key1");
+    Optional<String> removed2 = dictionary.removeOptional("key75");
+
+    // then:
+    assertThat(removed1).contains("val1");
+    assertThat(removed2).isEmpty();
+    assertThat(dictionary).hasSize(3);
   }
 
   @ParameterizedTest
@@ -64,16 +100,16 @@ class MutableRefToRefDictionaryTest {
     var computed3 = dictionary.getOrCompute("key10", 5, arg1 -> "val10");
 
     // then:
-    Assertions.assertEquals("val1", computed1);
-    Assertions.assertEquals("val4", computed2);
-    Assertions.assertEquals("val10", computed3);
-    Assertions.assertEquals("val1", dictionary.get("key1"));
-    Assertions.assertEquals("val4", dictionary.get("key4"));
-    Assertions.assertEquals("val10", dictionary.get("key10"));
-    Assertions.assertTrue(dictionary.containsKey("key1"));
-    Assertions.assertTrue(dictionary.containsKey("key4"));
-    Assertions.assertTrue(dictionary.containsKey("key10"));
-    Assertions.assertEquals(3, dictionary.size());
+    assertThat(computed1).isEqualTo("val1");
+    assertThat(computed2).isEqualTo("val4");
+    assertThat(computed3).isEqualTo("val10");
+    assertThat(dictionary.get("key1")).isEqualTo("val1");
+    assertThat(dictionary.get("key4")).isEqualTo("val4");
+    assertThat(dictionary.get("key10")).isEqualTo("val10");
+    assertThat(dictionary.containsKey("key1")).isTrue();
+    assertThat(dictionary.containsKey("key4")).isTrue();
+    assertThat(dictionary.containsKey("key10")).isTrue();
+    assertThat(dictionary.size()).isEqualTo(3);
   }
 
   @ParameterizedTest
@@ -91,13 +127,13 @@ class MutableRefToRefDictionaryTest {
     dictionary.append(source);
 
     // then:
-    Assertions.assertEquals("val1", dictionary.get("key1"));
-    Assertions.assertEquals("val4", dictionary.get("key4"));
-    Assertions.assertEquals("val5", dictionary.get("key5"));
-    Assertions.assertTrue(dictionary.containsKey("key3"));
-    Assertions.assertFalse(dictionary.containsKey("key55"));
-    Assertions.assertNull(dictionary.get("key10"));
-    Assertions.assertEquals(5, dictionary.size());
+    assertThat(dictionary.get("key1")).isEqualTo("val1");
+    assertThat(dictionary.get("key4")).isEqualTo("val4");
+    assertThat(dictionary.get("key5")).isEqualTo("val5");
+    assertThat(dictionary.containsKey("key3")).isTrue();
+    assertThat(dictionary.containsKey("key55")).isFalse();
+    assertThat(dictionary.get("key10")).isNull();
+    assertThat(dictionary.size()).isEqualTo(5);
   }
 
   private static Stream<Arguments> generateDictionaries() {
