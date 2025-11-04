@@ -45,5 +45,7 @@ public interface MutableIntToRefDictionary<V> extends IntToRefDictionary<V> {
    */
   Optional<V> removeOptional(int key);
 
+  void clear();
+
   IntToRefDictionary<V> toReadOnly();
 }

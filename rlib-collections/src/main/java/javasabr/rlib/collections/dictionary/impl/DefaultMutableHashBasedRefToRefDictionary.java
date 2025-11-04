@@ -45,6 +45,12 @@ public class DefaultMutableHashBasedRefToRefDictionary<K, V> extends
   }
 
   @Override
+  public void clear() {
+    Arrays.fill(entries, null);
+    size = 0;
+  }
+
+  @Override
   protected void threshold(int threshold) {
     this.threshold = threshold;
   }

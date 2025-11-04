@@ -136,7 +136,28 @@ class MutableLongToRefDictionaryTest {
     assertThat(dictionary.size()).isEqualTo(5);
   }
 
+  @ParameterizedTest
+  @MethodSource("generateDictionaries")
+  void shouldBeEmptyAfterClear(MutableLongToRefDictionary<String> dictionary) {
+    // when:
+    dictionary.put(1, "val1");
+    dictionary.put(4, "val4");
+
+    // then:
+    assertThat(dictionary.isEmpty()).isFalse();
+
+    // when:
+    dictionary.clear();
+
+    // then:
+    assertThat(dictionary.isEmpty()).isTrue();
+    assertThat(dictionary.get(1)).isNull();
+    assertThat(dictionary.containsKey(1)).isFalse();
+  }
+
   private static Stream<Arguments> generateDictionaries() {
-    return Stream.of(Arguments.of(DictionaryFactory.mutableLongToRefDictionary()));
+    return Stream.of(
+        Arguments.of(MutableLongToRefDictionary.ofTypes(String.class)),
+        Arguments.of(DictionaryFactory.mutableLongToRefDictionary()));
   }
 }

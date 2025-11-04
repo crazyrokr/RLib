@@ -45,5 +45,7 @@ public interface MutableLongToRefDictionary<V> extends LongToRefDictionary<V> {
    */
   Optional<V> removeOptional(long key);
 
+  void clear();
+
   LongToRefDictionary<V> toReadOnly();
 }

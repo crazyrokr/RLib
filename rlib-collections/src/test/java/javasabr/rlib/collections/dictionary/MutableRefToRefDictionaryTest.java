@@ -114,6 +114,25 @@ class MutableRefToRefDictionaryTest {
 
   @ParameterizedTest
   @MethodSource("generateDictionaries")
+  void shouldBeEmptyAfterClear(MutableRefToRefDictionary<String, String> dictionary) {
+    // when:
+    dictionary.put("key1", "val1");
+    dictionary.put("key4", "val4");
+
+    // then:
+    assertThat(dictionary.isEmpty()).isFalse();
+
+    // when:
+    dictionary.clear();
+
+    // then:
+    assertThat(dictionary.isEmpty()).isTrue();
+    assertThat(dictionary.get("key1")).isNull();
+    assertThat(dictionary.containsKey("key1")).isFalse();
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateDictionaries")
   void shouldAppendDictionary(MutableRefToRefDictionary<String, String> dictionary) {
     // given:
     RefToRefDictionary<String, String> source = RefToRefDictionary.ofEntries(
@@ -138,6 +157,7 @@ class MutableRefToRefDictionaryTest {
 
   private static Stream<Arguments> generateDictionaries() {
     return Stream.of(
+        Arguments.of(MutableRefToRefDictionary.ofTypes(String.class, String.class)),
         Arguments.of(DictionaryFactory.mutableRefToRefDictionary()),
         Arguments.of(DictionaryFactory.stampedLockBasedRefToRefDictionary()));
   }

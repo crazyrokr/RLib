@@ -46,5 +46,7 @@ public interface MutableRefToRefDictionary<K, V> extends RefToRefDictionary<K, V
    */
   Optional<V> removeOptional(K key);
 
+  void clear();
+
   RefToRefDictionary<K, V> toReadOnly();
 }
