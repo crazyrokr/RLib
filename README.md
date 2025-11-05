@@ -14,7 +14,7 @@ repositories {
 }
 
 ext {
-   rlibVersion = "10.0.alpha5"
+   rlibVersion = "10.0.alpha6"
 }
 
 dependencies {
@@ -39,6 +39,7 @@ dependencies {
 ### Fake SMTP Server
 
 ```java
+
 var container = new FakeSMTPTestContainer()
     .withSmtpPassword("pwd")
     .withSmtpUser("test_user");
@@ -92,19 +93,15 @@ LoggerLevel.DEBUG.setEnabled(true);
 
 logger.debug("Simple message");
 logger.debug(5, (val) -> "Lazy message with 5: " + val);
+logger.debug(5, "Lazy message with 5:%d"::formated);
 logger.debug(5, 10D, (val1, val2) -> "Lazy message with 5: " + val1 + " and 10: " + val2);
-logger.debug("", "Message with a string owner.");
-logger.debug("", 5, (val) -> "Lazy message with 5: " + val);
-logger.debug("", 5, 10D, (val1, val2) -> "Lazy message with 5: " + val1 + " and 10: " + val2);
+logger.debug(5, 10D, "Lazy message with 5:%d and 10:%d"::formatted);
 
 // global disable debug level
 LoggerLevel.DEBUG.setEnabled(false);
 
 // local enable debug level only for this logger instance
 logger.setEnabled(LoggerLevel.DEBUG, true);
-
-// show debug message
-logger.debug("Showed");
 ```
 
 ### Mail Sender
@@ -132,10 +129,9 @@ var javaxConfig = JavaxMailSender.JavaxMailSenderConfig
 var sender = new JavaxMailSender(config, javaxConfig);
 
 sender.send("to@test.com","Test Subject","Content");
-
 sender
     .sendAsync("to@test.com","Test Subject","Content")
-    .thenAccept(aVoid ->System.out.println("done!"));
+    .thenAccept(aVoid -> System.out.println("done!"));
 ```
 
 ### Network API

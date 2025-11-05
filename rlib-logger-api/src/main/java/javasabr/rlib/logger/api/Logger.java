@@ -137,11 +137,15 @@ public interface Logger {
     print(LoggerLevel.DEBUG, arg1, arg2, arg3, factory);
   }
 
+  default <A, B, C, D> void debug(A arg1, B arg2, C arg3, D arg4, @NonNull N4Factory<A, B, C, D> factory) {
+    print(LoggerLevel.DEBUG, arg1, arg2, arg3, arg4, factory);
+  }
+
   default <A, C> void debug(A arg1, int arg2, C arg3, @NonNull N1IntN1Factory<A, C> factory) {
     print(LoggerLevel.DEBUG, arg1, arg2, arg3, factory);
   }
 
-  default <A, B, C> void debug(A arg1, int arg2, int arg3, @NonNull N1Int2Factory<A> factory) {
+  default <A> void debug(A arg1, int arg2, int arg3, @NonNull N1Int2Factory<A> factory) {
     print(LoggerLevel.DEBUG, arg1, arg2, arg3, factory);
   }
 
@@ -165,11 +169,35 @@ public interface Logger {
     print(LoggerLevel.ERROR, arg1, arg2, factory);
   }
 
+  default void error(int arg1, int arg2, @NonNull Int2Factory factory) {
+    print(LoggerLevel.ERROR, arg1, arg2, factory);
+  }
+
+  default <A> void error(A arg1, int arg2, @NonNull N1IntFactory<A> factory) {
+    print(LoggerLevel.ERROR, arg1, arg2, factory);
+  }
+
+  default <A, B, C> void error(A arg1, B arg2, C arg3, @NonNull N3Factory<A, B, C> factory) {
+    print(LoggerLevel.ERROR, arg1, arg2, arg3, factory);
+  }
+
+  default <A, C> void error(A arg1, int arg2, C arg3, @NonNull N1IntN1Factory<A, C> factory) {
+    print(LoggerLevel.ERROR, arg1, arg2, arg3, factory);
+  }
+
+  default <A> void error(A arg1, int arg2, int arg3, @NonNull N1Int2Factory<A> factory) {
+    print(LoggerLevel.ERROR, arg1, arg2, arg3, factory);
+  }
+
   default <C> void error(int arg1, int arg2, C arg3, @NonNull Int2N1Factory<C> factory) {
     print(LoggerLevel.ERROR, arg1, arg2, arg3, factory);
   }
 
   default <A, D> void error(A arg1, int arg2, int arg3, D arg4, @NonNull N1Int2N1Factory<A, D> factory) {
+    print(LoggerLevel.ERROR, arg1, arg2, arg3, arg4, factory);
+  }
+
+  default <A, B, C, D> void error(A arg1, B arg2, C arg3, D arg4, @NonNull N4Factory<A, B, C, D> factory) {
     print(LoggerLevel.ERROR, arg1, arg2, arg3, arg4, factory);
   }
 
@@ -193,12 +221,32 @@ public interface Logger {
     print(LoggerLevel.INFO, arg1, arg2, factory);
   }
 
+  default void info(int arg1, int arg2, @NonNull Int2Factory factory) {
+    print(LoggerLevel.INFO, arg1, arg2, factory);
+  }
+
+  default <A> void info(A arg1, int arg2, @NonNull N1IntFactory<A> factory) {
+    print(LoggerLevel.INFO, arg1, arg2, factory);
+  }
+
   default <B> void info(int arg1, B arg2, @NonNull IntN1Factory<B> factory) {
     print(LoggerLevel.INFO, arg1, arg2, factory);
   }
 
   default <A, B, C> void info(A arg1, B arg2, C arg3, @NonNull N3Factory<A, B, C> factory) {
     print(LoggerLevel.INFO, arg1, arg2, arg3, factory);
+  }
+
+  default <A, C> void info(A arg1, int arg2, C arg3, @NonNull N1IntN1Factory<A, C> factory) {
+    print(LoggerLevel.INFO, arg1, arg2, arg3, factory);
+  }
+
+  default <A> void info(A arg1, int arg2, int arg3, @NonNull N1Int2Factory<A> factory) {
+    print(LoggerLevel.INFO, arg1, arg2, arg3, factory);
+  }
+
+  default <A, B, C, D> void info(A arg1, B arg2, C arg3, D arg4, @NonNull N4Factory<A, B, C, D> factory) {
+    print(LoggerLevel.INFO, arg1, arg2, arg3, arg4, factory);
   }
 
   /**
@@ -252,7 +300,27 @@ public interface Logger {
     print(LoggerLevel.WARNING, arg1, arg2, factory);
   }
 
+  default void warning(int arg1, int arg2, @NonNull Int2Factory factory) {
+    print(LoggerLevel.WARNING, arg1, arg2, factory);
+  }
+
+  default <B> void warning(int arg1, B arg2, @NonNull IntN1Factory<B> factory) {
+    print(LoggerLevel.WARNING, arg1, arg2, factory);
+  }
+
+  default <A> void warning(A arg1, int arg2, @NonNull N1IntFactory<A> factory) {
+    print(LoggerLevel.WARNING, arg1, arg2, factory);
+  }
+
   default <A, B, C> void warning(A arg1, B arg2, C arg3, @NonNull N3Factory<A, B, C> factory) {
+    print(LoggerLevel.WARNING, arg1, arg2, arg3, factory);
+  }
+
+  default <A, C> void warning(A arg1, int arg2, C arg3, @NonNull N1IntN1Factory<A, C> factory) {
+    print(LoggerLevel.WARNING, arg1, arg2, arg3, factory);
+  }
+
+  default <A> void warning(A arg1, int arg2, int arg3, @NonNull N1Int2Factory<A> factory) {
     print(LoggerLevel.WARNING, arg1, arg2, arg3, factory);
   }
 

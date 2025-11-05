@@ -14,20 +14,17 @@ public interface MutableRefToRefDictionary<K, V> extends RefToRefDictionary<K, V
     return new DefaultMutableHashBasedRefToRefDictionary<>();
   }
 
-  @Nullable
   V getOrCompute(K key, Supplier<V> factory);
 
-  @Nullable
   V getOrCompute(K key, Function<K, V> factory);
 
-  @Nullable
   <T> V getOrCompute(K key, T arg1, Function<T, V> factory);
 
   /**
    * @return the previous value for the key or null.
    */
   @Nullable
-  V put(K key, @Nullable V value);
+  V put(K key, V value);
 
   void putAll(RefToRefDictionary<? extends K, ? extends V> dictionary);
 
@@ -36,7 +33,7 @@ public interface MutableRefToRefDictionary<K, V> extends RefToRefDictionary<K, V
   /**
    * @return the optional value of the previous value for the key.
    */
-  Optional<V> putOptional(K key, @Nullable V value);
+  Optional<V> putOptional(K key, V value);
 
   /**
    * @return the previous value for the key or null.
@@ -48,6 +45,8 @@ public interface MutableRefToRefDictionary<K, V> extends RefToRefDictionary<K, V
    * @return the optional value of the previous value for the key.
    */
   Optional<V> removeOptional(K key);
+
+  void clear();
 
   RefToRefDictionary<K, V> toReadOnly();
 }

@@ -16,5 +16,5 @@ public class MailSenderConfig {
   private String from;
 
   private boolean useAuth;
-  private boolean enableTtls;
+  private boolean enableTls;
 }

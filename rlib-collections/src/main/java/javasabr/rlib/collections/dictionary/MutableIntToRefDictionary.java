@@ -13,20 +13,17 @@ public interface MutableIntToRefDictionary<V> extends IntToRefDictionary<V> {
     return new DefaultMutableHashBasedIntToRefDictionary<>();
   }
 
-  @Nullable
   V getOrCompute(int key, Supplier<V> factory);
 
-  @Nullable
   V getOrCompute(int key, IntFunction<V> factory);
 
-  @Nullable
   <T> V getOrCompute(int key, T arg1, Function<T, V> factory);
 
   /**
    * @return the previous value for the key or null.
    */
   @Nullable
-  V put(int key, @Nullable V value);
+  V put(int key, V value);
 
   void putAll(IntToRefDictionary<? extends V> dictionary);
 
@@ -35,7 +32,7 @@ public interface MutableIntToRefDictionary<V> extends IntToRefDictionary<V> {
   /**
    * @return the optional value of the previous value for the key.
    */
-  Optional<V> putOptional(int key, @Nullable V value);
+  Optional<V> putOptional(int key, V value);
 
   /**
    * @return the previous value for the key or null.
@@ -47,6 +44,8 @@ public interface MutableIntToRefDictionary<V> extends IntToRefDictionary<V> {
    * @return the optional value of the previous value for the key.
    */
   Optional<V> removeOptional(int key);
+
+  void clear();
 
   IntToRefDictionary<V> toReadOnly();
 }

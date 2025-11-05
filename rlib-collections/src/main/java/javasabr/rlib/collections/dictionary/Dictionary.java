@@ -24,7 +24,6 @@ public interface Dictionary<K, V> extends Iterable<V> {
 
   Optional<V> getOptional(K key);
 
-  @Nullable
   V getOrDefault(K key, V def);
 
   <C extends Collection<K>> C keys(C container);

@@ -57,6 +57,7 @@ dependencies {
   testImplementation libs.mockito.junit.jupiter
   testImplementation libs.junit.api
   testImplementation libs.junit.jupiter.params
+  testImplementation libs.assertj.core
 
   testCompileOnly libs.lombok
   testCompileOnly libs.jspecify

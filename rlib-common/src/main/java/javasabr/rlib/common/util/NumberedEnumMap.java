@@ -1,0 +1,46 @@
+package javasabr.rlib.common.util;
+
+import java.util.stream.Stream;
+import lombok.CustomLog;
+import org.jspecify.annotations.Nullable;
+
+@CustomLog
+public class NumberedEnumMap<T extends Enum<T> & NumberedEnum<T>> {
+
+  T[] values;
+
+  public NumberedEnumMap(Class<T> enumClass) {
+
+    T[] enumConstants = enumClass.getEnumConstants();
+    int maxIndex = Stream
+        .of(enumConstants)
+        .mapToInt(NumberedEnum::number)
+        .max()
+        .orElse(0);
+
+    T[] indexedConstants = ArrayUtils.create(enumClass, maxIndex + 1);
+    for (T enumConstant : enumConstants) {
+      indexedConstants[enumConstant.number()] = enumConstant;
+    }
+
+    values = indexedConstants;
+  }
+
+  @Nullable
+  public T resolve(int number) {
+    try {
+      return values[number];
+    } catch (IndexOutOfBoundsException e) {
+      log.warning(e.getMessage());
+      return null;
+    }
+  }
+
+  public T require(int number) {
+    T constant = resolve(number);
+    if (constant == null) {
+      throw new IllegalArgumentException("Unknown enum constant for number:" + number);
+    }
+    return constant;
+  }
+}

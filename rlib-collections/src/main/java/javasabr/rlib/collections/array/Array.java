@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.RandomAccess;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javasabr.rlib.collections.array.impl.DefaultArrayIterator;
@@ -16,7 +15,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * @author JavaSaBr
  */
-public interface Array<E> extends Iterable<E>, Serializable, Cloneable, RandomAccess {
+public interface Array<E> extends Iterable<E>, Serializable, Cloneable {
 
   static <E> Array<E> empty(Class<? super E> type) {
     return new ImmutableArray<>(ClassUtils.unsafeCast(type));
