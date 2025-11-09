@@ -3,13 +3,16 @@ package javasabr.rlib.collections.array.impl;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import javasabr.rlib.collections.array.ArrayIterationFunctions;
+import javasabr.rlib.collections.array.ReversedArgsArrayIterationFunctions;
 import javasabr.rlib.collections.array.UnsafeArray;
 import javasabr.rlib.functions.ObjIntPredicate;
 import javasabr.rlib.functions.ObjObjLongConsumer;
 import javasabr.rlib.functions.TriConsumer;
 import org.jspecify.annotations.Nullable;
 
-public record DefaultArrayIterationFunctions<E>(UnsafeArray<E> array) implements ArrayIterationFunctions<E> {
+public record DefaultArrayIterationFunctions<E>(
+    UnsafeArray<E> array,
+    ReversedArgsArrayIterationFunctions<E> reversedArgs) implements ArrayIterationFunctions<E> {
 
   @Override
   public <T> @Nullable E findAny(T arg1, BiPredicate<? super E, T> filter) {

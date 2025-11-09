@@ -239,7 +239,8 @@ public class FileUtils {
 
   public static boolean hasExtensions(String path, @Nullable Array<String> extensions) {
     return extensions != null && extensions
-        .reversedIterations()
+        .iterations()
+        .reversedArgs()
         .anyMatch(path, String::endsWith);
   }
 

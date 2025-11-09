@@ -11,9 +11,13 @@ public interface MutableIntArray extends IntArray {
   /**
    * @return the element previously at the specified position
    */
-  int removeByInex(int index);
+  int removeByIndex(int index);
 
   boolean remove(int value);
+
+  boolean removeAll(IntArray array);
+
+  boolean removeAll(int[] array);
 
   void replace(int index, int value);
 

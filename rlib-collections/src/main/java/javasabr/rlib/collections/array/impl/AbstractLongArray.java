@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import javasabr.rlib.collections.array.LongArray;
 import javasabr.rlib.collections.array.UnsafeLongArray;
+import javasabr.rlib.common.util.ArrayUtils;
 import lombok.AccessLevel;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
@@ -62,17 +63,25 @@ public abstract class AbstractLongArray implements UnsafeLongArray {
     if (array.isEmpty()) {
       return false;
     }
-
-    long[] wrapped = array
-        .asUnsafe()
-        .wrapped();
-
+    long[] wrapped = array.asUnsafe().wrapped();
     for (int i = 0, length = array.size(); i < length; i++) {
       if (!contains(wrapped[i])) {
         return false;
       }
     }
+    return true;
+  }
 
+  @Override
+  public boolean containsAll(long[] array) {
+    if (array.length < 1) {
+      return false;
+    }
+    for (long value : array) {
+      if (!contains(value)) {
+        return false;
+      }
+    }
     return true;
   }
 
@@ -110,30 +119,26 @@ public abstract class AbstractLongArray implements UnsafeLongArray {
 
   @Override
   public boolean equals(Object another) {
-
     if (!(another instanceof LongArray array)) {
       return false;
     }
-
-    long[] wrapped = array
-        .asUnsafe()
-        .wrapped();
-
+    long[] wrapped = array.asUnsafe().wrapped();
     return Arrays.equals(wrapped(), 0, size(), wrapped, 0, array.size());
   }
 
   @Override
   public int hashCode() {
-
     long[] wrapped = wrapped();
-
     int result = 1;
-
     for (int i = 0, wrappedLength = size(); i < wrappedLength; i++) {
       result = 31 * result + Long.hashCode(wrapped[i]);
     }
-
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return ArrayUtils.toString(wrapped(), 0, size(), ",", false, true);
   }
 
   @Override

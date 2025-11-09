@@ -663,15 +663,35 @@ public final class ArrayUtils {
    */
   public static String toString(
       int @Nullable [] array,
-      final String separator,
-      final boolean needType,
-      final boolean needBrackets) {
+      String separator,
+      boolean needType,
+      boolean needBrackets) {
+    int length = array == null ? 0 : array.length;
+    return toString(array, 0, length, separator, needType, needBrackets);
+  }
+
+  /**
+   * Convert the array to a string presentation.
+   *
+   * @param array the array.
+   * @param separator the separator.
+   * @param needType true if need adding type of array.
+   * @param needBrackets true if need adding brackets.
+   * @return the string presentation of the array.
+   */
+  public static String toString(
+      int @Nullable [] array,
+      int offset,
+      int length,
+      String separator,
+      boolean needType,
+      boolean needBrackets) {
 
     if (array == null) {
       array = EMPTY_INT_ARRAY;
     }
 
-    final StringBuilder builder = new StringBuilder();
+    StringBuilder builder = new StringBuilder();
 
     if (needType) {
       builder.append("int");
@@ -680,9 +700,54 @@ public final class ArrayUtils {
       builder.append('[');
     }
 
-    for (int i = 0, length = array.length - 1; i <= length; i++) {
-      builder.append(String.valueOf(array[i]));
-      if (i == length) {
+    for (int i = offset, limit = offset + length - 1; i <= limit; i++) {
+      builder.append(array[i]);
+      if (i == limit) {
+        break;
+      }
+      builder.append(separator);
+    }
+
+    if (needBrackets) {
+      builder.append(']');
+    }
+
+    return builder.toString();
+  }
+
+  /**
+   * Convert the array to a string presentation.
+   *
+   * @param array the array.
+   * @param separator the separator.
+   * @param needType true if need adding type of array.
+   * @param needBrackets true if need adding brackets.
+   * @return the string presentation of the array.
+   */
+  public static String toString(
+      long @Nullable [] array,
+      int offset,
+      int length,
+      String separator,
+      boolean needType,
+      boolean needBrackets) {
+
+    if (array == null) {
+      array = EMPTY_LONG_ARRAY;
+    }
+
+    StringBuilder builder = new StringBuilder();
+
+    if (needType) {
+      builder.append("int");
+    }
+    if (needBrackets) {
+      builder.append('[');
+    }
+
+    for (int i = offset, limit = offset + length - 1; i <= limit; i++) {
+      builder.append(array[i]);
+      if (i == limit) {
         break;
       }
       builder.append(separator);

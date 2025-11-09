@@ -36,6 +36,11 @@ public class NumberedEnumMap<T extends Enum<T> & NumberedEnum<T>> {
     }
   }
 
+  public T resolve(int number, T def) {
+    T resolved = resolve(number);
+    return resolved == null ? def : resolved;
+  }
+
   public T require(int number) {
     T constant = resolve(number);
     if (constant == null) {

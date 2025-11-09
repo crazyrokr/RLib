@@ -17,31 +17,49 @@ public class ArrayTest  {
 
   @Test
   void arrayOfTest() {
-
     // when:
-    Array<String> array = Array.of("First", "Second", "Third", "  ");
+    Array<String> array1 = Array.of("First");
+    Array<String> array2 = Array.of("First", "Second");
+    Array<String> array3 = Array.of("First", "Second", "Third");
+    Array<String> array4 = Array.of("First", "Second", "Third", "Fourth");
+    Array<String> array5 = Array.of("First", "Second", "Third", "Fourth", "Fifth");
+    Array<String> array6 = Array.of("First", "Second", "Third", "Fourth", "Fifth", "Sixth");
+    Array<String> array7 = Array.of("First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh");
+    Array<String> array8 = Array.typed(String.class,"First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh");
+    Array<Object> array9 = Array.of("First", "Second", 55, "Fourth", 20D, "Sixth", "Seventh");
 
     // then:
-    Assertions.assertEquals(4, array.size());
-    Assertions.assertEquals("First", array.get(0));
-    Assertions.assertEquals("Second", array.get(1));
-    Assertions.assertEquals("Third", array.get(2));
-    Assertions.assertEquals("  ", array.get(3));
-    Assertions.assertEquals("First", array.first());
-    Assertions.assertEquals("  ", array.last());
+    assertThat(array1.toArray())
+        .isEqualTo(new String[]{"First"});
+    assertThat(array2.toArray())
+        .isEqualTo(new String[]{"First", "Second"});
+    assertThat(array3.toArray())
+        .isEqualTo(new String[]{"First", "Second", "Third"});
+    assertThat(array4.toArray())
+        .isEqualTo(new String[]{"First", "Second", "Third", "Fourth"});
+    assertThat(array5.toArray())
+        .isEqualTo(new String[]{"First", "Second", "Third", "Fourth", "Fifth"});
+    assertThat(array6.toArray())
+        .isEqualTo(new String[]{"First", "Second", "Third", "Fourth", "Fifth", "Sixth"});
+    assertThat(array7.toArray())
+        .isEqualTo(new String[]{"First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh"});
+    assertThat(array8.toArray())
+        .isEqualTo(new String[]{"First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh"});
+    assertThat(array9.toArray())
+        .isEqualTo(new Object[]{"First", "Second", 55, "Fourth", 20D, "Sixth", "Seventh"});
+  }
+
+  @Test
+  void arrayRepeatedTest() {
+    // when:
+    Array<String> array1 = Array.repeated("value", 4);
+    Array<Integer> array2 = Array.repeated(20, 5);
 
     // then:
-    Assertions.assertArrayEquals(
-        new String[]{
-            "First",
-            "Second",
-            "Third",
-            "  "
-        }, array.stream().toArray());
-
-    // then:
-    Assertions.assertTrue(array.contains("Second"));
-    Assertions.assertFalse(array.contains("test"));
+    assertThat(array1.toArray())
+        .isEqualTo(new String[]{"value", "value", "value", "value"});
+    assertThat(array2.toArray())
+        .isEqualTo(new Integer[]{20, 20, 20, 20, 20});
   }
 
   @ParameterizedTest
@@ -189,7 +207,7 @@ public class ArrayTest  {
   }
 
   private static Stream<Arguments> generateArraysWithDuplicates() {
-    Array<String> array = Array.typed(String.class, "First", "Second", "Third", "  ", "First", "Second", "Third");
+    Array<String> array = Array.of("First", "Second", "Third", "  ", "First", "Second", "Third");
     MutableArray<String> mutableArray = ArrayFactory.mutableArray(String.class);
     mutableArray.addAll(array);
     MutableArray<String> copyOnModifyArray = ArrayFactory.copyOnModifyArray(String.class);

@@ -9,7 +9,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import javasabr.rlib.collections.array.Array;
 import javasabr.rlib.collections.array.ArrayIterationFunctions;
-import javasabr.rlib.collections.array.ReversedArrayIterationFunctions;
 import javasabr.rlib.collections.array.UnsafeArray;
 import javasabr.rlib.common.util.ArrayUtils;
 import javasabr.rlib.common.util.ClassUtils;
@@ -174,13 +173,13 @@ public abstract class AbstractArray<E> implements UnsafeArray<E> {
   }
 
   @Override
-  public ReversedArrayIterationFunctions<E> reversedIterations() {
-    return new DefaultReversedArrayIterationFunctions<>(this);
+  public ArrayIterationFunctions<E> iterations() {
+    return createIterations();
   }
 
-  @Override
-  public ArrayIterationFunctions<E> iterations() {
-    return new DefaultArrayIterationFunctions<>(this);
+  protected ArrayIterationFunctions<E> createIterations() {
+    return new DefaultArrayIterationFunctions<>(this,
+        new DefaultReversedArgsArrayIterationFunctions<>(this));
   }
 
   @Override
