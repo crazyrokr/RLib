@@ -14,7 +14,8 @@ class ReversedArrayIterationsTest {
   void shouldFindAnyCorrectly(Array<String> array) {
     // when/then:
     Assertions.assertNull(array
-        .reversedIterations()
+        .iterations()
+        .reversedArgs()
         .findAny("notexist", Objects::equals));
     Assertions.assertNotNull(array
         .iterations()
@@ -34,7 +35,8 @@ class ReversedArrayIterationsTest {
         "prefix_5");
 
     // when:
-    array.reversedIterations()
+    array.iterations()
+        .reversedArgs()
         .forEach("prefix_", (arg1, element) -> result.add(arg1 + element));
 
     // then:
@@ -54,7 +56,9 @@ class ReversedArrayIterationsTest {
         "prefix__middle_5");
 
     // when:
-    array.reversedIterations()
+    array
+        .iterations()
+        .reversedArgs()
         .forEach("prefix_", "_middle_", (arg1, arg2, element) -> result.add(arg1 + arg2 + element));
 
     // then:
@@ -66,10 +70,12 @@ class ReversedArrayIterationsTest {
   void shouldAnyMatchCorrectly(Array<String> array) {
     // when/then:
     Assertions.assertFalse(array
-        .reversedIterations()
+        .iterations()
+        .reversedArgs()
         .anyMatch("10", String::equals));
     Assertions.assertTrue(array
-        .reversedIterations()
+        .iterations()
+        .reversedArgs()
         .anyMatch("5", String::equals));
   }
 

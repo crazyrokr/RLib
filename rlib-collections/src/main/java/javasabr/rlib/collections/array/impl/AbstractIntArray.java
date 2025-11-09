@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import javasabr.rlib.collections.array.IntArray;
 import javasabr.rlib.collections.array.UnsafeIntArray;
+import javasabr.rlib.common.util.ArrayUtils;
 import lombok.AccessLevel;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
@@ -110,30 +111,26 @@ public abstract class AbstractIntArray implements UnsafeIntArray {
 
   @Override
   public boolean equals(Object another) {
-
     if (!(another instanceof IntArray array)) {
       return false;
     }
-
-    int[] wrapped = array
-        .asUnsafe()
-        .wrapped();
-
+    int[] wrapped = array.asUnsafe().wrapped();
     return Arrays.equals(wrapped(), 0, size(), wrapped, 0, array.size());
   }
 
   @Override
   public int hashCode() {
-
     int[] wrapped = wrapped();
-
     int result = 1;
-
     for (int i = 0, wrappedLength = size(); i < wrappedLength; i++) {
       result = 31 * result + wrapped[i];
     }
-
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return ArrayUtils.toString(wrapped(), 0, size(), ",", false, true);
   }
 
   @Override

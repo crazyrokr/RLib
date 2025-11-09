@@ -17,6 +17,69 @@ import org.jspecify.annotations.Nullable;
 @NullMarked
 public final class ClassUtils {
 
+  public static <E> Class<E> commonType(E e1, E e2) {
+    Class<?> type = e1.getClass();
+    while (!type.isInstance(e2)) {
+      type = type.getSuperclass();
+    }
+    return (Class<E>) type;
+  }
+
+  public static <E> Class<E> commonType(E e1, E e2, E e3) {
+    Class<?> type = e1.getClass();
+    while (!type.isInstance(e2) || !type.isInstance(e3)) {
+      type = type.getSuperclass();
+    }
+    return (Class<E>) type;
+  }
+
+  public static <E> Class<E> commonType(E e1, E e2, E e3, E e4) {
+    Class<?> type = e1.getClass();
+    while (!type.isInstance(e2) || !type.isInstance(e3) || !type.isInstance(e4)) {
+      type = type.getSuperclass();
+    }
+    return (Class<E>) type;
+  }
+
+  public static <E> Class<E> commonType(E e1, E e2, E e3, E e4, E e5) {
+    Class<?> type = e1.getClass();
+    while (!type.isInstance(e2) || !type.isInstance(e3) || !type.isInstance(e4) || !type.isInstance(e5)) {
+      type = type.getSuperclass();
+    }
+    return (Class<E>) type;
+  }
+
+  public static <E> Class<E> commonType(E e1, E e2, E e3, E e4, E e5, E e6) {
+    Class<?> type = e1.getClass();
+    while (!type.isInstance(e2) || !type.isInstance(e3) || !type.isInstance(e4) || !type.isInstance(e5) || !type.isInstance(e6)) {
+      type = type.getSuperclass();
+    }
+    return (Class<E>) type;
+  }
+
+  public static Class<?> commonType(Object... objects) {
+    if (objects.length < 1) {
+      return Object.class;
+    }
+    Class<?> type = objects[0].getClass();
+    if (objects.length < 2) {
+      return type;
+    }
+    while (!isCommonType(type, objects, 1)) {
+      type = type.getSuperclass();
+    }
+    return type;
+  }
+
+  private static boolean isCommonType(Class<?> type, Object[] objects, int offset) {
+    for (int i = offset; i < objects.length; i++) {
+      if (!type.isInstance(objects[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * Try to find a class by name.
    *

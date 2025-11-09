@@ -5,14 +5,14 @@ import java.util.function.BiPredicate;
 import javasabr.rlib.functions.TriConsumer;
 import org.jspecify.annotations.Nullable;
 
-public interface ReversedArrayIterationFunctions<E> {
+public interface ReversedArgsArrayIterationFunctions<E> {
 
   @Nullable
   <A> E findAny(A arg1, BiPredicate<A, ? super E> filter);
 
-  <A> ReversedArrayIterationFunctions<E> forEach(A arg1, BiConsumer<A, ? super E> consumer);
+  <A> ReversedArgsArrayIterationFunctions<E> forEach(A arg1, BiConsumer<A, ? super E> consumer);
 
-  <A, B> ReversedArrayIterationFunctions<E> forEach(A arg1, B arg2, TriConsumer<A, B, ? super E> consumer);
+  <A, B> ReversedArgsArrayIterationFunctions<E> forEach(A arg1, B arg2, TriConsumer<A, B, ? super E> consumer);
 
   <A> boolean anyMatch(A arg1, BiPredicate<A, ? super E> filter);
 }

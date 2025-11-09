@@ -1,4 +1,4 @@
-rootProject.version = "10.0.alpha6"
+rootProject.version = "10.0.alpha7"
 group = 'javasabr.rlib'
 
 allprojects {

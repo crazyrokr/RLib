@@ -11,9 +11,13 @@ public interface MutableLongArray extends LongArray {
   /**
    * @return the element previously at the specified position
    */
-  long removeByInex(int index);
+  long removeByIndex(int index);
 
   boolean remove(long value);
+
+  boolean removeAll(LongArray array);
+
+  boolean removeAll(long[] array);
 
   void replace(int index, long value);
 

@@ -64,7 +64,7 @@ public abstract class AbstractMutableLongArray extends AbstractLongArray impleme
   }
 
   @Override
-  public long removeByInex(int index) {
+  public long removeByIndex(int index) {
     checkIndex(index);
     return unsafeRemoveByInex(index);
   }
@@ -75,24 +75,47 @@ public abstract class AbstractMutableLongArray extends AbstractLongArray impleme
     if (index < 0) {
       return false;
     }
-    remove(index);
+    unsafeRemoveByInex(index);
     return true;
   }
 
   @Override
+  public boolean removeAll(LongArray array) {
+    if (array.isEmpty()) {
+      return false;
+    }
+    int removed = 0;
+    for (long value : array) {
+      if (remove(value)) {
+        removed++;
+      }
+    }
+    return removed > 0;
+  }
+
+  @Override
+  public boolean removeAll(long[] array) {
+    if (array.length < 1) {
+      return false;
+    }
+    int removed = 0;
+    for (long value : array) {
+      if (remove(value)) {
+        removed++;
+      }
+    }
+    return removed > 0;
+  }
+
+  @Override
   public long unsafeRemoveByInex(int index) {
-
     int numMoved = size() - index - 1;
-
     long[] wrapped = wrapped();
     long value = wrapped[index];
-
     if (numMoved > 0) {
       System.arraycopy(wrapped, index + 1, wrapped, index, numMoved);
     }
-
     wrapped[decrementAnGetSize()] = 0;
-
     return value;
   }
 

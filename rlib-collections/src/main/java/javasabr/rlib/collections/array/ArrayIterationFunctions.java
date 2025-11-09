@@ -9,6 +9,8 @@ import org.jspecify.annotations.Nullable;
 
 public interface ArrayIterationFunctions<E> {
 
+  ReversedArgsArrayIterationFunctions<E> reversedArgs();
+
   @Nullable
   <A> E findAny(A arg1, BiPredicate<? super E, A> filter);
 

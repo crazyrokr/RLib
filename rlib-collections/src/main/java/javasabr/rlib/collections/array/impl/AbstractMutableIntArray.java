@@ -64,7 +64,7 @@ public abstract class AbstractMutableIntArray extends AbstractIntArray implement
   }
 
   @Override
-  public int removeByInex(int index) {
+  public int removeByIndex(int index) {
     checkIndex(index);
     return unsafeRemoveByInex(index);
   }
@@ -75,24 +75,47 @@ public abstract class AbstractMutableIntArray extends AbstractIntArray implement
     if (index < 0) {
       return false;
     }
-    remove(index);
+    unsafeRemoveByInex(index);
     return true;
   }
 
   @Override
+  public boolean removeAll(IntArray array) {
+    if (array.isEmpty()) {
+      return false;
+    }
+    int removed = 0;
+    for (int value : array) {
+      if (remove(value)) {
+        removed++;
+      }
+    }
+    return removed > 0;
+  }
+
+  @Override
+  public boolean removeAll(int[] array) {
+    if (array.length < 1) {
+      return false;
+    }
+    int removed = 0;
+    for (int value : array) {
+      if (remove(value)) {
+        removed++;
+      }
+    }
+    return removed > 0;
+  }
+
+  @Override
   public int unsafeRemoveByInex(int index) {
-
     int numMoved = size() - index - 1;
-
     int[] wrapped = wrapped();
     int value = wrapped[index];
-
     if (numMoved > 0) {
       System.arraycopy(wrapped, index + 1, wrapped, index, numMoved);
     }
-
     wrapped[decrementAnGetSize()] = 0;
-
     return value;
   }
 

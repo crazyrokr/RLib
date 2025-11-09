@@ -39,6 +39,7 @@ class NumberedEnumMapTest {
     assertThat(TestEnum.MAP.resolve(900)).isNull();
     assertThat(TestEnum.MAP.resolve(-50)).isNull();
     assertThat(TestEnum.MAP.resolve(24)).isNull();
+    assertThat(TestEnum.MAP.resolve(24, TestEnum.CONSTANT4)).isEqualTo(TestEnum.CONSTANT4);
   }
 
   @Test
