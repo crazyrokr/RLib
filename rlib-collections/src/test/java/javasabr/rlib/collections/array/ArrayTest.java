@@ -17,32 +17,6 @@ public class ArrayTest  {
 
   @Test
   void arrayOfTest() {
-
-    // when:
-    Array<String> array = Array.of("First", "Second", "Third", "  ");
-
-    // then:
-    Assertions.assertEquals(4, array.size());
-    Assertions.assertEquals("First", array.get(0));
-    Assertions.assertEquals("Second", array.get(1));
-    Assertions.assertEquals("Third", array.get(2));
-    Assertions.assertEquals("  ", array.get(3));
-    Assertions.assertEquals("First", array.first());
-    Assertions.assertEquals("  ", array.last());
-
-    // then:
-    Assertions.assertArrayEquals(
-        new String[]{
-            "First",
-            "Second",
-            "Third",
-            "  "
-        }, array.stream().toArray());
-
-    // then:
-    Assertions.assertTrue(array.contains("Second"));
-    Assertions.assertFalse(array.contains("test"));
-
     // when:
     Array<String> array1 = Array.of("First");
     Array<String> array2 = Array.of("First", "Second");

@@ -64,16 +64,26 @@ public abstract class AbstractIntArray implements UnsafeIntArray {
       return false;
     }
 
-    int[] wrapped = array
-        .asUnsafe()
-        .wrapped();
-
+    int[] wrapped = array.asUnsafe().wrapped();
     for (int i = 0, length = array.size(); i < length; i++) {
       if (!contains(wrapped[i])) {
         return false;
       }
     }
 
+    return true;
+  }
+
+  @Override
+  public boolean containsAll(int[] array) {
+    if (array.length < 1) {
+      return false;
+    }
+    for (int value : array) {
+      if (!contains(value)) {
+        return false;
+      }
+    }
     return true;
   }
 

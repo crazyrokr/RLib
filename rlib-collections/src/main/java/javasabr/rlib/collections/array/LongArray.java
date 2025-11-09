@@ -1,6 +1,7 @@
 package javasabr.rlib.collections.array;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.RandomAccess;
 import java.util.stream.LongStream;
 import javasabr.rlib.collections.array.impl.ImmutableLongArray;
@@ -40,11 +41,19 @@ public interface LongArray extends Iterable<Long>, Serializable, Cloneable, Rand
     return new ImmutableLongArray(intArray.toArray());
   }
 
+  static LongArray repeated(long value, int count) {
+    long[] values = new long[count];
+    Arrays.fill(values, value);
+    return new ImmutableLongArray(values);
+  }
+
   int size();
 
   boolean contains(long value);
 
   boolean containsAll(LongArray array);
+
+  boolean containsAll(long[] array);
 
   /**
    * @return the first element or {@link java.util.NoSuchElementException}

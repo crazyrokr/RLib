@@ -14,7 +14,6 @@ class MutableArrayTest {
   @MethodSource("generateMutableArrays")
   @DisplayName("should correctly add elements")
   void shouldCorrectlyAddElements(MutableArray<String> mutableArray) {
-
     // when:
     mutableArray.add("First");
 
@@ -51,7 +50,6 @@ class MutableArrayTest {
   @MethodSource("generateMutableArrays")
   @DisplayName("should correctly remove elements")
   void shouldCorrectlyRemoveElements(MutableArray<String> mutableArray) {
-
     // given:
     for(int i = 0; i < 101; i++) {
       mutableArray.add("value_" + i);
@@ -86,7 +84,6 @@ class MutableArrayTest {
   @MethodSource("generateMutableArrays")
   @DisplayName("should correctly replace elements")
   void shouldCorrectlyReplaceElements(MutableArray<String> mutableArray) {
-
     // given:
     for(int i = 0; i < 101; i++) {
       mutableArray.add("value_" + i);
@@ -111,7 +108,6 @@ class MutableArrayTest {
   @MethodSource("generateMutableArrays")
   @DisplayName("should correctly add batch elements")
   void shouldCorrectlyAddBatchElements(MutableArray<String> mutableArray) {
-
     // given:
     for(int i = 0; i < 21; i++) {
       mutableArray.add("value_" + i);
@@ -163,7 +159,6 @@ class MutableArrayTest {
   @MethodSource("generateMutableArrays")
   @DisplayName("should correctly remove batch elements")
   void shouldCorrectlyRemoveBatchElements(MutableArray<String> mutableArray) {
-
     // given:
     for(int i = 0; i < 21; i++) {
       mutableArray.add("value_" + i);
@@ -189,6 +184,28 @@ class MutableArrayTest {
     Assertions.assertEquals("a6", mutableArray.get(26));
     Assertions.assertEquals("na1", mutableArray.get(27));
     Assertions.assertEquals("na6", mutableArray.get(32));
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateMutableArrays")
+  @DisplayName("should clear array")
+  void shouldClearArray(MutableArray<String> mutableArray) {
+    // when:
+    for(int i = 0; i < 21; i++) {
+      mutableArray.add("value_" + i);
+    }
+
+    // then:
+    Assertions.assertEquals(21, mutableArray.size());
+    Assertions.assertEquals("value_0", mutableArray.get(0));
+    Assertions.assertEquals("value_20", mutableArray.get(20));
+
+    // when:
+    mutableArray.clear();
+
+    // then:
+    Assertions.assertEquals(0, mutableArray.size());
+    Assertions.assertArrayEquals(new String[0], mutableArray.toArray());
   }
 
   private static Stream<Arguments> generateMutableArrays() {

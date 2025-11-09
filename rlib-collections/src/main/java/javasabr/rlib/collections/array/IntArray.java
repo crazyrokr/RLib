@@ -1,6 +1,7 @@
 package javasabr.rlib.collections.array;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.RandomAccess;
 import java.util.stream.IntStream;
 import javasabr.rlib.collections.array.impl.ImmutableIntArray;
@@ -40,11 +41,19 @@ public interface IntArray extends Iterable<Integer>, Serializable, Cloneable, Ra
     return new ImmutableIntArray(intArray.toArray());
   }
 
+  static IntArray repeated(int value, int count) {
+    int[] values = new int[count];
+    Arrays.fill(values, value);
+    return new ImmutableIntArray(values);
+  }
+
   int size();
 
   boolean contains(int value);
 
   boolean containsAll(IntArray array);
+
+  boolean containsAll(int[] array);
 
   /**
    * @return the first element or {@link java.util.NoSuchElementException}

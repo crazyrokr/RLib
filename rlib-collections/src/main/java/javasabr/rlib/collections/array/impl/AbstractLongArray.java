@@ -63,17 +63,25 @@ public abstract class AbstractLongArray implements UnsafeLongArray {
     if (array.isEmpty()) {
       return false;
     }
-
-    long[] wrapped = array
-        .asUnsafe()
-        .wrapped();
-
+    long[] wrapped = array.asUnsafe().wrapped();
     for (int i = 0, length = array.size(); i < length; i++) {
       if (!contains(wrapped[i])) {
         return false;
       }
     }
+    return true;
+  }
 
+  @Override
+  public boolean containsAll(long[] array) {
+    if (array.length < 1) {
+      return false;
+    }
+    for (long value : array) {
+      if (!contains(value)) {
+        return false;
+      }
+    }
     return true;
   }
 
