@@ -208,10 +208,61 @@ class MutableArrayTest {
     Assertions.assertArrayEquals(new String[0], mutableArray.toArray());
   }
 
+  @ParameterizedTest
+  @MethodSource("generateArraysWithTrimToSize")
+  @DisplayName("should trim to size wrapped array")
+  void shouldTrimToSizeWrappedArray(MutableArray<String> mutableArray) {
+    // given:
+    UnsafeMutableArray<String> unsafe = mutableArray.asUnsafe();
+
+    // when:
+    for(int i = 0; i < 100; i++) {
+      mutableArray.add("value_" + i);
+    }
+
+    // then:
+    Assertions.assertEquals(100, mutableArray.size());
+
+    // when:
+    for(int i = 0; i < 30; i++) {
+      mutableArray.remove(i);
+    }
+
+    // then:
+    Assertions.assertEquals(70, mutableArray.size());
+    Assertions.assertEquals(109, unsafe.wrapped().length);
+
+    // when:
+    unsafe.trimToSize();
+
+    // then:
+    Assertions.assertEquals(70, unsafe.wrapped().length);
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateMutableArrays")
+  @DisplayName("should render to string correctly")
+  void shouldRenderToStringCorrectly(MutableArray<String> mutableArray) {
+    // when:
+    for(int i = 0; i < 10; i++) {
+      mutableArray.add("val_" + i);
+    }
+    // then:
+    Assertions.assertEquals(
+        "[val_0, val_1, val_2, val_3, val_4, val_5, val_6, val_7, val_8, val_9]",
+        mutableArray.toString());
+  }
+
   private static Stream<Arguments> generateMutableArrays() {
     return Stream.of(
         Arguments.of(ArrayFactory.mutableArray(String.class)),
         Arguments.of(ArrayFactory.copyOnModifyArray(String.class)),
+        Arguments.of(ArrayFactory.stampedLockBasedArray(String.class)));
+  }
+
+  private static Stream<Arguments> generateArraysWithTrimToSize() {
+    return Stream.of(
+        Arguments.of(ArrayFactory.mutableArray(String.class)),
         Arguments.of(ArrayFactory.stampedLockBasedArray(String.class)));
   }
 }

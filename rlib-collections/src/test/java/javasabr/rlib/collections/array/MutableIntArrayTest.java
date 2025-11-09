@@ -162,6 +162,12 @@ class MutableIntArrayTest {
     Assertions.assertEquals(120, mutableArray.get(20));
     Assertions.assertEquals(41, mutableArray.get(21));
     Assertions.assertEquals(46, mutableArray.get(26));
+
+    // when:
+    mutableArray.removeAll(anotherNativeArray);
+
+    // then:
+    Assertions.assertEquals(21, mutableArray.size());
   }
 
   @ParameterizedTest
@@ -184,6 +190,49 @@ class MutableIntArrayTest {
     // then:
     Assertions.assertEquals(0, mutableArray.size());
     Assertions.assertArrayEquals(new int[0], mutableArray.toArray());
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateMutableArrays")
+  @DisplayName("should trim to size wrapped array")
+  void shouldTrimToSizeWrappedArray(MutableIntArray mutableArray) {
+    // given:
+    UnsafeMutableIntArray unsafe = mutableArray.asUnsafe();
+
+    // when:
+    for(int i = 0; i < 100; i++) {
+      mutableArray.add(100 + i);
+    }
+
+    // then:
+    Assertions.assertEquals(100, mutableArray.size());
+
+    // when:
+    for(int i = 0; i < 30; i++) {
+      mutableArray.removeByIndex(i);
+    }
+
+    // then:
+    Assertions.assertEquals(70, mutableArray.size());
+    Assertions.assertEquals(109, unsafe.wrapped().length);
+
+    // when:
+    unsafe.trimToSize();
+
+    // then:
+    Assertions.assertEquals(70, unsafe.wrapped().length);
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateMutableArrays")
+  @DisplayName("should render to string correctly")
+  void shouldRenderToStringCorrectly(MutableIntArray mutableArray) {
+    // when:
+    for(int i = 0; i < 10; i++) {
+      mutableArray.add(20 + i);
+    }
+    // then:
+    Assertions.assertEquals("[20,21,22,23,24,25,26,27,28,29]", mutableArray.toString());
   }
 
   private static Stream<Arguments> generateMutableArrays() {
