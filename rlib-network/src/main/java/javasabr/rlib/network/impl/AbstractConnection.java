@@ -97,13 +97,13 @@ public abstract class AbstractConnection<C extends AbstractConnection<C>> implem
   @Override
   public void onReceiveValidPacket(BiConsumer<C, ? super ReadableNetworkPacket<C>> consumer) {
     validPacketSubscribers.add(consumer);
-    packetReader().startRead();
+    network.inNetworkThread(() -> packetReader().startRead());
   }
 
   @Override
   public void onReceiveInvalidPacket(BiConsumer<C, ? super ReadableNetworkPacket<C>> consumer) {
     invalidPacketSubscribers.add(consumer);
-    packetReader().startRead();
+    network.inNetworkThread(() -> packetReader().startRead());
   }
 
   @Override
@@ -129,26 +129,32 @@ public abstract class AbstractConnection<C extends AbstractConnection<C>> implem
         packet, true));
     BiConsumer<C, ReadableNetworkPacket<C>> invalidListener =
         (connection, packet) -> sink.next(new ReceivedPacketEvent<>(connection,
-            packet, true));
+            packet, false));
 
 
-    onReceiveValidPacket(validListener);
-    onReceiveInvalidPacket(invalidListener);
+    validPacketSubscribers.add(validListener);
+    invalidPacketSubscribers.add(invalidListener);
 
-    sink.onDispose(() -> validPacketSubscribers.remove(validListener));
-    sink.onDispose(() -> invalidPacketSubscribers.remove(invalidListener));
+    sink.onDispose(() -> {
+      validPacketSubscribers.remove(validListener);
+      validPacketSubscribers.remove(invalidListener);
+    });
+
+    network.inNetworkThread(() -> packetReader().startRead());
   }
 
   protected void registerFluxOnReceivedValidPackets(FluxSink<? super ReadableNetworkPacket<C>> sink) {
     BiConsumer<C, ReadableNetworkPacket<C>> listener = (connection, packet) -> sink.next(packet);
-    onReceiveValidPacket(listener);
+    validPacketSubscribers.add(listener);
     sink.onDispose(() -> validPacketSubscribers.remove(listener));
+    network.inNetworkThread(() -> packetReader().startRead());
   }
 
   protected void registerFluxOnReceivedInvalidPackets(FluxSink<? super ReadableNetworkPacket<C>> sink) {
     BiConsumer<C, ReadableNetworkPacket<C>> listener = (connection, packet) -> sink.next(packet);
-    onReceiveInvalidPacket(listener);
+    invalidPacketSubscribers.add(listener);
     sink.onDispose(() -> invalidPacketSubscribers.remove(listener));
+    network.inNetworkThread(() -> packetReader().startRead());
   }
 
   @Nullable
@@ -222,18 +228,15 @@ public abstract class AbstractConnection<C extends AbstractConnection<C>> implem
   }
 
   protected void sendImpl(WritableNetworkPacket<C> packet) {
-
     if (closed()) {
       return;
     }
-
     long stamp = lock.writeLock();
     try {
       pendingPackets.addLast(packet);
     } finally {
       lock.unlockWrite(stamp);
     }
-
     packetWriter().tryToSendNextPacket();
   }
 
@@ -248,15 +251,11 @@ public abstract class AbstractConnection<C extends AbstractConnection<C>> implem
 
   @Override
   public CompletableFuture<Boolean> sendWithFeedback(WritableNetworkPacket<C> packet) {
-
     var asyncResult = new CompletableFuture<Boolean>();
-
     sendImpl(new WritablePacketWithFeedback<>(asyncResult, packet));
-
     if (closed()) {
       return CompletableFuture.completedFuture(Boolean.FALSE);
     }
-
     return asyncResult;
   }
 
@@ -273,11 +272,9 @@ public abstract class AbstractConnection<C extends AbstractConnection<C>> implem
   }
 
   protected void doClearWaitPackets() {
-
     for (var pendingPacket : pendingPackets) {
       handleSentPacket(pendingPacket, false);
     }
-
     pendingPackets.clear();
   }
 

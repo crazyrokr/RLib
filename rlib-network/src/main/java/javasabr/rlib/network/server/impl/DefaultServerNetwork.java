@@ -57,7 +57,7 @@ public class DefaultServerNetwork<C extends UnsafeConnection<C>>
     public void completed(AsynchronousSocketChannel channel, DefaultServerNetwork<C> network) {
       var connection = network.channelToConnection.apply(network, channel);
       log.debug(connection.remoteAddress(), "Accepted new connection:[%s]"::formatted);
-      network.onAccept(connection);
+      network.consumeAccepted(connection);
       network.acceptNext();
     }
 
@@ -77,8 +77,9 @@ public class DefaultServerNetwork<C extends UnsafeConnection<C>>
 
   @Getter
   ScheduledExecutorService scheduledExecutor;
+  ExecutorService networkExecutor;
 
-  AsynchronousChannelGroup group;
+  AsynchronousChannelGroup channelGroup;
   AsynchronousServerSocketChannel channel;
   MutableArray<Consumer<? super C>> subscribers;
 
@@ -86,9 +87,10 @@ public class DefaultServerNetwork<C extends UnsafeConnection<C>>
       ServerNetworkConfig config,
       BiFunction<Network<C>, AsynchronousSocketChannel, C> channelToConnection) {
     super(config, channelToConnection);
-    this.group = Utils.uncheckedGet(buildExecutor(config), AsynchronousChannelGroup::withThreadPool);
+    this.networkExecutor = buildExecutor(config);
+    this.channelGroup = Utils.uncheckedGet(networkExecutor, AsynchronousChannelGroup::withThreadPool);
     this.scheduledExecutor = buildScheduledExecutor(config);
-    this.channel = Utils.uncheckedGet(group, AsynchronousServerSocketChannel::open);
+    this.channel = Utils.uncheckedGet(channelGroup, AsynchronousServerSocketChannel::open);
     this.subscribers = ArrayFactory.copyOnModifyArray(Consumer.class);
     log.info(config, DefaultServerNetwork::buildConfigDescription);
   }
@@ -109,10 +111,15 @@ public class DefaultServerNetwork<C extends UnsafeConnection<C>>
     log.info(address, "Started server socket on address:[%s]"::formatted);
 
     if (!subscribers.isEmpty()) {
-      acceptNext();
+      inNetworkThread(this::acceptNext);
     }
 
     return address;
+  }
+
+  @Override
+  public void inNetworkThread(Runnable task) {
+    networkExecutor.execute(task);
   }
 
   @Override
@@ -120,7 +127,7 @@ public class DefaultServerNetwork<C extends UnsafeConnection<C>>
     Utils.unchecked(channel, serverAddress, AsynchronousServerSocketChannel::bind);
     log.info(serverAddress, addr -> "Started server socket on address: " + addr);
     if (!subscribers.isEmpty()) {
-      acceptNext();
+      inNetworkThread(this::acceptNext);
     }
     return ClassUtils.unsafeNNCast(this);
   }
@@ -135,7 +142,7 @@ public class DefaultServerNetwork<C extends UnsafeConnection<C>>
     }
   }
 
-  protected void onAccept(C connection) {
+  protected void consumeAccepted(C connection) {
     connection.onConnected();
     subscribers
         .iterations()
@@ -145,7 +152,7 @@ public class DefaultServerNetwork<C extends UnsafeConnection<C>>
   @Override
   public void onAccept(Consumer<? super C> consumer) {
     subscribers.add(consumer);
-    acceptNext();
+    inNetworkThread(this::acceptNext);
   }
 
   @Override
@@ -162,7 +169,9 @@ public class DefaultServerNetwork<C extends UnsafeConnection<C>>
   @Override
   public void shutdown() {
     Utils.unchecked(channel, AsynchronousChannel::close);
-    group.shutdown();
+    channelGroup.shutdown();
+    scheduledExecutor.shutdown();
+    networkExecutor.shutdown();
   }
 
   protected ExecutorService buildExecutor(ServerNetworkConfig config) {

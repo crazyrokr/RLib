@@ -2,10 +2,12 @@ package javasabr.rlib.network.client.impl;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,6 +45,8 @@ public class DefaultClientNetwork<C extends Connection<C>> extends AbstractNetwo
 
   @Getter
   final ScheduledExecutorService scheduledExecutor;
+  final ExecutorService networkExecutor;
+  final AsynchronousChannelGroup channelGroup;
 
   @Nullable
   @Getter(AccessLevel.PROTECTED)
@@ -57,9 +61,15 @@ public class DefaultClientNetwork<C extends Connection<C>> extends AbstractNetwo
       BiFunction<Network<C>, AsynchronousSocketChannel, C> channelToConnection) {
     super(config, channelToConnection);
     this.connecting = new AtomicBoolean(false);
-    this.scheduledExecutor = Executors
-        .newSingleThreadScheduledExecutor(new GroupThreadFactory(config.scheduledThreadGroupName()));
+    this.scheduledExecutor = buildScheduledExecutor(config);
+    this.networkExecutor = buildExecutor(config);
+    this.channelGroup = Utils.uncheckedGet(networkExecutor, AsynchronousChannelGroup::withThreadPool);
     log.info(config, DefaultClientNetwork::buildConfigDescription);
+  }
+
+  @Override
+  public void inNetworkThread(Runnable task) {
+    networkExecutor.execute(task);
   }
 
   @Override
@@ -88,7 +98,7 @@ public class DefaultClientNetwork<C extends Connection<C>> extends AbstractNetwo
     var asyncResult = new CompletableFuture<C>();
 
     @SuppressWarnings("resource")
-    var channel = Utils.uncheckedGet(AsynchronousSocketChannel::open);
+    var channel = Utils.uncheckedGet(channelGroup, AsynchronousSocketChannel::open);
     channel.connect(serverAddress, this, new CompletionHandler<>() {
       @Override
       public void completed(@Nullable Void result, DefaultClientNetwork<C> network) {
@@ -136,6 +146,33 @@ public class DefaultClientNetwork<C extends Connection<C>> extends AbstractNetwo
     if (connection != null) {
       Utils.unchecked(connection, C::close);
     }
+    channelGroup.shutdown();
+    scheduledExecutor.shutdown();
+    networkExecutor.shutdown();
+  }
+
+  protected ExecutorService buildExecutor(NetworkConfig config) {
+    var threadFactory = new GroupThreadFactory(
+        config.threadGroupName(),
+        config.threadConstructor(),
+        config.threadPriority(),
+        false);
+    ExecutorService executorService = Executors.newSingleThreadScheduledExecutor(threadFactory);
+    // activate the executor
+    executorService.submit(() -> {});
+    return executorService;
+  }
+
+  protected ScheduledExecutorService buildScheduledExecutor(NetworkConfig config) {
+    var threadFactory = new GroupThreadFactory(
+        config.scheduledThreadGroupName(),
+        config.threadConstructor(),
+        config.threadPriority(),
+        false);
+    ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
+    // activate the executor
+    scheduledExecutor.submit(() -> {});
+    return scheduledExecutor;
   }
 
   private static String buildConfigDescription(NetworkConfig conf) {
