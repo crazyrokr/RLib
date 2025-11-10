@@ -62,7 +62,8 @@ public abstract class AbstractNetworkPacketReader<
   final ByteBuffer pendingBuffer;
 
   final Runnable updateActivityFunction;
-  final Consumer<? super R> packetHandler;
+  final Consumer<? super R> validPacketHandler;
+  final Consumer<? super R> invalidPacketHandler;
 
   @Getter(AccessLevel.PROTECTED)
   @Setter(AccessLevel.PROTECTED)
@@ -74,13 +75,15 @@ public abstract class AbstractNetworkPacketReader<
   protected AbstractNetworkPacketReader(
       C connection,
       Runnable updateActivityFunction,
-      Consumer<? super R> packetHandler,
+      Consumer<? super R> validPacketHandler,
+      Consumer<? super R> invalidPacketHandler,
       int maxPacketsByRead) {
     this.connection = connection;
     this.readBuffer = connection.bufferAllocator().takeReadBuffer();
     this.pendingBuffer = connection.bufferAllocator().takePendingBuffer();
     this.updateActivityFunction = updateActivityFunction;
-    this.packetHandler = packetHandler;
+    this.validPacketHandler = validPacketHandler;
+    this.invalidPacketHandler = invalidPacketHandler;
     this.maxPacketsByRead = maxPacketsByRead;
   }
 
@@ -321,10 +324,9 @@ public abstract class AbstractNetworkPacketReader<
 
   protected void readAndHandlePacket(ByteBuffer bufferToRead, int remainingDataLength, R packetInstance) {
     if (packetInstance.read(connection, bufferToRead, remainingDataLength)) {
-      packetHandler.accept(packetInstance);
+      validPacketHandler.accept(packetInstance);
     } else {
-      log.error(remoteAddress(), packetInstance,
-          "[%s] Packet:[%s] was read incorrectly"::formatted);
+      invalidPacketHandler.accept(packetInstance);
     }
   }
 

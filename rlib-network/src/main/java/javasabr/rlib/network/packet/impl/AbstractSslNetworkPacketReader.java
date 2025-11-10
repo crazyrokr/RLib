@@ -50,11 +50,12 @@ public abstract class AbstractSslNetworkPacketReader<
   protected AbstractSslNetworkPacketReader(
       C connection,
       Runnable updateActivityFunction,
-      Consumer<? super R> readPacketHandler,
+      Consumer<? super R> validPacketHandler,
+      Consumer<? super R> invalidPacketHandler,
       SSLEngine sslEngine,
       Consumer<WritableNetworkPacket<C>> packetWriter,
       int maxPacketsByRead) {
-    super(connection, updateActivityFunction, readPacketHandler, maxPacketsByRead);
+    super(connection, updateActivityFunction, validPacketHandler, invalidPacketHandler, maxPacketsByRead);
     BufferAllocator bufferAllocator = connection.bufferAllocator();
     this.sslEngine = sslEngine;
     this.sslDataBuffer = bufferAllocator.takeBuffer(sslEngine

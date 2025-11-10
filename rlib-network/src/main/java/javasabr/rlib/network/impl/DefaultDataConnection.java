@@ -44,7 +44,8 @@ public abstract class DefaultDataConnection<C extends DefaultDataConnection<C>>
     return new DefaultNetworkPacketReader<>(
         (C) this,
         this::updateLastActivity,
-        this::handleReceivedPacket,
+        this::handleReceivedValidPacket,
+        this::handleReceivedInvalidPacket,
         value -> createReadablePacket(),
         packetLengthHeaderSize,
         maxPacketsByRead);

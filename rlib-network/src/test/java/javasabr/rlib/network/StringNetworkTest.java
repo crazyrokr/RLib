@@ -119,7 +119,7 @@ public class StringNetworkTest extends BaseNetworkTest {
       StringDataConnection serverToClient = testNetwork.serverToClient;
 
       var pendingPacketsOnServer = serverToClient
-          .receivedPackets(RECEIVED_PACKET_TYPE)
+          .receivedValidPackets(RECEIVED_PACKET_TYPE)
           .buffer(packetCount);
 
       List<String> messages = IntStream
@@ -165,7 +165,7 @@ public class StringNetworkTest extends BaseNetworkTest {
       StringDataConnection serverToClient = testNetwork.serverToClient;
 
       var pendingPacketsOnServer = serverToClient
-          .receivedPackets(RECEIVED_PACKET_TYPE)
+          .receivedValidPackets(RECEIVED_PACKET_TYPE)
           .doOnNext(packet ->
               log.info(packet.data().length(), "Received [%s] symbols from client"::formatted))
           .buffer(packetCount);
@@ -223,7 +223,7 @@ public class StringNetworkTest extends BaseNetworkTest {
       StringDataConnection serverToClient = testNetwork.serverToClient;
 
       var pendingPacketsOnServer = serverToClient
-          .receivedPackets(RECEIVED_PACKET_TYPE)
+          .receivedValidPackets(RECEIVED_PACKET_TYPE)
           .doOnNext(packet ->
               log.info(packet.data().length(), "Received [%s] symbols from client"::formatted))
           .buffer(packetCount);
@@ -352,7 +352,7 @@ public class StringNetworkTest extends BaseNetworkTest {
     var connectedClients = new CountDownLatch(clientCount);
 
     serverNetwork.onAccept(connection -> {
-      connection.onReceive((con, packet) -> {
+      connection.onReceiveValidPacket((con, packet) -> {
         receivedPacketsOnServer.incrementAndGet();
         con.send(newMessage(minMessageLength, maxMessageLength));
       });
@@ -371,7 +371,7 @@ public class StringNetworkTest extends BaseNetworkTest {
         .stream()
         .map(ClientNetwork::currentConnection)
         .filter(Objects::nonNull)
-        .peek(connection -> connection.onReceive((con, packet) -> {
+        .peek(connection -> connection.onReceiveValidPacket((con, packet) -> {
           receivedPacketsOnClients.incrementAndGet();
           counter.countDown();
         }))
@@ -403,7 +403,7 @@ public class StringNetworkTest extends BaseNetworkTest {
       StringDataConnection serverToClient = testNetwork.serverToClient;
 
       var pendingPacketsOnServer = serverToClient
-          .receivedPackets()
+          .receivedValidPackets()
           .buffer(packetCount);
 
       List<CompletableFuture<Boolean>> asyncResults = IntStream

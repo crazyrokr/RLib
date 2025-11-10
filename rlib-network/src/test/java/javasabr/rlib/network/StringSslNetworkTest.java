@@ -293,7 +293,7 @@ public class StringSslNetworkTest extends BaseNetworkTest {
       StringDataSslConnection serverToClient = testNetwork.serverToClient;
 
       var pendingPacketsOnServer = serverToClient
-          .receivedPackets()
+          .receivedValidPackets()
           .doOnNext(packet -> log.info("Received from client: " + packet))
           .buffer(packetCount);
 

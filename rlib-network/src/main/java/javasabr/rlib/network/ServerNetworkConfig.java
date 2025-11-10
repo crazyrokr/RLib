@@ -82,21 +82,4 @@ public interface ServerNetworkConfig extends NetworkConfig {
   default int scheduledThreadGroupSize() {
     return 1;
   }
-
-
-  /**
-   * Get a thread constructor which should be used to create network threads.
-   */
-  default ThreadConstructor threadConstructor() {
-    return Thread::new;
-  }
-
-  /**
-   * Get a priority of network threads.
-   *
-   * @return the priority of network threads.
-   */
-  default int threadPriority() {
-    return Thread.NORM_PRIORITY;
-  }
 }

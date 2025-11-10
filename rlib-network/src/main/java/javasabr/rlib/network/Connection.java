@@ -13,10 +13,10 @@ import reactor.core.publisher.Flux;
  */
 public interface Connection<C extends Connection<C>> {
 
-  record ReceivedPacketEvent<C, R>(C connection, R packet) {
+  record ReceivedPacketEvent<C, R>(C connection, R packet, boolean valid) {
     @Override
     public String toString() {
-      return "[" + connection + "|" + packet + ']';
+      return "[" + connection + '|' + packet + '|' + valid + ']';
     }
   }
 
@@ -53,9 +53,14 @@ public interface Connection<C extends Connection<C>> {
   CompletableFuture<Boolean> sendWithFeedback(WritableNetworkPacket<C> packet);
 
   /**
-   * Register a consumer to handle received packets.
+   * Register a consumer to handle received valid packets.
    */
-  void onReceive(BiConsumer<C, ? super ReadableNetworkPacket<C>> consumer);
+  void onReceiveValidPacket(BiConsumer<C, ? super ReadableNetworkPacket<C>> consumer);
+
+  /**
+   * Register a consumer to handle received invalid packets.
+   */
+  void onReceiveInvalidPacket(BiConsumer<C, ? super ReadableNetworkPacket<C>> consumer);
 
   /**
    * Get a stream of received packet events.
@@ -72,15 +77,29 @@ public interface Connection<C extends Connection<C>> {
   }
 
   /**
-   * Get a stream of received packets.
+   * Get a stream of received valid packets.
    */
-  Flux<? extends ReadableNetworkPacket<C>> receivedPackets();
+  Flux<? extends ReadableNetworkPacket<C>> receivedValidPackets();
 
   /**
-   * Get a stream of received packets with expected type.
+   * Get a stream of received invalid packets.
    */
-  default <R extends ReadableNetworkPacket<C>> Flux<R> receivedPackets(Class<R> packetType) {
-    return receivedPackets()
+  Flux<? extends ReadableNetworkPacket<C>> receivedInvalidPackets();
+
+  /**
+   * Get a stream of received valid packets with expected type.
+   */
+  default <R extends ReadableNetworkPacket<C>> Flux<R> receivedValidPackets(Class<R> packetType) {
+    return receivedValidPackets()
+        .filter(packetType::isInstance)
+        .map(networkPacket -> (R) networkPacket);
+  }
+
+  /**
+   * Get a stream of received invalid packets with expected type.
+   */
+  default <R extends ReadableNetworkPacket<C>> Flux<R> receivedInvalidPackets(Class<R> packetType) {
+    return receivedInvalidPackets()
         .filter(packetType::isInstance)
         .map(networkPacket -> (R) networkPacket);
   }

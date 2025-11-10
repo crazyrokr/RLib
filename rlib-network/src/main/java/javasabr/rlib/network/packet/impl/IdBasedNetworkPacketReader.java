@@ -24,12 +24,13 @@ public class IdBasedNetworkPacketReader<
   public IdBasedNetworkPacketReader(
       C connection,
       Runnable updateActivityFunction,
-      Consumer<R> packetHandler,
+      Consumer<? super R> validPacketHandler,
+      Consumer<? super R> invalidPacketHandler,
       int packetLengthHeaderSize,
       int maxPacketsByRead,
       int packetIdHeaderSize,
       ReadableNetworkPacketRegistry<R, C> packetRegistry) {
-    super(connection, updateActivityFunction, packetHandler, maxPacketsByRead);
+    super(connection, updateActivityFunction, validPacketHandler, invalidPacketHandler, maxPacketsByRead);
     this.packetLengthHeaderSize = packetLengthHeaderSize;
     this.packetIdHeaderSize = packetIdHeaderSize;
     this.packetRegistry = packetRegistry;

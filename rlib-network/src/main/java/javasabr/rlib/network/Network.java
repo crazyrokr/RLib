@@ -13,6 +13,8 @@ public interface Network<C extends Connection<C>> {
 
   NetworkConfig config();
 
+  void inNetworkThread(Runnable task);
+
   /**
    * Shutdown this network.
    */

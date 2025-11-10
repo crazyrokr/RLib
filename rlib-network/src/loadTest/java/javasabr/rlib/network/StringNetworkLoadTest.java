@@ -41,7 +41,7 @@ public class StringNetworkLoadTest {
 
     String clientId = "Client_%s".formatted(ID_FACTORY.incrementAndGet());
     NetworkConfig networkConfig = NetworkConfig.SimpleNetworkConfig.builder()
-        .groupName(clientId)
+        .threadGroupName(clientId)
         .writeBufferSize(256)
         .readBufferSize(256)
         .pendingBufferSize(512)
@@ -67,7 +67,7 @@ public class StringNetworkLoadTest {
         ThreadUtils.sleep(random.nextInt(5000));
         StringDataConnection connection = network.connect(serverAddress);
 
-        connection.onReceive((serverConnection, packet) -> statistics
+        connection.onReceiveValidPacket((serverConnection, packet) -> statistics
             .receivedServerPackersPerSecond()
             .accumulate(1));
 
@@ -141,7 +141,7 @@ public class StringNetworkLoadTest {
     InetSocketAddress serverAddress = serverNetwork.start();
 
     serverNetwork.onAccept(accepted -> accepted
-        .onReceive((connection, packet) -> {
+        .onReceiveValidPacket((connection, packet) -> {
           StringReadableNetworkPacket<StringDataConnection> receivedPacket = (StringReadableNetworkPacket<StringDataConnection>) packet;
           statistics
               .receivedClientPackersPerSecond()
