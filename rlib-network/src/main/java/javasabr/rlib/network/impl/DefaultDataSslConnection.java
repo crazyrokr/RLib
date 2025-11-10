@@ -45,7 +45,8 @@ public abstract class DefaultDataSslConnection<C extends DefaultDataSslConnectio
     return new DefaultSslNetworkPacketReader<>(
         (C) this,
         this::updateLastActivity,
-        this::handleReceivedPacket,
+        this::handleReceivedValidPacket,
+        this::handleReceivedInvalidPacket,
         value -> createReadablePacket(),
         sslEngine,
         this::sendImpl,

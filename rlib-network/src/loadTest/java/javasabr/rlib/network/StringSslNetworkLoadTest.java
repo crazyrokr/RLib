@@ -70,7 +70,7 @@ public class StringSslNetworkLoadTest {
         ThreadUtils.sleep(random.nextInt(5000));
         StringDataSslConnection connection = network.connect(serverAddress);
 
-        connection.onReceive((serverConnection, packet) -> statistics
+        connection.onReceiveValidPacket((serverConnection, packet) -> statistics
             .receivedServerPackersPerSecond()
             .accumulate(1));
 
@@ -150,7 +150,7 @@ public class StringSslNetworkLoadTest {
     InetSocketAddress serverAddress = serverNetwork.start();
 
     serverNetwork.onAccept(accepted -> accepted
-        .onReceive((connection, packet) -> {
+        .onReceiveValidPacket((connection, packet) -> {
           StringReadableNetworkPacket<StringDataSslConnection> receivedPacket = (StringReadableNetworkPacket<StringDataSslConnection>) packet;
           statistics
               .receivedClientPackersPerSecond()

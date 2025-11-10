@@ -59,12 +59,20 @@ public class BaseNetworkTest {
     }
 
     @Override
-    public Flux receivedPackets() {
+    public Flux<? extends ReadableNetworkPacket<MockConnection>> receivedValidPackets() {
       return Flux.empty();
     }
 
     @Override
-    public void onReceive(BiConsumer consumer) {}
+    public Flux<? extends ReadableNetworkPacket<MockConnection>> receivedInvalidPackets() {
+      return Flux.empty();
+    }
+
+    @Override
+    public void onReceiveValidPacket(BiConsumer<MockConnection, ? super ReadableNetworkPacket<MockConnection>> consumer) {}
+
+    @Override
+    public void onReceiveInvalidPacket(BiConsumer<MockConnection, ? super ReadableNetworkPacket<MockConnection>> consumer) {}
   }
 
   public static final MockConnection MOCK_CONNECTION = new MockConnection();

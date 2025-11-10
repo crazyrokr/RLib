@@ -25,7 +25,8 @@ public class DefaultSslNetworkPacketReader<
   public DefaultSslNetworkPacketReader(
       C connection,
       Runnable updateActivityFunction,
-      Consumer<R> packetHandler,
+      Consumer<? super R> validPacketHandler,
+      Consumer<? super R> invalidPacketHandler,
       IntFunction<R> packetResolver,
       SSLEngine sslEngine,
       Consumer<WritableNetworkPacket<C>> packetWriter,
@@ -34,7 +35,8 @@ public class DefaultSslNetworkPacketReader<
     super(
         connection,
         updateActivityFunction,
-        packetHandler,
+        validPacketHandler,
+        invalidPacketHandler,
         sslEngine,
         packetWriter,
         maxPacketsByRead);

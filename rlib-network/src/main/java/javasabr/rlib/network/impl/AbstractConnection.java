@@ -62,7 +62,8 @@ public abstract class AbstractConnection<C extends AbstractConnection<C>> implem
   final StampedLock lock;
   final AtomicBoolean closed;
 
-  final MutableArray<BiConsumer<C, ? super ReadableNetworkPacket<C>>> subscribers;
+  final MutableArray<BiConsumer<C, ? super ReadableNetworkPacket<C>>> validPacketSubscribers;
+  final MutableArray<BiConsumer<C, ? super ReadableNetworkPacket<C>>> invalidPacketSubscribers;
 
   final int maxPacketsByRead;
 
@@ -81,7 +82,8 @@ public abstract class AbstractConnection<C extends AbstractConnection<C>> implem
     this.pendingPackets = DequeFactory.arrayBasedBased(WritableNetworkPacket.class);
     this.network = network;
     this.closed = new AtomicBoolean(false);
-    this.subscribers = ArrayFactory.copyOnModifyArray(BiConsumer.class);
+    this.validPacketSubscribers = ArrayFactory.copyOnModifyArray(BiConsumer.class);
+    this.invalidPacketSubscribers = ArrayFactory.copyOnModifyArray(BiConsumer.class);
     this.remoteAddress = String.valueOf(NetworkUtils.getRemoteAddress(channel));
   }
 
@@ -93,8 +95,14 @@ public abstract class AbstractConnection<C extends AbstractConnection<C>> implem
   protected abstract NetworkPacketWriter packetWriter();
 
   @Override
-  public void onReceive(BiConsumer<C, ? super ReadableNetworkPacket<C>> consumer) {
-    subscribers.add(consumer);
+  public void onReceiveValidPacket(BiConsumer<C, ? super ReadableNetworkPacket<C>> consumer) {
+    validPacketSubscribers.add(consumer);
+    packetReader().startRead();
+  }
+
+  @Override
+  public void onReceiveInvalidPacket(BiConsumer<C, ? super ReadableNetworkPacket<C>> consumer) {
+    invalidPacketSubscribers.add(consumer);
     packetReader().startRead();
   }
 
@@ -104,26 +112,43 @@ public abstract class AbstractConnection<C extends AbstractConnection<C>> implem
   }
 
   @Override
-  public Flux<? extends ReadableNetworkPacket<C>> receivedPackets() {
-    return Flux.create(this::registerFluxOnReceivedPackets);
+  public Flux<? extends ReadableNetworkPacket<C>> receivedValidPackets() {
+    return Flux.create(this::registerFluxOnReceivedValidPackets);
+  }
+
+  @Override
+  public Flux<? extends ReadableNetworkPacket<C>> receivedInvalidPackets() {
+    return Flux.create(this::registerFluxOnReceivedInvalidPackets);
   }
 
   protected void registerFluxOnReceivedEvents(
       FluxSink<ReceivedPacketEvent<C, ? extends ReadableNetworkPacket<C>>> sink) {
 
-    BiConsumer<C, ReadableNetworkPacket<C>> listener =
+    BiConsumer<C, ReadableNetworkPacket<C>> validListener =
       (connection, packet) -> sink.next(new ReceivedPacketEvent<>(connection,
-        packet));
+        packet, true));
+    BiConsumer<C, ReadableNetworkPacket<C>> invalidListener =
+        (connection, packet) -> sink.next(new ReceivedPacketEvent<>(connection,
+            packet, true));
 
-    onReceive(listener);
 
-    sink.onDispose(() -> subscribers.remove(listener));
+    onReceiveValidPacket(validListener);
+    onReceiveInvalidPacket(invalidListener);
+
+    sink.onDispose(() -> validPacketSubscribers.remove(validListener));
+    sink.onDispose(() -> invalidPacketSubscribers.remove(invalidListener));
   }
 
-  protected void registerFluxOnReceivedPackets(FluxSink<? super ReadableNetworkPacket<C>> sink) {
+  protected void registerFluxOnReceivedValidPackets(FluxSink<? super ReadableNetworkPacket<C>> sink) {
     BiConsumer<C, ReadableNetworkPacket<C>> listener = (connection, packet) -> sink.next(packet);
-    onReceive(listener);
-    sink.onDispose(() -> subscribers.remove(listener));
+    onReceiveValidPacket(listener);
+    sink.onDispose(() -> validPacketSubscribers.remove(listener));
+  }
+
+  protected void registerFluxOnReceivedInvalidPackets(FluxSink<? super ReadableNetworkPacket<C>> sink) {
+    BiConsumer<C, ReadableNetworkPacket<C>> listener = (connection, packet) -> sink.next(packet);
+    onReceiveInvalidPacket(listener);
+    sink.onDispose(() -> invalidPacketSubscribers.remove(listener));
   }
 
   @Nullable
@@ -169,9 +194,16 @@ public abstract class AbstractConnection<C extends AbstractConnection<C>> implem
 
   protected void serializedPacket(WritableNetworkPacket<?> packet) {}
 
-  protected void handleReceivedPacket(ReadableNetworkPacket<C> packet) {
-    log.debug(packet, remoteAddress, "Handle received packet:[%s] from:[%s]"::formatted);
-    subscribers
+  protected void handleReceivedValidPacket(ReadableNetworkPacket<C> packet) {
+    log.debug(packet, remoteAddress, "Handle received valid packet:[%s] from:[%s]"::formatted);
+    validPacketSubscribers
+        .iterations()
+        .forEach((C) this, packet, BiConsumer::accept);
+  }
+
+  protected void handleReceivedInvalidPacket(ReadableNetworkPacket<C> packet) {
+    log.debug(packet, remoteAddress, "Handle failed received packet:[%s] from:[%s]"::formatted);
+    invalidPacketSubscribers
         .iterations()
         .forEach((C) this, packet, BiConsumer::accept);
   }

@@ -50,7 +50,8 @@ public class IdBasedPacketConnection<C extends IdBasedPacketConnection<C>> exten
     return new IdBasedNetworkPacketReader<>(
         (C) this,
         this::updateLastActivity,
-        this::handleReceivedPacket,
+        this::handleReceivedValidPacket,
+        this::handleReceivedInvalidPacket,
         packetLengthHeaderSize,
         maxPacketsByRead,
         packetIdHeaderSize,

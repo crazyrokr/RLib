@@ -23,11 +23,12 @@ public class DefaultNetworkPacketReader<
   public DefaultNetworkPacketReader(
       C connection,
       Runnable updateActivityFunction,
-      Consumer<R> packetHandler,
+      Consumer<? super R> validPacketHandler,
+      Consumer<? super R> invalidPacketHandler,
       IntFunction<R> readablePacketFactory,
       int packetLengthHeaderSize,
       int maxPacketsByRead) {
-    super(connection, updateActivityFunction, packetHandler, maxPacketsByRead);
+    super(connection, updateActivityFunction, validPacketHandler, invalidPacketHandler, maxPacketsByRead);
     this.readablePacketFactory = readablePacketFactory;
     this.packetLengthHeaderSize = packetLengthHeaderSize;
   }

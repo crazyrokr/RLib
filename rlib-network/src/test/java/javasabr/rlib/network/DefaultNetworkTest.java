@@ -263,7 +263,7 @@ public class DefaultNetworkTest extends BaseNetworkTest {
       DefaultConnection serverToClient = testNetwork.serverToClient;
 
       var pendingPacketsOnServer = serverToClient
-          .receivedPackets()
+          .receivedValidPackets()
           .buffer(packetCount);
 
       List<String> messages = IntStream
