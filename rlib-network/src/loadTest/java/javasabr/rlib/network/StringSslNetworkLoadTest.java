@@ -44,7 +44,7 @@ public class StringSslNetworkLoadTest {
 
     String clientId = "Client_%s".formatted(ID_FACTORY.incrementAndGet());
     NetworkConfig networkConfig = NetworkConfig.SimpleNetworkConfig.builder()
-        .groupName(clientId)
+        .threadGroupName(clientId)
         .writeBufferSize(256)
         .readBufferSize(256)
         .pendingBufferSize(512)
